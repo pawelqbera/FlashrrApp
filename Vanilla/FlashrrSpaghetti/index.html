@@ -3,17 +3,28 @@
 <head>
 	<title>Flashrr | Vanilla | Spaghetti</title>
 	<meta charset="utf-8" />
+	<link rel="stylesheet" href="style.css">
 </head>
 <body>
-	<header>
-		<h1>Flashrr | Vanilla Spaghetti</h1>
-	</header>
-	<section id="peopleModule">
-		<h2>Cards</h2>
-		<input type="text" placeholder="name">
-		<button>Add Card</button>
-		<ul></ul>	
-	</section>
+    <div class="page" id="pageWrapper">
+      <header>
+        <nav>
+          <ul>
+            <li><a href="#" class="logo">Flashrr</a></li>
+            <li><a id="createCardBtn" class="btn btn-primary create-card">Create Card</a></li>
+            <li><span id="cardCounter" class="card-counter"></span> Cards</li>
+          </ul>
+          <ul class="right-nav">
+            <li><input class="search-cards" type="text" placeholder="Search cards"></li>
+          </ul>
+        </nav>
+      </header>
+      <div class="section-wrapper">
+        <section id="cards-module">
+          
+        </section>
+      </div>
+    </div>
 
 	<script src="app.js"></script>	
 </body>

@@ -1,0 +1,102 @@
+body {
+    overflow-y: hidden;
+    padding: 0;
+    margin: 0;
+}
+
+a {
+	cursor: pointer;
+}
+
+ul,
+ol {
+    margin: 0;
+}
+
+ul li {
+    list-style: none;
+}
+
+header {
+    display: inline-block;
+
+    width: 100%;
+
+    color: #e0f2f1;
+    background: #004d40;
+}
+
+nav ul li {
+    float: left;
+
+    margin-right: 18px;
+}
+
+	nav {
+		padding: 14px 0;
+		width: 100%;
+		display: inline-block;
+	}
+
+	.logo {
+	    display: block;
+	}
+
+.right-nav {
+	float: right;
+	color: #004d40;
+}
+
+	.search-cards {
+
+	}
+
+	.view-mode {
+	    padding: 4px 0;		
+	}
+
+.btn {
+	position: relative;
+	padding: 8px 30px;
+	border: 0;
+	margin: 10px 1px;
+	cursor: pointer;
+	border-radius: 2px;
+	text-transform: uppercase;
+	text-decoration: none;
+	color: rgba(255, 255, 255, 0.84);
+	transition: background-color 0.2s ease, box-shadow 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+	outline: none !important;
+}
+
+.btn-primary {
+	background-color: #009688;
+}
+
+.create-card-section {
+    position: relative;
+    margin: 12.5% auto;
+    width: 50%;
+    box-sizing: border-box;
+    background: #ddd;
+    border-radius: 14px;
+    padding: 50px;
+    height: 100%;
+    box-shadow:0px 0px 23px -3px #333;	
+}
+
+	.create-card-section div {
+		width: 100%;
+		padding: 25px 0;
+	}
+	
+	.create-card-section input[type="text"],
+	.create-card-section textarea {
+		width: 100%;
+	}
+
+	.create-card-section textarea {
+		height: 400px;
+		overflow-y: scroll;
+		resize: none;
+	}
