@@ -1,24 +1,47 @@
 var cards = JSON.parse(localStorage.getItem("Cards")),
-			/*[
-				{
-					id: 'CxHJ2',
-					title: 'how to write JS?',
-					text: 'To write Js, you should learn how to do it and practice constantly'
-				},				
-				{
-					id: 'ev349',
-					title: 'Przełączenie się z master na dany branch',
-					text: 'Wpisz taką komendę: $ git checkout nazwa_branch'
-				},
-			],*/
 	createCardBtn = document.getElementById("createCardBtn"),
 	pageWrapper = document.getElementById("pageWrapper"),
 	cardCounter = document.getElementById("cardCounter"),
-	cardsWrapper = document.getElementById("cardsWrapper");
+	cardsWrapper = document.getElementById("cardsWrapper"),
+	searchCards = document.getElementById("searchCards");
 
-createCardBtn.addEventListener('click', function(event){
-	openCardForm();
-});
+createCardBtn.addEventListener('click', openCardForm );
+document.addEventListener('click', removeCard );
+searchCards.addEventListener('keyup', searchCard );
+
+function searchCard(event) {
+	var searchValue = searchCards.value,
+		existingCards = JSON.parse(localStorage.getItem("Cards"));
+
+	displayCards();
+		
+	for(var i = 0; i < existingCards.length; i++) {
+		var obj = existingCards[i];
+		if(obj.title.indexOf(searchValue) === -1) {
+			var card = document.getElementById("cardMiniature" + obj.id);
+			card.parentNode.removeChild(card); 
+		}
+	}
+}
+
+function removeCard(event) {
+    var element = event.target;
+    if(hasClass(element, 'remove-card')) {
+        var parentId = element.parentNode.id.slice(-5),
+        	existingCards = JSON.parse(localStorage.getItem("Cards"));
+		
+		for(var i = 0; i < existingCards.length; i++) {
+			var obj = existingCards[i];
+			if(parentId.indexOf(obj.id) !== -1) {
+				existingCards.splice(i, 1);
+				break;
+			}
+		}
+		localStorage.setItem("Cards", JSON.stringify(existingCards));
+		displayCards();
+		countCards();        
+    }
+}
 
 function openCardForm() {
 	if (document.getElementById('createCardSection')) {
@@ -112,7 +135,7 @@ function buildCardMiniature(card) {
 	var html = '';
 		html += ' <h3>' + card.title + '</h3>';
 		html += ' <p>' + card.text + '</p>';
-		html += ' <p>' + card.id + '</p>';
+		html += ' <a class="remove-card">Remove</a>';
 
 	var tempCardMiniature = document.createElement('DIV');
 	tempCardMiniature.id = "cardMiniature" + card.id; 
@@ -121,7 +144,12 @@ function buildCardMiniature(card) {
 	cardsWrapper.appendChild(tempCardMiniature);
 }
 
-
 // Initialization
 displayCards();
 countCards();
+
+/* Utils */
+
+function hasClass(element, cls) {
+    return (' ' + element.className + ' ').indexOf(' ' + cls + ' ') > -1;
+}

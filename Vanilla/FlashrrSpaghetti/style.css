@@ -6,6 +6,11 @@ body {
 
 a {
 	cursor: pointer;
+	color: #4bbaf7;
+}
+
+a:hover {
+	text-decoration: underline;
 }
 
 ul,
@@ -131,3 +136,19 @@ nav ul li {
     margin: 1.5%;
     height: 200px;
 }
+
+	.card-miniature h3 {
+		height: 30px;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		margin: 0;
+	}
+
+	.card-miniature p {
+		height: 30px;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		margin: 0;
+	}
