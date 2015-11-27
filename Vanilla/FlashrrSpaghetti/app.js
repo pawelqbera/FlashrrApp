@@ -9,6 +9,11 @@ createCardBtn.addEventListener('click', openCardForm );
 document.addEventListener('click', removeCard );
 searchCards.addEventListener('keyup', searchCard );
 
+
+function getAttachments(event) {
+	console.log('Attached!');
+}
+
 function searchCard(event) {
 	var searchValue = searchCards.value,
 		existingCards = JSON.parse(localStorage.getItem("Cards"));
@@ -56,7 +61,7 @@ function openCardForm() {
 	html += '    <textarea id="cardText" name="cardText" placeholder="Card Text" required></textarea>';
 	html += '  	</div>';
 	html += '  	<div>';		
-	html += '    <input type="file" id="cardAttachment">';
+	html += '    <input type="file" id="cardAttachment" multiple>';
 	html += '  	</div>';
 	html += '  	<div>';		
 	html += '    <button>Create Card</button>';
@@ -70,7 +75,8 @@ function openCardForm() {
 	tempCardForm.innerHTML = html.trim();
 	pageWrapper.appendChild(tempCardForm);
 
-	var cancelCardCreate = document.getElementById("cancelCardCreate");
+	var cancelCardCreate = document.getElementById("cancelCardCreate"),
+		cardAttachment = document.getElementById("cardAttachment");
 	
 	cancelCardCreate.addEventListener('click', function(event){
 		closeCardForm();
@@ -80,6 +86,8 @@ function openCardForm() {
 		event.preventDefault();
 		createCard();
 	});
+
+	cardAttachment.addEventListener('change', getAttachments);
 }
 
 function closeCardForm() {
