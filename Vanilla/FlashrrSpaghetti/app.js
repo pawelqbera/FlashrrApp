@@ -10,10 +10,6 @@ document.addEventListener('click', removeCard );
 searchCards.addEventListener('keyup', searchCard );
 
 
-function getAttachments(event) {
-	console.log('Attached!');
-}
-
 function searchCard(event) {
 	var searchValue = searchCards.value,
 		existingCards = JSON.parse(localStorage.getItem("Cards"));
@@ -52,6 +48,7 @@ function openCardForm() {
 	if (document.getElementById('createCardSection')) {
 		return false;
 	}
+
 	var html = '';
 	html += '  <form id="createCardForm">';
 	html += '  	<div>';
@@ -63,6 +60,7 @@ function openCardForm() {
 	html += '  	<div>';		
 	html += '    <input type="file" id="cardAttachment" multiple>';
 	html += '  	</div>';
+	html += '  	<div id="thumbList" class="thumb-list"></div>';
 	html += '  	<div>';		
 	html += '    <button>Create Card</button>';
 	html += '    <a id="cancelCardCreate">Cancel</a>';
@@ -86,8 +84,37 @@ function openCardForm() {
 		event.preventDefault();
 		createCard();
 	});
+}
 
-	cardAttachment.addEventListener('change', getAttachments);
+function getAttachments(event) {
+	var files = event.target.files;
+
+	for (var i = 0, f; f = files[i]; i++) {
+
+		if (!f.type.match('image.*')) {
+			continue;
+		}
+
+		var reader = new FileReader();
+
+		// Closure to capture the file information.
+		reader.onload = (function(theFile) {
+			return function(e) {
+				// Render thumbnail.
+				var span = document.createElement('span');
+				span.innerHTML = ['<img class="thumb" src="', e.target.result,
+				'" title="', escape(theFile.name), '"/>'].join('');
+				var thumbList = document.getElementById("thumbList");
+				thumbList.insertBefore(span, null);
+				//localStorage.setItem('img', e.target.result);
+				//console.log('e.target.result ' + e.target.result);				
+			};
+		})(f);
+		// Read in the image file as a data URL.
+		reader.readAsDataURL(f);	
+	}
+
+	return files;
 }
 
 function closeCardForm() {
@@ -103,12 +130,13 @@ function countCards() {
 	count.nodeValue = existingCards.length;
 }
 
-function createCard() {
+function createCard(attachments) {
 	var form = document.forms[0],
 		card = {
 			id: makeid(),
 			title: cardTitle.value,
-			text: cardText.value
+			text: cardText.value,
+			files: files
 		},
 	    existingCards = JSON.parse(localStorage.getItem("Cards"));
     
