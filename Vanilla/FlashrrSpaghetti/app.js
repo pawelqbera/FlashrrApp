@@ -10,9 +10,8 @@ var cards = JSON.parse(localStorage.getItem("Cards")),
 var gridView = JSON.parse(localStorage.getItem("gridView"));
 
 createCardBtn.addEventListener('click', openCardForm );
-document.addEventListener('click', handleCardEvents );
+document.addEventListener('click', handleCardEvents, true);
 searchCards.addEventListener('keyup', searchCard );
-
 gridViewBtn.addEventListener('click', toggleView);
 listViewBtn.addEventListener('click', toggleView);
 
@@ -68,7 +67,9 @@ function handleCardEvents(event) {
         obj = null; 
 
     if(hasClass(element, 'remove-card')) {
-    	console.log(existingCards);
+		if (document.getElementById('viewCardSection')) {
+			closeCardView();
+		}
 		for(i = 0; i < existingCards.length; i++) {
 			obj = existingCards[i];
 			if(parentId.indexOf(obj.id) !== -1) {
@@ -80,6 +81,9 @@ function handleCardEvents(event) {
 		displayCards();
 		countCards();        
     } else if (hasClass(element, 'edit-card')) {
+		if (document.getElementById('viewCardSection')) {
+			closeCardView();
+		}
 		var editableCard = '';
 		for(i = 0; i < existingCards.length; i++) {
 			obj = existingCards[i];
@@ -92,7 +96,71 @@ function handleCardEvents(event) {
     } else if (hasClass(element, 'card-thumb')) {
 		var viewImg = window.open("", "Image Preview", "height=500,width=500");
 		viewImg.document.write('<img src="' + element.src + '" />');
+	} else if (hasClass(element, 'data-details')) {
+		var detailedCard = '';
+		for(i = 0; i < existingCards.length; i++) {
+			obj = existingCards[i];
+			if(parentId.indexOf(obj.id) !== -1) {
+				detailedCard = existingCards[i];
+				break;
+			}
+		}		
+		viewCard(event, detailedCard);
 	}
+}
+
+function viewCard(event, detailedCard) {
+	if (document.getElementById('viewCardSection')) {
+		return false;
+	}
+
+	var thumbs = '';
+
+	for (var i = 0; i < detailedCard.attachments.length; i++) {
+		thumbs += '<img src="' + detailedCard.attachments[i] + '" class="view-card-thumb" />';
+	}
+
+	var html = '';
+		html += '	<div id="viewCardForm">';
+		html += '		<span id="closeBtn" class="close-btn">X</span>';
+		html += '		<div>';
+		html += '			<h3>' + detailedCard.title + '</h3>';
+		html += '		</div>';
+		html += '		<div>';		
+		html += '			<p class="card-text">' + detailedCard.text + '</p>';
+		html += '		</div>';
+		html += '		<div class="view-thumb-list">' + thumbs + '</div>';
+		html += '		<div class="view-card-actions" id="actions' + detailedCard.id + '">';
+		html += '			<a class="edit-card">Edit</a>';		
+		html += '			<a class="remove-card">Remove</a>';
+		html += '		</div>';
+		html += '	</div>';
+
+	var tempCardForm = document.createElement('SECTION');
+	tempCardForm.id = "viewCardSection"; 
+	tempCardForm.className = "view-card-section"; 
+	tempCardForm.innerHTML = html.trim();
+	pageWrapper.appendChild(tempCardForm);
+
+	var fogBlanket = document.createElement('div');
+	fogBlanket.className = "fog-blanket";
+	fogBlanket.id = "fogBlanket";
+	pageWrapper.appendChild(fogBlanket);
+	
+	closeBtn.addEventListener('click', function(event) {
+		closeCardView();
+	});
+}
+
+function closeCardView() {
+	var viewCardForm = document.getElementById("viewCardForm").parentNode;
+	viewCardForm.parentNode.removeChild(viewCardForm);
+	closeFogBlanket(); 
+}
+
+function closeFogBlanket() {
+	var fogBlanket = document.getElementById("fogBlanket");
+	fogBlanket.parentNode.removeChild(fogBlanket);
 }
 
 function openCardForm(event, editableCard) {
@@ -108,28 +176,34 @@ function openCardForm(event, editableCard) {
 		attachments = [];
 
 	var html = '';
-	html += '	<form id="createCardForm">';
-	html += '		<div>';
-	html += '			<input type="text" id="cardTitle" name="cardTitle" value="' + cardTitle + '" placeholder="Card title" required>';
-	html += '		</div>';
-	html += '		<div>';		
-	html += '			<textarea id="cardText" name="cardText" placeholder="Card Text" required>' + cardText + '</textarea>';
-	html += '		</div>';
-	html += '		<div>';		
-	html += '			<input type="file" id="cardAttachment" class="card-attachment" multiple>';
-	html += '		</div>';
-	html += '		<div id="thumbList" class="thumb-list"></div>';
-	html += '		<div>';		
-	html += '			<button>' + cardFormSubmitLabel + '</button>';
-	html += '			<a id="cancelCardCreate">Cancel</a>';
-	html += '		</div>';
-	html += '	</form>';
+		html += '	<form id="createCardForm">';
+		html += '		<span id="closeBtn" class="close-btn">X</span>';		
+		html += '		<div>';
+		html += '			<input type="text" id="cardTitle" name="cardTitle" value="' + cardTitle + '" placeholder="Card title" required>';
+		html += '		</div>';
+		html += '		<div>';		
+		html += '			<textarea id="cardText" name="cardText" placeholder="Card Text" required>' + cardText + '</textarea>';
+		html += '		</div>';
+		html += '		<div>';		
+		html += '			<input type="file" id="cardAttachment" class="card-attachment" multiple>';
+		html += '		</div>';
+		html += '		<div id="thumbList" class="thumb-list"></div>';
+		html += '		<div>';		
+		html += '			<button>' + cardFormSubmitLabel + '</button>';
+		html += '			<a id="cancelCardCreate">Cancel</a>';
+		html += '		</div>';
+		html += '	</form>';
 
 	var tempCardForm = document.createElement('SECTION');
 	tempCardForm.id = "createCardSection"; 
 	tempCardForm.className = "create-card-section"; 
 	tempCardForm.innerHTML = html.trim();
 	pageWrapper.appendChild(tempCardForm);
+
+	var fogBlanket = document.createElement('div');
+	fogBlanket.className = "fog-blanket";
+	fogBlanket.id = "fogBlanket";	 
+	pageWrapper.appendChild(fogBlanket);
 
 	var cancelCardCreate = document.getElementById("cancelCardCreate"),
 		cardAttachment = document.getElementById("cardAttachment");
@@ -146,6 +220,10 @@ function openCardForm(event, editableCard) {
 	cardAttachment.addEventListener('change', function(event) {
 		getAttachments(event, attachments);
 	});
+
+	closeBtn.addEventListener('click', function(event) {
+		closeCardForm();
+	});	
 }
 
 function getAttachments(event, attachments) {
@@ -181,7 +259,8 @@ function getAttachments(event, attachments) {
 
 function closeCardForm() {
 	var createCardForm = document.getElementById("createCardForm").parentNode;
-	createCardForm.parentNode.removeChild(createCardForm); 
+	createCardForm.parentNode.removeChild(createCardForm);
+	closeFogBlanket();
 }
 
 function countCards() {
@@ -254,16 +333,18 @@ function buildCardMiniature(card) {
 	}
 
 	var html = '';
-		html += ' <div class="data-container" id="' + card.id + '">';
-		html += ' 	<h3>' + card.title + '</h3>';
-		html += ' 	<p>' + card.text + '</p>';
+		html += ' <div id="data-container' + card.id + '" class="data-container data-details">';
+		html += ' 	<h3 class="data-details">' + card.title + '</h3>';
+		html += ' 	<p class="data-details">' + card.text + '</p>';
+		html += ' 	<div class="thumbs-container data-details">';
+		html += ' 		<p>Attachments: ' + card.attachments.length + '</p>';
+		html += ' 		<div>' + thumbs + '</div>';
+		html += ' 	</div>';		
+		html += ' </div>';		
+		html += ' <div class="card-actions" id="actions' + card.id + '">';
+		html += ' 	<a class="edit-card">Edit</a>';		
 		html += ' 	<a class="remove-card">Remove</a>';
-		html += ' 	<a class="edit-card">Edit</a>';
-		html += ' </div>';
-		html += ' <div class="thumbs-container">';
-		html += ' 	<p>Attachments: ' + card.attachments.length + '</p>';
-		html += ' 	<div>' + thumbs + '</div>';
-		html += ' </div>';
+		html += ' </div>';		
 
 	var tempCardMiniature = document.createElement('DIV');
 	tempCardMiniature.id = "cardMiniature" + card.id; 

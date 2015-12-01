@@ -1,6 +1,7 @@
 body {
     padding: 0;
     margin: 0;
+    font-family: Arial;
 }
 
 a {
@@ -85,6 +86,14 @@ nav ul li {
 	background-color: #727272;
 }
 
+.close-btn {
+	position: absolute;
+	top: 25px;
+	right: 25px;
+	font-size: 20px;
+	cursor: pointer;
+}
+
 .fog-blanket {
 	background: #000 none repeat scroll 0% 0%;
 	height: 100%;
@@ -103,18 +112,19 @@ nav ul li {
 
 .create-card-section {
 	position: fixed;
-    width: 50%;
-    box-sizing: border-box;
-    background: #ddd;
-    border-radius: 14px;
-    padding: 50px;
-    box-shadow: 0px 0px 23px -3px #333;
-    top: 50%;
-    bottom: 12.5%;
-    overflow-y: scroll;
-    left: 50%;
-    margin-left: -25%;
-    margin-top: -25%;	
+	width: 50%;
+	box-sizing: border-box;
+	background: #ddd;
+	border-radius: 14px;
+	padding: 50px;
+	box-shadow: 0px 0px 23px -3px #333;
+	top: 50%;
+	bottom: 12.5%;
+	overflow: hidden;
+	left: 50%;
+	margin-left: -25%;
+	margin-top: -25%;
+	z-index: 3500;
 }
 
 	.create-card-section div {
@@ -128,23 +138,55 @@ nav ul li {
 	}
 
 	.create-card-section textarea {
-		height: 200px;
+		height: 300px;
 		overflow-y: scroll;
 		resize: none;
 	}
+
+.view-card-section {
+	position: fixed;
+	width: 50%;
+	box-sizing: border-box;
+	background: #fff;
+	border-radius: 14px;
+	padding: 50px;
+	box-shadow: 0px 0px 23px -3px #333;
+	top: 50%;
+	bottom: 12.5%;
+	overflow: hidden;
+	left: 50%;
+	margin-left: -25%;
+	margin-top: -25%;
+	z-index: 3500;
+}
+	
+	.view-card-section .card-text {
+		height: 465px;
+		overflow-y: scroll;
+	}
+
+	.view-thumb-list {
+		height: 80px;
+	}
+
+		.view-thumb-list img {
+			height: 60px;
+			margin: 10px;
+		}
 
 .card-miniature {
     float: left;
     box-shadow: 0px 0px 20px -5px #bbb;
     overflow: hidden;
 	box-sizing: border-box;
+	position: relative;
 }
 
 .grid-view .card-miniature {
-	width: 22%;
+	width: 23%;
     padding: 25px;
     border-radius: 20px;
-    margin: 1.5%;
+    margin: 1.5% 0 0 1.5%;
     height: 200px;
 }
 
@@ -156,13 +198,35 @@ nav ul li {
     height: 100px;
 }
 
+	.data-container {
+
+	}
+	
+	.data-container:hover {
+		cursor: pointer;
+		background: #efefef;
+		transition: all 0.5s ease-in-out;
+		-webkit-transition: all 0.5s ease-in-out;
+	}
+
 	.grid-view .data-container {
-		
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		box-sizing: border-box;
+		padding: 20px;
+		height: 100%;
 	}	
 
 	.list-view .data-container {
-		width: 70%;
-		float: left;
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		box-sizing: border-box;
+		padding: 20px;
+		height: 100%;
 	}	
 
 		.card-miniature h3 {
@@ -181,12 +245,19 @@ nav ul li {
 			margin: 0;
 		}
 
+	.thumbs-container {
+		font-size: 13px;
+	}
+
 	.grid-view .thumbs-container {
-		
+
 	}	
 
 	.list-view .thumbs-container {
-		height: 80px;
+		position: absolute;
+		top: 0;
+		right: 0;
+		padding: 0 12px 0 12px;
 	}
 
 		.card-thumb {
@@ -204,6 +275,33 @@ nav ul li {
 
 		.grid-view .card-thumb {
 			width: 40px;
+		}
+
+	.card-actions {
+		position: absolute;
+		bottom: 0;	
+		font-size: 12px;
+		box-sizing: border-box;		
+	}
+
+	.list-view .card-actions {
+		right: 0;
+		padding: 2px 10px;
+	}	
+
+	.grid-view .card-actions {
+		padding: 8px 10%;
+		background: #eee;
+		width: 100%;
+		left: 0;		
+	}
+
+		.remove-card {
+			float: right;
+		}
+
+		.list-view .remove-card {
+			margin-left: 20px;
 		}
 
 .thumb-list {
