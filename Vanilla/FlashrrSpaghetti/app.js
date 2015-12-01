@@ -3,12 +3,35 @@ var cards = JSON.parse(localStorage.getItem("Cards")),
 	pageWrapper = document.getElementById("pageWrapper"),
 	cardCounter = document.getElementById("cardCounter"),
 	cardsWrapper = document.getElementById("cardsWrapper"),
-	searchCards = document.getElementById("searchCards");
+	searchCards = document.getElementById("searchCards"),
+	listViewBtn = document.getElementById("listViewBtn"),
+	gridViewBtn = document.getElementById("gridViewBtn");
+
+var gridView = true;
 
 createCardBtn.addEventListener('click', openCardForm );
 document.addEventListener('click', removeCard );
 searchCards.addEventListener('keyup', searchCard );
 
+gridViewBtn.addEventListener('click', toggleView);
+listViewBtn.addEventListener('click', toggleView);
+
+function toggleView(event) {
+	var element = event.target;
+	if(hasClass(element, 'grid')) {
+		switchGridView();
+	} else {
+		switchListView();
+	}
+}
+
+function switchGridView() {
+	cardsWrapper.className = 'grid-view';
+}
+
+function switchListView() {
+	cardsWrapper.className = 'list-view';
+}
 
 function searchCard(event) {
 	var searchValue = searchCards.value,
@@ -135,8 +158,7 @@ function createCard(attachments) {
 		card = {
 			id: makeid(),
 			title: cardTitle.value,
-			text: cardText.value,
-			files: files
+			text: cardText.value
 		},
 	    existingCards = JSON.parse(localStorage.getItem("Cards"));
     

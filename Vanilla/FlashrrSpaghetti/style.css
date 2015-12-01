@@ -78,6 +78,10 @@ nav ul li {
 	background-color: #009688;
 }
 
+.btn-secondary {
+	background-color: #727272;
+}
+
 .fog-blanket {
 	background: #000 none repeat scroll 0% 0%;
 	height: 100%;
@@ -126,7 +130,7 @@ nav ul li {
 		resize: none;
 	}
 
-.card-miniature {
+.grid-view .card-miniature {
 	width: 22%;
     box-sizing: border-box;
     padding: 25px;
@@ -135,6 +139,17 @@ nav ul li {
     box-shadow: 0px 0px 20px -5px #bbb;
     margin: 1.5%;
     height: 200px;
+}
+
+.list-view .card-miniature {
+	width: 97%;
+    box-sizing: border-box;
+    padding: 15px;
+    border-radius: 14px;
+    float: left;
+    box-shadow: 0px 0px 20px -5px #bbb;
+    margin: 1.5%;
+    height: 100px;
 }
 
 	.card-miniature h3 {
@@ -164,3 +179,8 @@ nav ul li {
 		border: 1px solid #000;
 		margin: 10px 5px 0 0;
 	} 
+
+.switch-view {
+    padding: 8px 6px;
+    font-size: 12px;
+}
