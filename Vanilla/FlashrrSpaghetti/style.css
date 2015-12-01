@@ -46,6 +46,10 @@ nav ul li {
 	    display: block;
 	}
 
+		.logo img {
+			width: 68px;
+		}
+
 .right-nav {
 	float: right;
 	color: #004d40;
