@@ -7,7 +7,7 @@ var cards = JSON.parse(localStorage.getItem("Cards")),
 	listViewBtn = document.getElementById("listViewBtn"),
 	gridViewBtn = document.getElementById("gridViewBtn");
 
-var gridView = true;
+var gridView = JSON.parse(localStorage.getItem("gridView"));
 
 createCardBtn.addEventListener('click', openCardForm );
 document.addEventListener('click', removeCard );
@@ -16,9 +16,16 @@ searchCards.addEventListener('keyup', searchCard );
 gridViewBtn.addEventListener('click', toggleView);
 listViewBtn.addEventListener('click', toggleView);
 
-function toggleView(event) {
-	var element = event.target;
-	if(hasClass(element, 'grid')) {
+function toggleView() {
+	if(gridView) {
+		switchListView();
+	} else {
+		switchGridView();
+	}
+}
+
+function getView() {
+	if(gridView) {
 		switchGridView();
 	} else {
 		switchListView();
@@ -26,11 +33,15 @@ function toggleView(event) {
 }
 
 function switchGridView() {
+	gridView = true;
 	cardsWrapper.className = 'grid-view';
+	localStorage.setItem("gridView", JSON.stringify(true));
 }
 
 function switchListView() {
+	gridView = false;
 	cardsWrapper.className = 'list-view';
+	localStorage.setItem("gridView", JSON.stringify(false));
 }
 
 function searchCard(event) {
@@ -205,6 +216,7 @@ function buildCardMiniature(card) {
 // Initialization
 displayCards();
 countCards();
+getView();
 
 /* Utils */
 
