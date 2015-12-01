@@ -16,11 +16,12 @@ searchCards.addEventListener('keyup', searchCard );
 gridViewBtn.addEventListener('click', toggleView);
 listViewBtn.addEventListener('click', toggleView);
 
-function toggleView() {
-	if(gridView) {
-		switchListView();
-	} else {
+function toggleView(event) {
+	var element = event.target;
+	if (element.id === "gridViewBtn" && !gridView) {
 		switchGridView();
+	} else if (element.id === "listViewBtn" && gridView) {
+		switchListView();
 	}
 }
 
