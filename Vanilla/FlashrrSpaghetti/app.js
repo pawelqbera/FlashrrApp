@@ -67,7 +67,8 @@ function handleCardEvents(event) {
         i = null,
         obj = null; 
 
-    if(hasClass(element, 'remove-card')) {	
+    if(hasClass(element, 'remove-card')) {
+    	console.log(existingCards);
 		for(i = 0; i < existingCards.length; i++) {
 			obj = existingCards[i];
 			if(parentId.indexOf(obj.id) !== -1) {
@@ -88,7 +89,10 @@ function handleCardEvents(event) {
 			}
 		}
     	openCardForm(event, editableCard);
-    }
+    } else if (hasClass(element, 'card-thumb')) {
+		var viewImg = window.open("", "Image Preview", "height=500,width=500");
+		viewImg.document.write('<img src="' + element.src + '" />');
+	}
 }
 
 function openCardForm(event, editableCard) {
@@ -100,7 +104,8 @@ function openCardForm(event, editableCard) {
 		cardTitle = editableCard ? editableCard.title : "",
 		cardText = editableCard ? editableCard.text : "",
 		cardFormSubmitLabel = editableCard ? "Update Card" : "Create Card",
-		updatedCardId = editableCard ? editableCard.id : null;
+		updatedCardId = editableCard ? editableCard.id : null,
+		attachments = [];
 
 	var html = '';
 	html += '	<form id="createCardForm">';
@@ -111,7 +116,7 @@ function openCardForm(event, editableCard) {
 	html += '			<textarea id="cardText" name="cardText" placeholder="Card Text" required>' + cardText + '</textarea>';
 	html += '		</div>';
 	html += '		<div>';		
-	html += '			<input type="file" id="cardAttachment" multiple>';
+	html += '			<input type="file" id="cardAttachment" class="card-attachment" multiple>';
 	html += '		</div>';
 	html += '		<div id="thumbList" class="thumb-list"></div>';
 	html += '		<div>';		
@@ -129,17 +134,21 @@ function openCardForm(event, editableCard) {
 	var cancelCardCreate = document.getElementById("cancelCardCreate"),
 		cardAttachment = document.getElementById("cardAttachment");
 	
-	cancelCardCreate.addEventListener('click', function(event){
+	cancelCardCreate.addEventListener('click', function(event) {
 		closeCardForm();
 	});
 
-	createCardForm.addEventListener('submit', function(event){
+	createCardForm.addEventListener('submit', function(event) {
 		event.preventDefault();
-		createCard(updatedCardId);
+		createCard(updatedCardId, attachments);
+	});
+
+	cardAttachment.addEventListener('change', function(event) {
+		getAttachments(event, attachments);
 	});
 }
 
-function getAttachments(event) {
+function getAttachments(event, attachments) {
 	var files = event.target.files;
 
 	for (var i = 0, f; f = files[i]; i++) {
@@ -160,14 +169,14 @@ function getAttachments(event) {
 				var thumbList = document.getElementById("thumbList");
 				thumbList.insertBefore(span, null);
 				//localStorage.setItem('img', e.target.result);
-				//console.log('e.target.result ' + e.target.result);				
+				attachments.push(e.target.result);
 			};
 		})(f);
 		// Read in the image file as a data URL.
 		reader.readAsDataURL(f);	
 	}
 
-	return files;
+	return attachments;
 }
 
 function closeCardForm() {
@@ -183,12 +192,16 @@ function countCards() {
 	count.nodeValue = existingCards.length;
 }
 
-function createCard(updatedCardId) {
+function createCard(updatedCardId, attachments) {
+	
+	console.log('attachments ' + attachments.length);
+
 	var form = document.forms[0],
 		card = {
 			id: updatedCardId || makeid(),
 			title: cardTitle.value,
-			text: cardText.value
+			text: cardText.value,
+			attachments: attachments
 		},
 	    existingCards = JSON.parse(localStorage.getItem("Cards"));
     
@@ -233,12 +246,24 @@ function displayCards() {
 	existingCards.forEach(buildCardMiniature);
 }
 
-function buildCardMiniature(card) {
+function buildCardMiniature(card) {	
+	var thumbs = '';
+
+	for (var i = 0; i < card.attachments.length; i++) {
+		thumbs += '<img src="' + card.attachments[i] + '" class="card-thumb" />';
+	}
+
 	var html = '';
-		html += ' <h3>' + card.title + '</h3>';
-		html += ' <p>' + card.text + '</p>';
-		html += ' <a class="remove-card">Remove</a>';
-		html += ' <a class="edit-card">Edit</a>';
+		html += ' <div class="data-container" id="' + card.id + '">';
+		html += ' 	<h3>' + card.title + '</h3>';
+		html += ' 	<p>' + card.text + '</p>';
+		html += ' 	<a class="remove-card">Remove</a>';
+		html += ' 	<a class="edit-card">Edit</a>';
+		html += ' </div>';
+		html += ' <div class="thumbs-container">';
+		html += ' 	<p>Attachments: ' + card.attachments.length + '</p>';
+		html += ' 	<div>' + thumbs + '</div>';
+		html += ' </div>';
 
 	var tempCardMiniature = document.createElement('DIV');
 	tempCardMiniature.id = "cardMiniature" + card.id; 

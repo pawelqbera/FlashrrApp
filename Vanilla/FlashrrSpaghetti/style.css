@@ -129,45 +129,78 @@ nav ul li {
 		resize: none;
 	}
 
-.grid-view .card-miniature {
-	width: 22%;
-    box-sizing: border-box;
-    padding: 25px;
-    border-radius: 20px;
+.card-miniature {
     float: left;
     box-shadow: 0px 0px 20px -5px #bbb;
+    overflow: hidden;
+	box-sizing: border-box;
+}
+
+.grid-view .card-miniature {
+	width: 22%;
+    padding: 25px;
+    border-radius: 20px;
     margin: 1.5%;
     height: 200px;
 }
 
 .list-view .card-miniature {
 	width: 97%;
-    box-sizing: border-box;
     padding: 15px;
     border-radius: 14px;
-    float: left;
-    box-shadow: 0px 0px 20px -5px #bbb;
     margin: 10px 1.5%;
     height: 100px;
 }
 
-	.card-miniature h3 {
-		height: 30px;
-		overflow: hidden;
-		white-space: nowrap;
-		text-overflow: ellipsis;
-		margin: 0;
+	.grid-view .data-container {
+		
+	}	
+
+	.list-view .data-container {
+		width: 70%;
+		float: left;
+	}	
+
+		.card-miniature h3 {
+			height: 30px;
+			overflow: hidden;
+			white-space: nowrap;
+			text-overflow: ellipsis;
+			margin: 0;
+		}
+
+		.card-miniature p {
+			height: 30px;
+			overflow: hidden;
+			white-space: nowrap;
+			text-overflow: ellipsis;
+			margin: 0;
+		}
+
+	.grid-view .thumbs-container {
+		
+	}	
+
+	.list-view .thumbs-container {
+		height: 80px;
 	}
 
-	.card-miniature p {
-		height: 30px;
-		overflow: hidden;
-		white-space: nowrap;
-		text-overflow: ellipsis;
-		margin: 0;
-	}
+		.card-thumb {
+			margin-right: 10px;
+			float: left;
+		}
 
+		.card-thumb:hover {
+			cursor: pointer;
+		}
 
+		.list-view .card-thumb {
+			height: 50px;
+		}
+
+		.grid-view .card-thumb {
+			width: 40px;
+		}
 
 .thumb-list {
 
