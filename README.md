@@ -2,11 +2,15 @@
 Flashrr is a knowledge management tool that helps you organize data in the clear form of flashcard collections
 
 # WHYS
-The goal is to create an example web app in many possible ways starting off from filthy and messy vanilla JavaScript spaghetti, by gradually refactoring, adding libraries and design patterns, and ending with a full stack of apps built using the most popular frameworks. Long way to go!
+The goal is to create an example web app in many possible ways starting off from filthy and messy vanilla JavaScript spaghetti, continue by gradually refactoring and adding design patterns and libraries, to finally end up with a full stack web apps built with the most popular frameworks. 
+
+Long way to go!
 
 # Installation
 
-## Vanilla versions can simply be downloaded and run locally as they are. After creating a local copy, navigate to a single project main folder and run the index.html in the browser. Super-easy.
+## Vanilla versions 
+
+All the versions in 'Vanilla' directory can simply be downloaded and run locally as they are. After creating a local copy, navigate to a single project main folder and run the index.html in the browser. Super-easy.
 
 # Changelog
 
