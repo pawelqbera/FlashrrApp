@@ -10,7 +10,7 @@ var cards = JSON.parse(localStorage.getItem("Cards")),
 var gridView = JSON.parse(localStorage.getItem("gridView"));
 
 createCardBtn.addEventListener('click', openCardForm );
-document.addEventListener('click', removeCard );
+document.addEventListener('click', handleCardEvents );
 searchCards.addEventListener('keyup', searchCard );
 
 gridViewBtn.addEventListener('click', toggleView);
@@ -60,14 +60,16 @@ function searchCard(event) {
 	}
 }
 
-function removeCard(event) {
-    var element = event.target;
-    if(hasClass(element, 'remove-card')) {
-        var parentId = element.parentNode.id.slice(-5),
-        	existingCards = JSON.parse(localStorage.getItem("Cards"));
-		
-		for(var i = 0; i < existingCards.length; i++) {
-			var obj = existingCards[i];
+function handleCardEvents(event) {
+    var element = event.target,
+        parentId = element.parentNode.id.slice(-5),
+        existingCards = JSON.parse(localStorage.getItem("Cards")),
+        i = null,
+        obj = null; 
+
+    if(hasClass(element, 'remove-card')) {	
+		for(i = 0; i < existingCards.length; i++) {
+			obj = existingCards[i];
 			if(parentId.indexOf(obj.id) !== -1) {
 				existingCards.splice(i, 1);
 				break;
@@ -76,31 +78,47 @@ function removeCard(event) {
 		localStorage.setItem("Cards", JSON.stringify(existingCards));
 		displayCards();
 		countCards();        
+    } else if (hasClass(element, 'edit-card')) {
+		var editableCard = '';
+		for(i = 0; i < existingCards.length; i++) {
+			obj = existingCards[i];
+			if(parentId.indexOf(obj.id) !== -1) {
+				editableCard = existingCards[i];
+				break;
+			}
+		}
+    	openCardForm(event, editableCard);
     }
 }
 
-function openCardForm() {
+function openCardForm(event, editableCard) {
 	if (document.getElementById('createCardSection')) {
 		return false;
 	}
 
+	var editMode = editableCard ? true : false,
+		cardTitle = editableCard ? editableCard.title : "",
+		cardText = editableCard ? editableCard.text : "",
+		cardFormSubmitLabel = editableCard ? "Update Card" : "Create Card",
+		updatedCardId = editableCard ? editableCard.id : null;
+
 	var html = '';
-	html += '  <form id="createCardForm">';
-	html += '  	<div>';
-	html += '    <input type="text" id="cardTitle" name="cardTitle" placeholder="Card title" required>';
-	html += '  	</div>';
-	html += '  	<div>';		
-	html += '    <textarea id="cardText" name="cardText" placeholder="Card Text" required></textarea>';
-	html += '  	</div>';
-	html += '  	<div>';		
-	html += '    <input type="file" id="cardAttachment" multiple>';
-	html += '  	</div>';
-	html += '  	<div id="thumbList" class="thumb-list"></div>';
-	html += '  	<div>';		
-	html += '    <button>Create Card</button>';
-	html += '    <a id="cancelCardCreate">Cancel</a>';
-	html += '  	</div>';
-	html += '  </form>';
+	html += '	<form id="createCardForm">';
+	html += '		<div>';
+	html += '			<input type="text" id="cardTitle" name="cardTitle" value="' + cardTitle + '" placeholder="Card title" required>';
+	html += '		</div>';
+	html += '		<div>';		
+	html += '			<textarea id="cardText" name="cardText" placeholder="Card Text" required>' + cardText + '</textarea>';
+	html += '		</div>';
+	html += '		<div>';		
+	html += '			<input type="file" id="cardAttachment" multiple>';
+	html += '		</div>';
+	html += '		<div id="thumbList" class="thumb-list"></div>';
+	html += '		<div>';		
+	html += '			<button>' + cardFormSubmitLabel + '</button>';
+	html += '			<a id="cancelCardCreate">Cancel</a>';
+	html += '		</div>';
+	html += '	</form>';
 
 	var tempCardForm = document.createElement('SECTION');
 	tempCardForm.id = "createCardSection"; 
@@ -117,7 +135,7 @@ function openCardForm() {
 
 	createCardForm.addEventListener('submit', function(event){
 		event.preventDefault();
-		createCard();
+		createCard(updatedCardId);
 	});
 }
 
@@ -165,10 +183,10 @@ function countCards() {
 	count.nodeValue = existingCards.length;
 }
 
-function createCard(attachments) {
+function createCard(updatedCardId) {
 	var form = document.forms[0],
 		card = {
-			id: makeid(),
+			id: updatedCardId || makeid(),
 			title: cardTitle.value,
 			text: cardText.value
 		},
@@ -177,8 +195,22 @@ function createCard(attachments) {
     if(existingCards === null) {
     	existingCards = [];
     }
+    // jeżeli jest editMode czyli updatedCardId
+	// znajdź index i czyli który element existingCards posiada id = updatedCardId
+	// ten element ma się równać - card
+	if (updatedCardId) {
+		for(var i = 0; i < existingCards.length; i++) {
+			var obj = existingCards[i];
+			if(updatedCardId.indexOf(obj.id) !== -1) {
+				existingCards[i] = card;
+				break;
+			}
+		}
+	}
+	else {
+		existingCards.push(card);	
+	}
 
-	existingCards.push(card);
 	localStorage.setItem("Cards", JSON.stringify(existingCards));
 
 	closeCardForm();
@@ -206,6 +238,7 @@ function buildCardMiniature(card) {
 		html += ' <h3>' + card.title + '</h3>';
 		html += ' <p>' + card.text + '</p>';
 		html += ' <a class="remove-card">Remove</a>';
+		html += ' <a class="edit-card">Edit</a>';
 
 	var tempCardMiniature = document.createElement('DIV');
 	tempCardMiniature.id = "cardMiniature" + card.id; 
