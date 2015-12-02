@@ -7,11 +7,10 @@ var cards = JSON.parse(localStorage.getItem("Cards")),
 	listViewBtn = document.getElementById("listViewBtn"),
 	gridViewBtn = document.getElementById("gridViewBtn"),
 	topicSelect = document.getElementById("topicSelect"),
-	hiUserName = document.getElementById("hiUserName"),
-	topics = ['JavaScript', 'Design Patterns', 'NodeJS', 'jQuery', 'CSS', 'Building Web Apps'];
+	hiUserName = document.getElementById("hiUserName");
 
 var gridView = JSON.parse(localStorage.getItem("gridView"));
-//var topics = JSON.parse(localStorage.getItem("topics"));
+var topics = JSON.parse(localStorage.getItem("topics"));
 
 createCardBtn.addEventListener('click', openCardForm );
 document.addEventListener('click', handleCardEvents, true);
@@ -19,6 +18,7 @@ searchCards.addEventListener('keyup', searchCard );
 gridViewBtn.addEventListener('click', toggleView);
 listViewBtn.addEventListener('click', toggleView);
 hiUserName.addEventListener('click', openUserNameForm );
+topicSelect.addEventListener('change', selectCardsByTopic);
 
 function openUserNameForm() {
 	if (document.getElementById('userNameSection')) {
@@ -60,7 +60,6 @@ function openUserNameForm() {
 		closeUserNameForm();
 		greetUser();
 	});
-	
 }
 
 function greetUser() {
@@ -71,14 +70,97 @@ function greetUser() {
 function getTopics() {
 	var topicOptions = '';
 	for (var i = 0; i < topics.length; i++) {
-		topicOptions += '<option>' + topics[i] + '</option>';
+		topicOptions += '<option value="' + i + '">' + topics[i] + '</option>';
 	}
 	var html = '';
-		html += '	<option selected="selected">select topic</option>';
+		html += '	<option value="-1" selected="selected">select topic</option>';
 		html += topicOptions;
-		html += '	<option value="newTopic">ADD NEW TOPIC</option>';
+		html += '	<option value="addNewTopic">ADD NEW TOPIC</option>';
 	topicSelect.innerHTML = html;
 }
+
+function selectCardsByTopic(event) {
+	var element = event.target;
+	if (element.value === '-1') {
+		displayCards();
+	} else if (element.value === 'addNewTopic') {
+		openTopicForm();
+	} else {
+		var existingCards = JSON.parse(localStorage.getItem("Cards"));
+		displayCards();			
+		for(var i = 0; i < existingCards.length; i++) {
+			var obj = existingCards[i];
+			if(obj.topic.indexOf(topics[element.value]) === -1) {
+				var card = document.getElementById("cardMiniature" + obj.id);
+				card.parentNode.removeChild(card); 
+			}
+		}
+	}
+}
+
+function openTopicForm() {
+	if (document.getElementById('topicSection')) {
+		return false;
+	}
+
+	var html = '';
+		html += '	<form id="topicForm">';
+		html += '		<span id="closeBtn" class="close-btn">X</span>';
+		html += '		<div>';
+		html += '			<input type="text" id="topicName" name="topicName" placeholder="enter new topic" required>';
+		html += '		</div>';
+		html += '		<div id="topicValidationBox"></div>';		
+		html += '		<div>';
+		html += '			<button>Add Topic</button>';
+		html += '			<a id="cancelTopicEdit">Cancel</a>';
+		html += '		</div>';
+		html += '	</form>';
+
+	var topicForm = document.createElement('SECTION');
+	topicForm.id = "topicSection"; 
+	topicForm.className = "topic-section"; 
+	topicForm.innerHTML = html.trim();
+	pageWrapper.appendChild(topicForm);
+
+	var fogBlanket = document.createElement('div');
+	fogBlanket.className = "fog-blanket";
+	fogBlanket.id = "fogBlanket";
+	pageWrapper.appendChild(fogBlanket);
+	
+	closeBtn.addEventListener('click', function(event) {
+		closeTopicForm();
+	});
+
+	topicForm.addEventListener('submit', function(event) {
+		event.preventDefault();
+		var topicValidationBox = document.getElementById('topicValidationBox'),
+			newTopicForm = document.getElementById('topicForm'),
+			newTopic = topicName.value;
+		for(var i=0; i < topics.length;i++) {
+			if(newTopic.indexOf(topics[i]) !== -1) {
+				topicValidationBox.innerHTML = '<p class="validation-message">Specified topic alreadt exists!</p>';
+				newTopicForm.reset();
+				return false;
+			}
+		}
+		topics.push(newTopic);
+		localStorage.setItem("topics", JSON.stringify(topics));
+		closeTopicForm();
+		getTopics();
+	});
+
+	function topicFormValidate() {
+		
+	}
+}
+
+function closeTopicForm() {
+	var topicForm = document.getElementById("topicForm").parentNode;
+	topicForm.parentNode.removeChild(topicForm);
+	topicSelect.getElementsByTagName('option')[0].selected = 'selected';
+	closeFogBlanket();	
+}
+
 
 function toggleView(event) {
 	var element = event.target;
@@ -171,6 +253,16 @@ function handleCardEvents(event) {
 			}
 		}		
 		viewCard(event, detailedCard);
+	} else if (hasClass(element, 'fog-blanket')) {
+		if (document.getElementById('createCardSection')) {
+			closeCardForm();
+		} else if (document.getElementById('viewCardSection')) {
+			closeCardView();
+		} else if (document.getElementById('userNameSection')) {		
+			closeUserNameForm();
+		} else if (document.getElementById('topicSection')) {		
+			closeTopicForm();
+		}
 	}
 }
 

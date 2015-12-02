@@ -120,7 +120,8 @@ nav ul li {
 		visibility: visible;
 	}
 
-.user-name-section {
+.user-name-section,
+.topic-section {
 	position: fixed;
 	width: 25%;
 	box-sizing: border-box;
@@ -137,12 +138,14 @@ nav ul li {
 	z-index: 3500;
 }
 
-	.user-name-section div {
+	.user-name-section div,
+	.topic-section div {
 		width: 100%;
 		padding: 15px 0;
 	}
 
-	.user-name-section input[type="text"] {
+	.user-name-section input[type="text"],
+	.topic-section input[type="text"] {
 		width: 100%;
 	}		
 
