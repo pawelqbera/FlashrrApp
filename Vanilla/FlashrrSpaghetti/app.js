@@ -5,15 +5,80 @@ var cards = JSON.parse(localStorage.getItem("Cards")),
 	cardsWrapper = document.getElementById("cardsWrapper"),
 	searchCards = document.getElementById("searchCards"),
 	listViewBtn = document.getElementById("listViewBtn"),
-	gridViewBtn = document.getElementById("gridViewBtn");
+	gridViewBtn = document.getElementById("gridViewBtn"),
+	topicSelect = document.getElementById("topicSelect"),
+	hiUserName = document.getElementById("hiUserName"),
+	topics = ['JavaScript', 'Design Patterns', 'NodeJS', 'jQuery', 'CSS', 'Building Web Apps'];
 
 var gridView = JSON.parse(localStorage.getItem("gridView"));
+//var topics = JSON.parse(localStorage.getItem("topics"));
 
 createCardBtn.addEventListener('click', openCardForm );
 document.addEventListener('click', handleCardEvents, true);
 searchCards.addEventListener('keyup', searchCard );
 gridViewBtn.addEventListener('click', toggleView);
 listViewBtn.addEventListener('click', toggleView);
+hiUserName.addEventListener('click', openUserNameForm );
+
+function openUserNameForm() {
+	if (document.getElementById('userNameSection')) {
+		return false;
+	}
+
+	var userNameValue = JSON.parse(localStorage.getItem("userName"));
+
+	var html = '';
+		html += '	<form id="userNameForm">';
+		html += '		<span id="closeBtn" class="close-btn">X</span>';
+		html += '		<div>';
+		html += '			<input type="text" id="userName" name="userName" value="' + userNameValue + '" placeholder="enter your name">';
+		html += '		</div>';
+		html += '		<div>';
+		html += '			<button>Change Name</button>';
+		html += '			<a id="cancelUserNameEdit">Cancel</a>';
+		html += '		</div>';
+		html += '	</form>';
+
+	var userNameForm = document.createElement('SECTION');
+	userNameForm.id = "userNameSection"; 
+	userNameForm.className = "user-name-section"; 
+	userNameForm.innerHTML = html.trim();
+	pageWrapper.appendChild(userNameForm);
+
+	var fogBlanket = document.createElement('div');
+	fogBlanket.className = "fog-blanket";
+	fogBlanket.id = "fogBlanket";
+	pageWrapper.appendChild(fogBlanket);
+	
+	closeBtn.addEventListener('click', function(event) {
+		closeUserNameForm();
+	});
+
+	userNameForm.addEventListener('submit', function(event) {
+		event.preventDefault();
+		localStorage.setItem("userName", JSON.stringify(userName.value));
+		closeUserNameForm();
+		greetUser();
+	});
+	
+}
+
+function greetUser() {
+	var userName = JSON.parse(localStorage.getItem("userName"));
+	hiUserName.innerHTML = userName || 'Guest';
+}
+
+function getTopics() {
+	var topicOptions = '';
+	for (var i = 0; i < topics.length; i++) {
+		topicOptions += '<option>' + topics[i] + '</option>';
+	}
+	var html = '';
+		html += '	<option selected="selected">select topic</option>';
+		html += topicOptions;
+		html += '	<option value="newTopic">ADD NEW TOPIC</option>';
+	topicSelect.innerHTML = html;
+}
 
 function toggleView(event) {
 	var element = event.target;
@@ -125,6 +190,7 @@ function viewCard(event, detailedCard) {
 		html += '		<span id="closeBtn" class="close-btn">X</span>';
 		html += '		<div>';
 		html += '			<h3>' + detailedCard.title + '</h3>';
+		html += '			<p class="topic">in: ' + detailedCard.topic + '</p>';
 		html += '		</div>';
 		html += '		<div>';		
 		html += '			<p class="card-text">' + detailedCard.text + '</p>';
@@ -158,6 +224,12 @@ function closeCardView() {
 	closeFogBlanket(); 
 }
 
+function closeUserNameForm() {
+	var userNameForm = document.getElementById("userNameForm").parentNode;
+	userNameForm.parentNode.removeChild(userNameForm);
+	closeFogBlanket(); 	
+}
+
 function closeFogBlanket() {
 	var fogBlanket = document.getElementById("fogBlanket");
 	fogBlanket.parentNode.removeChild(fogBlanket);
@@ -173,11 +245,21 @@ function openCardForm(event, editableCard) {
 		cardText = editableCard ? editableCard.text : "",
 		cardFormSubmitLabel = editableCard ? "Update Card" : "Create Card",
 		updatedCardId = editableCard ? editableCard.id : null,
-		attachments = [];
+		attachments = [],
+		cardTopics = '';
+	
+	for (var i = 0; i < topics.length; i++) {
+		cardTopics += '<option>' + topics[i] + '</option>';
+	}
+	
 
 	var html = '';
 		html += '	<form id="createCardForm">';
 		html += '		<span id="closeBtn" class="close-btn">X</span>';		
+		html += '		<div>';
+		html += '			<label for="cardTopic">Select Topic</label>';
+		html += '			<select id="cardTopic" required>' + cardTopics + '</select>';
+		html += '		</div>';
 		html += '		<div>';
 		html += '			<input type="text" id="cardTitle" name="cardTitle" value="' + cardTitle + '" placeholder="Card title" required>';
 		html += '		</div>';
@@ -278,6 +360,7 @@ function createCard(updatedCardId, attachments) {
 	var form = document.forms[0],
 		card = {
 			id: updatedCardId || makeid(),
+			topic: cardTopic.value,
 			title: cardTitle.value,
 			text: cardText.value,
 			attachments: attachments
@@ -335,6 +418,7 @@ function buildCardMiniature(card) {
 	var html = '';
 		html += ' <div id="data-container' + card.id + '" class="data-container data-details">';
 		html += ' 	<h3 class="data-details">' + card.title + '</h3>';
+		html += ' 	<p class="topic data-details">in: ' + card.topic + '</p>';
 		html += ' 	<p class="data-details">' + card.text + '</p>';
 		html += ' 	<div class="thumbs-container data-details">';
 		html += ' 		<p>Attachments: ' + card.attachments.length + '</p>';
@@ -357,6 +441,8 @@ function buildCardMiniature(card) {
 displayCards();
 countCards();
 getView();
+getTopics();
+greetUser();
 
 /* Utils */
 

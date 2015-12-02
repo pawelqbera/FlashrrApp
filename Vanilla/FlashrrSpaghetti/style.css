@@ -64,6 +64,16 @@ nav ul li {
 	    padding: 4px 0;		
 	}
 
+	.greet-user {
+		color: #fff;
+		font-size: 16px;
+	}
+
+		.greet-user span {
+			font-weight: 600;
+			cursor: pointer;
+		}
+
 .btn {
 	position: relative;
 	padding: 8px 30px;
@@ -110,6 +120,32 @@ nav ul li {
 		visibility: visible;
 	}
 
+.user-name-section {
+	position: fixed;
+	width: 25%;
+	box-sizing: border-box;
+	background: #ddd;
+	border-radius: 14px;
+	padding: 50px;
+	box-shadow: 0px 0px 23px -3px #333;
+	top: 75%;
+	bottom: 37.5%;
+	overflow: hidden;
+	left: 62.5%;
+	margin-left: -25%;
+	margin-top: -25%;
+	z-index: 3500;
+}
+
+	.user-name-section div {
+		width: 100%;
+		padding: 15px 0;
+	}
+
+	.user-name-section input[type="text"] {
+		width: 100%;
+	}		
+
 .create-card-section {
 	position: fixed;
 	width: 50%;
@@ -129,7 +165,7 @@ nav ul li {
 
 	.create-card-section div {
 		width: 100%;
-		padding: 25px 0;
+		padding: 15px 0;
 	}
 	
 	.create-card-section input[type="text"],
@@ -138,7 +174,7 @@ nav ul li {
 	}
 
 	.create-card-section textarea {
-		height: 300px;
+		height: 260px;
 		overflow-y: scroll;
 		resize: none;
 	}
@@ -161,7 +197,7 @@ nav ul li {
 }
 	
 	.view-card-section .card-text {
-		height: 465px;
+		height: 425px;
 		overflow-y: scroll;
 	}
 
@@ -227,7 +263,12 @@ nav ul li {
 		box-sizing: border-box;
 		padding: 20px;
 		height: 100%;
-	}	
+	}
+
+		.topic {
+			font-size: 12px;
+			font-style: italic;
+		}
 
 		.card-miniature h3 {
 			height: 30px;
