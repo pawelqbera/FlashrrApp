@@ -1,8 +1,15 @@
 var gridView = JSON.parse(localStorage.getItem("gridView")) || true,
 	topics = JSON.parse(localStorage.getItem("topics")) || [],
-	defaultCollection = {name: 'default_collection', description: 'initial collection to start off', topics: [], cards: []},
+	defaultCollection = {
+		id: 'xxxxx',
+		name: 'default_collection', 
+		description: 'initial collection to start off', 
+		topics: [], 
+		cards: []
+	},
 	collections = JSON.parse(localStorage.getItem("Collections")) || [defaultCollection],
-	userName = JSON.parse(localStorage.getItem("userName")) || 'Guest';
+	userName = JSON.parse(localStorage.getItem("userName")) || 'Guest',
+	selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
 
 var createCardBtn = document.getElementById("createCardBtn"),
 	pageWrapper = document.getElementById("pageWrapper"),
@@ -14,20 +21,6 @@ var createCardBtn = document.getElementById("createCardBtn"),
 	topicSelect = document.getElementById("topicSelect"),
 	hiUserName = document.getElementById("hiUserName"),
 	collectionSelect = document.getElementById("collectionSelect");
-
-// testowe do usunięcia
-/*var collections = [{ 
-	name: "front-end development", 
-	description: "learning front end dev skills", 
-	topics: ["JavaScript","Design Patterns","CSS", "HTML"],
-	cards: []
-},
-{ 
-	name: "life hacking", 
-	description: "everyday life hacks and coaching", 
-	topics: ["Career","Motivation","Coaching"],
-	cards: []
-}];*/
 
 createCardBtn.addEventListener('click', openCardForm );
 document.addEventListener('click', handleCardEvents, true);
@@ -45,7 +38,7 @@ collectionSelect.addEventListener('change', selectCollection);
 function handleCardEvents(event) {
     var element = event.target,
         parentId = element.parentNode.id ? element.parentNode.id.slice(-5) : '',
-        existingCards = JSON.parse(localStorage.getItem("Cards")),
+        existingCards = selectedCollection.cards,
         i = null,
         obj = null;
 
@@ -175,7 +168,8 @@ function createCollection(updatedCollectionId) {
 			description: collectionDescription.value,
 			author: userName,
 			date: date.getTime(),
-			topics: 'default_topic'
+			topics: 'default_topic',
+			cards: []
 		},
 		existingCollections = JSON.parse(localStorage.getItem("Collections"));
 
@@ -263,15 +257,11 @@ function selectCollection(event) {
 	} else if (element.value === 'addNewCollection') {
 		openCollectionForm();
 	} else {
-		var existingCollections = collections;
 		//displayCards();			
-		for(var i = 0; i < existingCollections.length; i++) {		
-			var obj = existingCollections[i];
-			if(obj.name.indexOf(collections[element.value]) !== -1) {
-				console.log('znalazlem chce wyswietlic');
-				displayCards(collection);
-			}
-		}
+		selectedCollection = collections[element.value];
+		localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
+		displayCards(selectedCollection);
+		countCards();
 	}
 }
 
@@ -684,9 +674,19 @@ function closeCardForm() {
 }
 
 function countCards() {
-	cardCounter.innerHTML = '';
-	var existingCards = JSON.parse(localStorage.getItem("Cards")) || [],
+	var selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value;
+
+	console.log(selectedCollectionIndex);
+
+	var index = selectedCollectionIndex !== "-1" ? selectedCollectionIndex : 0;
+
+		
+	console.log(index);
+	console.log(collections[0].cards);
+
+		var existingCards = collections[index].cards,
 		count = document.createTextNode(existingCards.length);
+	cardCounter.innerHTML = '';
 	cardCounter.appendChild(count);
 	count.nodeValue = existingCards.length;
 }
@@ -704,7 +704,8 @@ function createCard(updatedCardId, attachments) {
 			date: date.getTime(),
 			isFlashcard: flashcardCheck.checked
 		},
-	    existingCards = JSON.parse(localStorage.getItem("Cards"));
+selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value;
+existingCards = collections[selectedCollectionIndex].cards;
     
     if(existingCards === null) {
     	existingCards = [];
@@ -721,10 +722,10 @@ function createCard(updatedCardId, attachments) {
 	else {
 		existingCards.push(card);	
 	}
-	localStorage.setItem("Cards", JSON.stringify(existingCards));
-	closeCardForm();
+	localStorage.setItem("Collections", JSON.stringify(collections));
 	displayCards();
 	countCards();
+	closeCardForm();
 }
 
 function makeid()
@@ -737,16 +738,7 @@ function makeid()
 }
 
 function displayCards(collection) {
-	var selectedCollection = collection || [],
-		existingCollections = JSON.parse(localStorage.getItem("Collections")) || defaultCollection,
-		selectedCards = [];
-
-	for (i=0;i<existingCollections.length;i++) {
-		if (existingCollections[i].id.indexOf(selectedCollection.id) !== -1) {
-			selectedCards = existingCollections[i].cards;
-		}
-	}
-
+	selectedCards = selectedCollection.cards;
 	cardsWrapper.innerHTML = '';
 	selectedCards.forEach(buildCardMiniature);
 }
