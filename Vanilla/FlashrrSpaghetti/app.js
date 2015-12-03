@@ -580,7 +580,7 @@ function buildCardMiniature(card) {
 		relativeDate = now.getTime() - card.date;
 
 	if(relativeDate < 60000) {
-		timeString = 'just ';
+		timeString = 'just';
 	} else if (relativeDate < 3600000) {
 		timeString = (Math.floor(relativeDate / 60000)) + ' minutes ago';
 	} else if (relativeDate < 86400000) {
