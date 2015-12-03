@@ -187,6 +187,11 @@ nav ul li {
 		font-size: 12px;
 	}
 
+	.create-card-section label {
+		font-size: 13px;
+		cursor: pointer;
+	}
+
 .view-card-section {
 	position: fixed;
 	width: 50%;
@@ -242,6 +247,10 @@ nav ul li {
     height: 100px;
 }
 
+	.flashcard {
+		background-color: #FFF59D;
+	}
+
 	.data-container {
 
 	}
@@ -278,13 +287,17 @@ nav ul li {
 			font-style: italic;
 		}
 
-		.card-miniature h3 {
+		.card-miniature .note h3 {
 			height: 30px;
 			overflow: hidden;
 			white-space: nowrap;
 			text-overflow: ellipsis;
 			margin: 0;
 		}
+
+		.card-miniature .flashcard h3 {
+
+		}		
 
 		.card-miniature p {
 			height: 30px;

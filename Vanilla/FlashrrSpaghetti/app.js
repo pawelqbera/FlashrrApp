@@ -355,6 +355,10 @@ function openCardForm(event, editableCard) {
 		html += '			<input type="file" id="cardAttachment" class="card-attachment" multiple>';
 		html += '		</div>';
 		html += '		<div id="thumbList" class="thumb-list"></div>';
+		html += '		<div>';
+		html += '			<input type="checkbox" id="flashcardCheck">';
+		html += '			<label for="flashcardCheck">Flashcard</label>';		
+		html += '		</div>';				
 		html += '		<div>';		
 		html += '			<button>' + cardFormSubmitLabel + '</button>';
 		html += '			<a id="cancelCardCreate">Cancel</a>';
@@ -376,7 +380,14 @@ function openCardForm(event, editableCard) {
 		cardAttachment = document.getElementById("cardAttachment"),
 		cardTopic = document.getElementById("cardTopic"),
 		addTopicLink = document.getElementById("addTopicLink"),
-		cardTopicWrapper = document.getElementById("cardTopicWrapper");
+		cardTopicWrapper = document.getElementById("cardTopicWrapper"),
+		flashcardCheck = document.getElementById("flashcardCheck");
+
+	if(editableCard.isFlashcard) {
+		flashcardCheck.checked = true;
+	} else {
+		flashcardCheck.checked = false;
+	}
 	
 	getCardFormTopics();
 
@@ -523,7 +534,8 @@ function createCard(updatedCardId, attachments) {
 			text: cardText.value,
 			attachments: attachments,
 			author: userName,
-			date: date.getTime()
+			date: date.getTime(),
+			isFlashcard: flashcardCheck.checked
 		},
 	    existingCards = JSON.parse(localStorage.getItem("Cards"));
     
@@ -589,11 +601,15 @@ function buildCardMiniature(card) {
 		timeString = (Math.floor(relativeDate / 86400000)) + ' days ago';
 	}
 
+	var flashcardClass = card.isFlashcard ? 'flashcard' : 'note';
+
 	var html = '';
-		html += ' <div id="data-container' + card.id + '" class="data-container data-details">';
+		html += ' <div id="data-container' + card.id + '" class="data-container data-details ' + flashcardClass +'">';
 		html += ' 	<h3 class="data-details">' + card.title + '</h3>';
 		html += ' 	<p class="topic data-details">' + timeString + ', in: ' + card.topic + ' by ' + card.author + '</p>';
-		html += ' 	<p class="data-details">' + card.text + '</p>';
+		if(!card.isFlashcard) {		
+			html += ' 	<p class="data-details">' + card.text + '</p>';
+		}
 		html += ' 	<div class="thumbs-container data-details">';
 		html += ' 		<p>Attachments: ' + card.attachments.length + '</p>';
 		html += ' 		<div>' + thumbs + '</div>';
@@ -602,7 +618,7 @@ function buildCardMiniature(card) {
 		html += ' <div class="card-actions" id="actions' + card.id + '">';
 		html += ' 	<a class="edit-card">Edit</a>';		
 		html += ' 	<a class="remove-card">Remove</a>';
-		html += ' </div>';		
+		html += ' </div>';
 
 	var tempCardMiniature = document.createElement('DIV');
 	tempCardMiniature.id = "cardMiniature" + card.id; 
