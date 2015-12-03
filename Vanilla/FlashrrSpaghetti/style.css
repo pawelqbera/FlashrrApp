@@ -182,6 +182,11 @@ nav ul li {
 		resize: none;
 	}
 
+	.add-topic-link {
+		margin-left: 12px;
+		font-size: 12px;
+	}
+
 .view-card-section {
 	position: fixed;
 	width: 50%;

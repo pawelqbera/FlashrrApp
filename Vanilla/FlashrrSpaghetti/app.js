@@ -1,5 +1,9 @@
-var cards = JSON.parse(localStorage.getItem("Cards")),
-	createCardBtn = document.getElementById("createCardBtn"),
+var gridView = JSON.parse(localStorage.getItem("gridView")) || true,
+	topics = JSON.parse(localStorage.getItem("topics")) || [],
+	cards = JSON.parse(localStorage.getItem("Cards")) || [],
+	userName = JSON.parse(localStorage.getItem("userName")) || 'Guest';
+
+var createCardBtn = document.getElementById("createCardBtn"),
 	pageWrapper = document.getElementById("pageWrapper"),
 	cardCounter = document.getElementById("cardCounter"),
 	cardsWrapper = document.getElementById("cardsWrapper"),
@@ -8,9 +12,6 @@ var cards = JSON.parse(localStorage.getItem("Cards")),
 	gridViewBtn = document.getElementById("gridViewBtn"),
 	topicSelect = document.getElementById("topicSelect"),
 	hiUserName = document.getElementById("hiUserName");
-
-var gridView = JSON.parse(localStorage.getItem("gridView"));
-var topics = JSON.parse(localStorage.getItem("topics"));
 
 createCardBtn.addEventListener('click', openCardForm );
 document.addEventListener('click', handleCardEvents, true);
@@ -25,13 +26,13 @@ function openUserNameForm() {
 		return false;
 	}
 
-	var userNameValue = JSON.parse(localStorage.getItem("userName"));
+	var userNameValue = JSON.parse(localStorage.getItem("userName")) || '';
 
 	var html = '';
 		html += '	<form id="userNameForm">';
 		html += '		<span id="closeBtn" class="close-btn">X</span>';
 		html += '		<div>';
-		html += '			<input type="text" id="userName" name="userName" value="' + userNameValue + '" placeholder="enter your name">';
+		html += '			<input type="text" id="formUserName" name="formUuserName" value="' + userNameValue + '" placeholder="enter your name">';
 		html += '		</div>';
 		html += '		<div>';
 		html += '			<button>Change Name</button>';
@@ -56,15 +57,15 @@ function openUserNameForm() {
 
 	userNameForm.addEventListener('submit', function(event) {
 		event.preventDefault();
-		localStorage.setItem("userName", JSON.stringify(userName.value));
+		localStorage.setItem("userName", JSON.stringify(formUserName.value));
+		userName = JSON.parse(localStorage.getItem("userName")) || 'Guest';
 		closeUserNameForm();
 		greetUser();
 	});
 }
 
 function greetUser() {
-	var userName = JSON.parse(localStorage.getItem("userName"));
-	hiUserName.innerHTML = userName || 'Guest';
+	hiUserName.innerHTML = userName;
 }
 
 function getTopics() {
@@ -86,7 +87,7 @@ function selectCardsByTopic(event) {
 	} else if (element.value === 'addNewTopic') {
 		openTopicForm();
 	} else {
-		var existingCards = JSON.parse(localStorage.getItem("Cards"));
+		var existingCards = JSON.parse(localStorage.getItem("Cards")) || [];
 		displayCards();			
 		for(var i = 0; i < existingCards.length; i++) {
 			var obj = existingCards[i];
@@ -138,7 +139,7 @@ function openTopicForm() {
 			newTopic = topicName.value;
 		for(var i=0; i < topics.length;i++) {
 			if(newTopic.indexOf(topics[i]) !== -1) {
-				topicValidationBox.innerHTML = '<p class="validation-message">Specified topic alreadt exists!</p>';
+				topicValidationBox.innerHTML = '<p class="validation-message">Specified topic already exists!</p>';
 				newTopicForm.reset();
 				return false;
 			}
@@ -148,10 +149,6 @@ function openTopicForm() {
 		closeTopicForm();
 		getTopics();
 	});
-
-	function topicFormValidate() {
-		
-	}
 }
 
 function closeTopicForm() {
@@ -208,10 +205,10 @@ function searchCard(event) {
 
 function handleCardEvents(event) {
     var element = event.target,
-        parentId = element.parentNode.id.slice(-5),
+        parentId = element.parentNode.id ? element.parentNode.id.slice(-5) : '',
         existingCards = JSON.parse(localStorage.getItem("Cards")),
         i = null,
-        obj = null; 
+        obj = null;
 
     if(hasClass(element, 'remove-card')) {
 		if (document.getElementById('viewCardSection')) {
@@ -282,7 +279,7 @@ function viewCard(event, detailedCard) {
 		html += '		<span id="closeBtn" class="close-btn">X</span>';
 		html += '		<div>';
 		html += '			<h3>' + detailedCard.title + '</h3>';
-		html += '			<p class="topic">in: ' + detailedCard.topic + '</p>';
+		html += '			<p class="topic">in: ' + detailedCard.topic + ' by ' + detailedCard.author + '</p>';
 		html += '		</div>';
 		html += '		<div>';		
 		html += '			<p class="card-text">' + detailedCard.text + '</p>';
@@ -340,18 +337,14 @@ function openCardForm(event, editableCard) {
 		attachments = [],
 		cardTopics = '';
 	
-	for (var i = 0; i < topics.length; i++) {
-		cardTopics += '<option>' + topics[i] + '</option>';
-	}
-	
-
 	var html = '';
 		html += '	<form id="createCardForm">';
 		html += '		<span id="closeBtn" class="close-btn">X</span>';		
-		html += '		<div>';
+		html += '		<div id="cardTopicWrapper">';
 		html += '			<label for="cardTopic">Select Topic</label>';
 		html += '			<select id="cardTopic" required>' + cardTopics + '</select>';
 		html += '		</div>';
+		html += '		<div id="createTopicValidationBox"></div>';
 		html += '		<div>';
 		html += '			<input type="text" id="cardTitle" name="cardTitle" value="' + cardTitle + '" placeholder="Card title" required>';
 		html += '		</div>';
@@ -380,8 +373,13 @@ function openCardForm(event, editableCard) {
 	pageWrapper.appendChild(fogBlanket);
 
 	var cancelCardCreate = document.getElementById("cancelCardCreate"),
-		cardAttachment = document.getElementById("cardAttachment");
+		cardAttachment = document.getElementById("cardAttachment"),
+		cardTopic = document.getElementById("cardTopic"),
+		addTopicLink = document.getElementById("addTopicLink"),
+		cardTopicWrapper = document.getElementById("cardTopicWrapper");
 	
+	getCardFormTopics();
+
 	cancelCardCreate.addEventListener('click', function(event) {
 		closeCardForm();
 	});
@@ -397,7 +395,74 @@ function openCardForm(event, editableCard) {
 
 	closeBtn.addEventListener('click', function(event) {
 		closeCardForm();
-	});	
+	});
+
+	createAddTopicLink();
+
+	function createAddTopicLink() {
+		var addTopicLink = document.createElement('a');
+		addTopicLink.id = "addTopicLink";
+		addTopicLink.className = "add-topic-link";
+		var addTopicLinkLabel = document.createTextNode("+ Add new topic");
+		addTopicLink.appendChild(addTopicLinkLabel);
+		cardTopicWrapper.appendChild(addTopicLink);
+
+		addTopicLink.addEventListener('click', function(event) {
+			createAddTopicInput(event);
+			removeAddTopicLink();
+		});		
+	}
+
+	function createAddTopicInput(event) {
+		var element = event.target;
+		var createTopicInput = document.createElement('input');
+		createTopicInput.id = "createTopicInput";
+		createTopicInput.className = "create-topic-input";
+		createTopicInput.placeholder = "enter topic name";
+		createTopicInput.required = "required";
+		element.parentNode.appendChild(createTopicInput);
+		createTopicInput.focus();
+		element.parentNode.removeChild(element);
+
+		createTopicInput.addEventListener('blur', function(event) {
+			createNewTopic(event);
+			createAddTopicLink();
+			removeAddTopicInput();
+		});
+	}
+
+	function createNewTopic(event) {
+		var createTopicValidationBox = document.getElementById('createTopicValidationBox'),
+			newTopic = event.target.value;
+
+		for(var i=0; i < topics.length;i++) {
+			if(newTopic.indexOf(topics[i]) !== -1) {
+				createTopicValidationBox.innerHTML = '<p class="validation-message">Specified topic already exists!</p>';
+				return false;
+			}
+		}
+		topics.push(newTopic);
+		localStorage.setItem("topics", JSON.stringify(topics));
+		getTopics();
+		getCardFormTopics();
+	}
+
+	function removeAddTopicLink() {
+		var addTopicLink = document.getElementById("addTopicLink");
+		addTopicLink.parentNode.removeChild(addTopicLink);
+	}
+
+	function removeAddTopicInput() {
+		createTopicInput.parentNode.removeChild(createTopicInput);
+	}
+
+	function getCardFormTopics() {
+		for (var i = 0; i < topics.length; i++) {
+			cardTopics += '<option>' + topics[i] + '</option>';
+		}
+		cardTopic.innerHTML = cardTopics;		
+	}
+
 }
 
 function getAttachments(event, attachments) {
@@ -439,7 +504,7 @@ function closeCardForm() {
 
 function countCards() {
 	cardCounter.innerHTML = '';
-	var existingCards = JSON.parse(localStorage.getItem("Cards")),
+	var existingCards = JSON.parse(localStorage.getItem("Cards")) || [],
 		count = document.createTextNode(existingCards.length);
 	cardCounter.appendChild(count);
 	count.nodeValue = existingCards.length;
@@ -455,7 +520,8 @@ function createCard(updatedCardId, attachments) {
 			topic: cardTopic.value,
 			title: cardTitle.value,
 			text: cardText.value,
-			attachments: attachments
+			attachments: attachments,
+			author: userName 
 		},
 	    existingCards = JSON.parse(localStorage.getItem("Cards"));
     
@@ -495,7 +561,7 @@ function makeid()
 }
 
 function displayCards() {
-	var existingCards = JSON.parse(localStorage.getItem("Cards"));
+	var existingCards = JSON.parse(localStorage.getItem("Cards")) || cards;
 	cardsWrapper.innerHTML = '';
 	existingCards.forEach(buildCardMiniature);
 }
@@ -510,7 +576,7 @@ function buildCardMiniature(card) {
 	var html = '';
 		html += ' <div id="data-container' + card.id + '" class="data-container data-details">';
 		html += ' 	<h3 class="data-details">' + card.title + '</h3>';
-		html += ' 	<p class="topic data-details">in: ' + card.topic + '</p>';
+		html += ' 	<p class="topic data-details">in: ' + card.topic + ' by ' + card.author + '</p>';
 		html += ' 	<p class="data-details">' + card.text + '</p>';
 		html += ' 	<div class="thumbs-container data-details">';
 		html += ' 		<p>Attachments: ' + card.attachments.length + '</p>';
