@@ -514,14 +514,16 @@ function createCard(updatedCardId, attachments) {
 	
 	console.log('attachments ' + attachments.length);
 
-	var form = document.forms[0],
+	var date = new Date(),
+		form = document.forms[0],
 		card = {
 			id: updatedCardId || makeid(),
 			topic: cardTopic.value,
 			title: cardTitle.value,
 			text: cardText.value,
 			attachments: attachments,
-			author: userName 
+			author: userName,
+			date: date.getTime()
 		},
 	    existingCards = JSON.parse(localStorage.getItem("Cards"));
     
@@ -567,16 +569,30 @@ function displayCards() {
 }
 
 function buildCardMiniature(card) {	
-	var thumbs = '';
+	var thumbs = '',
+		timeString = '';
 
 	for (var i = 0; i < card.attachments.length; i++) {
 		thumbs += '<img src="' + card.attachments[i] + '" class="card-thumb" />';
 	}
 
+	var now = new Date(),
+		relativeDate = now.getTime() - card.date;
+
+	if(relativeDate < 60000) {
+		timeString = 'just ';
+	} else if (relativeDate < 3600000) {
+		timeString = (Math.floor(relativeDate / 60000)) + ' minutes ago';
+	} else if (relativeDate < 86400000) {
+		timeString = (Math.floor(relativeDate / 3600000)) + ' hours ago';
+	} else if (relativeDate > 86400000) {
+		timeString = (Math.floor(relativeDate / 86400000)) + ' days ago';
+	}
+
 	var html = '';
 		html += ' <div id="data-container' + card.id + '" class="data-container data-details">';
 		html += ' 	<h3 class="data-details">' + card.title + '</h3>';
-		html += ' 	<p class="topic data-details">in: ' + card.topic + ' by ' + card.author + '</p>';
+		html += ' 	<p class="topic data-details">' + timeString + ', in: ' + card.topic + ' by ' + card.author + '</p>';
 		html += ' 	<p class="data-details">' + card.text + '</p>';
 		html += ' 	<div class="thumbs-container data-details">';
 		html += ' 		<p>Attachments: ' + card.attachments.length + '</p>';
