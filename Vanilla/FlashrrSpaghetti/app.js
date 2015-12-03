@@ -1,5 +1,5 @@
-var gridView = JSON.parse(localStorage.getItem("gridView")) || true,
-	topics = JSON.parse(localStorage.getItem("topics")) || [],
+var tempTopics = JSON.parse(localStorage.getItem("tempTopics")) || [],
+	gridView = JSON.parse(localStorage.getItem("gridView")) || true,
 	defaultCollection = {
 		id: 'xxxxx',
 		name: 'default_collection', 
@@ -168,7 +168,7 @@ function createCollection(updatedCollectionId) {
 			description: collectionDescription.value,
 			author: userName,
 			date: date.getTime(),
-			topics: 'default_topic',
+			topics: tempTopics,
 			cards: []
 		},
 		existingCollections = JSON.parse(localStorage.getItem("Collections"));
@@ -262,6 +262,7 @@ function selectCollection(event) {
 		localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
 		displayCards(selectedCollection);
 		countCards();
+		getTopics();
 	}
 }
 
@@ -272,14 +273,27 @@ function greetUser() {
 
 function getTopics() {
 	var topicOptions = '';
-	for (var i = 0; i < topics.length; i++) {
-		topicOptions += '<option value="' + i + '">' + topics[i] + '</option>';
+	for (var i = 0; i < selectedCollection.topics.length; i++) {
+		topicOptions += '<option value="' + i + '">' + selectedCollection.topics[i] + '</option>';
 	}
 	var html = '';
 		html += '	<option value="-1" selected="selected">select topic</option>';
 		html += topicOptions;
 		html += '	<option value="addNewTopic">ADD NEW TOPIC</option>';
 	topicSelect.innerHTML = html;
+}
+
+function getTempTopics() {
+	tempTopics = JSON.parse(localStorage.getItem("tempTopics"));
+	var topicOptions = '';
+	for (var i = 0; i < tempTopics.length; i++) {
+		topicOptions += '<option value="' + i + '">' + tempTopics[i] + '</option>';
+	}
+	var html = '';
+		html += '	<option value="-1" selected="selected">select topic</option>';
+		html += topicOptions;
+		html += '	<option value="addNewTopic">ADD NEW TOPIC</option>';
+	cardTopic.innerHTML = html;
 }
 
 function selectCardsByTopic(event) {
@@ -340,15 +354,15 @@ function openTopicForm() {
 		var topicValidationBox = document.getElementById('topicValidationBox'),
 			newTopicForm = document.getElementById('topicForm'),
 			newTopic = topicName.value;
-		for(var i=0; i < topics.length;i++) {
-			if(newTopic.indexOf(topics[i]) !== -1) {
+		for(var i=0; i < selectedCollection.topics.length;i++) {
+			if(newTopic.indexOf(selectedCollection.topics[i]) !== -1) {
 				topicValidationBox.innerHTML = '<p class="validation-message">Specified topic already exists!</p>';
 				newTopicForm.reset();
 				return false;
 			}
 		}
-		topics.push(newTopic);
-		localStorage.setItem("topics", JSON.stringify(topics));
+		selectedCollection.topics.push(newTopic);
+		localStorage.setItem("Collections", JSON.stringify(collections));
 		closeTopicForm();
 		getTopics();
 	});
@@ -555,7 +569,7 @@ function createTopicAdder(parentId, isMultiple) {
 
 	parent.innerHTML = html;
 
-	cardTopic = document.getElementById("cardTopic");
+	var cardTopic = document.getElementById("cardTopic");
 	if(isMultiple) {
 		cardTopic.multiple = "multiple";
 	}
@@ -596,15 +610,15 @@ function createTopicAdder(parentId, isMultiple) {
 		var createTopicValidationBox = document.getElementById('createTopicValidationBox'),
 			newTopic = event.target.value;
 
-		for(var i=0; i < topics.length;i++) {
-			if(newTopic.indexOf(topics[i]) !== -1) {
+		for(var i=0; i < tempTopics.length;i++) {
+			if(newTopic.indexOf(tempTopics[i]) !== -1) {
 				createTopicValidationBox.innerHTML = '<p class="validation-message">Specified topic already exists!</p>';
 				return false;
 			}
 		}
-		topics.push(newTopic);
-		localStorage.setItem("topics", JSON.stringify(topics));
-		getTopics();
+		tempTopics.push(newTopic);
+		localStorage.setItem("tempTopics", JSON.stringify(tempTopics));
+		getTempTopics();
 		getCardFormTopics();
 	}
 
@@ -618,8 +632,8 @@ function createTopicAdder(parentId, isMultiple) {
 	}
 
 	function getCardFormTopics() {
-		for (var i = 0; i < topics.length; i++) {
-			cardTopics += '<option>' + topics[i] + '</option>';
+		for (var i = 0; i < tempTopics.length; i++) {
+			cardTopics += '<option>' + tempTopics[i] + '</option>';
 		}
 		cardTopic.innerHTML = cardTopics;		
 	}
@@ -629,8 +643,6 @@ function createTopicAdder(parentId, isMultiple) {
 	var addTopicLink = document.getElementById("addTopicLink");
 	
 	getCardFormTopics();
-
-
 }
 
 
@@ -704,8 +716,7 @@ function createCard(updatedCardId, attachments) {
 			date: date.getTime(),
 			isFlashcard: flashcardCheck.checked
 		},
-selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value;
-existingCards = collections[selectedCollectionIndex].cards;
+	existingCards = selectedCollection.cards;
     
     if(existingCards === null) {
     	existingCards = [];
