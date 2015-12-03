@@ -27,9 +27,7 @@ All the versions in 'Vanilla' directory can simply be downloaded and run locally
 - one can display all the card details in separate view by clicking a miniature card on the list  
 - a detailed card view also contains delete and edit buttons
 
-## Currently working on Flashrr 0.2.0, Vanilla, Spaghetti 
-
-## Features to be added in 0.2.0
+## 0.1.1
 - grouping cards in topics
   - filter cards by available topics
   - selecting or adding new topic when creating/updating a card
@@ -38,6 +36,10 @@ All the versions in 'Vanilla' directory can simply be downloaded and run locally
 - card authorship 
   - one can set a name otherwise cards are signed 'by Anonymous' by clicking the displayed 'Welcome, <username>' message at the top right hand corner
 - display the card author in the card miniature and in the detailed card view
+
+## Currently working on Flashrr 0.2.0, Vanilla, Spaghetti 
+
+## Features to be added in 0.2.0
 - select card types: a note or a flashcard
 - if the 'flashcard' type is checked a miniature card reveils its title only (when clicked - the text content is shown instead)
 - automatically detect and display URLs in card text content 
