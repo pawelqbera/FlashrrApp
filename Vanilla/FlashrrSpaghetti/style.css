@@ -74,6 +74,11 @@ nav ul li {
 			cursor: pointer;
 		}
 
+form h2 {
+	margin: 0;
+    font-size: 16px;	
+}		
+
 .btn {
 	position: relative;
 	padding: 8px 30px;
@@ -120,6 +125,15 @@ nav ul li {
 		visibility: visible;
 	}
 
+.validation-message {
+    float: right;
+    font-size: 13px;
+    background: red;
+    color: white;
+    padding: 3px 12px;
+    border-radius: 5px;	
+}
+
 .user-name-section,
 .topic-section {
 	position: fixed;
@@ -149,7 +163,8 @@ nav ul li {
 		width: 100%;
 	}		
 
-.create-card-section {
+.create-card-section,
+.collection-section {
 	position: fixed;
 	width: 50%;
 	box-sizing: border-box;
@@ -166,13 +181,15 @@ nav ul li {
 	z-index: 3500;
 }
 
-	.create-card-section div {
+	.create-card-section div,
+	.collection-section div {
 		width: 100%;
 		padding: 15px 0;
 	}
 	
 	.create-card-section input[type="text"],
-	.create-card-section textarea {
+	.create-card-section textarea,
+	.collection-section input[type="text"]{
 		width: 100%;
 	}
 
@@ -187,7 +204,8 @@ nav ul li {
 		font-size: 12px;
 	}
 
-	.create-card-section label {
+	.create-card-section label,
+	.collection-section label {
 		font-size: 13px;
 		cursor: pointer;
 	}

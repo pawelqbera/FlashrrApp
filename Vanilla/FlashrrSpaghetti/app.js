@@ -1,6 +1,6 @@
 var gridView = JSON.parse(localStorage.getItem("gridView")) || true,
 	topics = JSON.parse(localStorage.getItem("topics")) || [],
-	cards = JSON.parse(localStorage.getItem("Cards")) || [],
+	collections = JSON.parse(localStorage.getItem("Collections")) || [],
 	userName = JSON.parse(localStorage.getItem("userName")) || 'Guest';
 
 var createCardBtn = document.getElementById("createCardBtn"),
@@ -11,7 +11,22 @@ var createCardBtn = document.getElementById("createCardBtn"),
 	listViewBtn = document.getElementById("listViewBtn"),
 	gridViewBtn = document.getElementById("gridViewBtn"),
 	topicSelect = document.getElementById("topicSelect"),
-	hiUserName = document.getElementById("hiUserName");
+	hiUserName = document.getElementById("hiUserName"),
+	collectionSelect = document.getElementById("collectionSelect");
+
+// testowe do usunięcia
+/*var collections = [{ 
+	name: "front-end development", 
+	description: "learning front end dev skills", 
+	topics: ["JavaScript","Design Patterns","CSS", "HTML"],
+	cards: []
+},
+{ 
+	name: "life hacking", 
+	description: "everyday life hacks and coaching", 
+	topics: ["Career","Motivation","Coaching"],
+	cards: []
+}];*/
 
 createCardBtn.addEventListener('click', openCardForm );
 document.addEventListener('click', handleCardEvents, true);
@@ -20,6 +35,177 @@ gridViewBtn.addEventListener('click', toggleView);
 listViewBtn.addEventListener('click', toggleView);
 hiUserName.addEventListener('click', openUserNameForm );
 topicSelect.addEventListener('change', selectCardsByTopic);
+collectionSelect.addEventListener('change', selectCollection);
+
+/**
+*  Event Delegator
+*/
+
+function handleCardEvents(event) {
+    var element = event.target,
+        parentId = element.parentNode.id ? element.parentNode.id.slice(-5) : '',
+        existingCards = JSON.parse(localStorage.getItem("Cards")),
+        i = null,
+        obj = null;
+
+    if(hasClass(element, 'remove-card')) {
+		if (document.getElementById('viewCardSection')) {
+			closeCardView();
+		}
+		for(i = 0; i < existingCards.length; i++) {
+			obj = existingCards[i];
+			if(parentId.indexOf(obj.id) !== -1) {
+				existingCards.splice(i, 1);
+				break;
+			}
+		}
+		localStorage.setItem("Cards", JSON.stringify(existingCards));
+		displayCards();
+		countCards();        
+    } else if (hasClass(element, 'edit-card')) {
+		if (document.getElementById('viewCardSection')) {
+			closeCardView();
+		}
+		var editableCard = '';
+		for(i = 0; i < existingCards.length; i++) {
+			obj = existingCards[i];
+			if(parentId.indexOf(obj.id) !== -1) {
+				editableCard = existingCards[i];
+				break;
+			}
+		}
+		openCardForm(event, editableCard);
+    } else if (hasClass(element, 'edit-collection')) {
+		if (document.getElementById('viewCollectionSection')) {
+			closeCollectionView();
+		}
+		var editableCollection = '';
+		for(i = 0; i < existingCollections.length; i++) {
+			obj = existingCollections[i];
+			if(parentId.indexOf(obj.id) !== -1) {
+				editableCollection = existingCollections[i];
+				break;
+			}
+		}
+		openCollectionForm(event, editableCollection);
+	} else if (hasClass(element, 'card-thumb')) {
+		var viewImg = window.open("", "Image Preview", "height=500,width=500");
+		viewImg.document.write('<img src="' + element.src + '" />');
+	} else if (hasClass(element, 'data-details')) {
+		var detailedCard = '';
+		for(i = 0; i < existingCards.length; i++) {
+			obj = existingCards[i];
+			if(parentId.indexOf(obj.id) !== -1) {
+				detailedCard = existingCards[i];
+				break;
+			}
+		}		
+		viewCard(event, detailedCard);
+	} else if ( (hasClass(element, 'fog-blanket')) || 
+				(hasClass(element, 'cancel-form')) || 
+				(hasClass(element, 'close-btn')) ) {
+		if (document.getElementById('createCardSection')) {
+			closeCardForm();
+		} else if (document.getElementById('viewCardSection')) {
+			closeCardView();
+		} else if (document.getElementById('userNameSection')) {		
+			closeUserNameForm();
+		} else if (document.getElementById('topicSection')) {		
+			closeTopicForm();
+		} else if (document.getElementById('collectionSection')) {		
+			closeCollectionForm();
+		}
+	}
+}
+
+/**
+*  Collection Form
+*/
+
+function openCollectionForm(event, editableCollection) {
+	if (document.getElementById('collectionSection')) {
+		return false;
+	}
+
+	var updatedCollectionId = editableCollection ? editableCollection.id : null;
+
+	var html = '';
+		html += '	<form id="collectionForm">';
+		html += '		<h2>New Collection</h2>';
+		html += '		<span id="closeBtn" class="close-btn">X</span>';
+		html += '		<div>';
+		html += '			<input type="text" id="collectionName" name="collectionName" placeholder="name">';
+		html += '		</div>';		
+		html += '		<div>';
+		html += '			<input type="text" id="collectionDescription" name="collectionDescription" placeholder="description">';
+		html += '		</div>';
+		html += '		<div id="cardTopicWrapper"></div>';
+		html += '		<div>';
+		html += '			<button>Add New Collection</button>';
+		html += '			<a class="cancel-form">Cancel</a>';
+		html += '		</div>';
+		html += '	</form>';
+
+	var collectionForm = document.createElement('SECTION');
+	collectionForm.id = "collectionSection"; 
+	collectionForm.className = "collection-section"; 
+	collectionForm.innerHTML = html.trim();
+	pageWrapper.appendChild(collectionForm);
+
+	var fogBlanket = document.createElement('div');
+	fogBlanket.className = "fog-blanket";
+	fogBlanket.id = "fogBlanket";
+	pageWrapper.appendChild(fogBlanket);
+	
+	collectionForm.addEventListener('submit', function(event) {
+		event.preventDefault();
+		createCollection(updatedCollectionId);
+	});
+
+	createTopicAdder("cardTopicWrapper");
+}
+
+function createCollection(updatedCollectionId) {
+	var date = new Date(),
+			form = document.forms[0],
+			collection = {
+				id: updatedCollectionId || makeid(),
+				name: collectionName.value,
+				description: collectionDescription.value,
+				author: userName,
+				date: date.getTime(),
+				topics: 'default_topic'
+			},
+		    existingCollections = JSON.parse(localStorage.getItem("Collections"));
+	    
+	    if(existingCollections === null) {
+	    	existingCollections = [];
+	    }
+		if (updatedCollectionId) {
+			for(var i = 0; i < existingCollections.length; i++) {
+				var obj = existingCollections[i];
+				if(updatedCollectionId.indexOf(obj.id) !== -1) {
+					existingCollections[i] = collection;
+					break;
+				}
+			}
+		}
+		else {
+			existingCollections.push(collection);	
+		}
+		localStorage.setItem("Collections", JSON.stringify(existingCollections));
+		//closeCardForm();
+		//displayCards();
+		//countCards();
+
+	/* end of create collection */
+		closeCollectionForm();
+		getCollections();	
+}
+
+/**
+*  UserName Form
+*/
 
 function openUserNameForm() {
 	if (document.getElementById('userNameSection')) {
@@ -30,13 +216,14 @@ function openUserNameForm() {
 
 	var html = '';
 		html += '	<form id="userNameForm">';
+		html += '		<h2>Please enter your name</h2>';
 		html += '		<span id="closeBtn" class="close-btn">X</span>';
 		html += '		<div>';
-		html += '			<input type="text" id="formUserName" name="formUuserName" value="' + userNameValue + '" placeholder="enter your name">';
+		html += '			<input type="text" id="formUserName" name="formUserName" value="' + userNameValue + '" placeholder="enter your name">';
 		html += '		</div>';
 		html += '		<div>';
 		html += '			<button>Change Name</button>';
-		html += '			<a id="cancelUserNameEdit">Cancel</a>';
+		html += '			<a class="cancel-form">Cancel</a>';
 		html += '		</div>';
 		html += '	</form>';
 
@@ -51,10 +238,6 @@ function openUserNameForm() {
 	fogBlanket.id = "fogBlanket";
 	pageWrapper.appendChild(fogBlanket);
 	
-	closeBtn.addEventListener('click', function(event) {
-		closeUserNameForm();
-	});
-
 	userNameForm.addEventListener('submit', function(event) {
 		event.preventDefault();
 		localStorage.setItem("userName", JSON.stringify(formUserName.value));
@@ -63,6 +246,37 @@ function openUserNameForm() {
 		greetUser();
 	});
 }
+
+function getCollections() {
+	var collectionOptions = '';
+	for (var i = 0; i < collections.length; i++) {
+		collectionOptions += '<option value="' + i + '">' + collections[i].name + '</option>';
+	}
+	var html = '';
+		html += '	<option value="-1" selected="selected">Collections</option>';
+		html += collectionOptions;
+		html += '	<option value="addNewCollection">ADD NEW COLLECTION</option>';
+	collectionSelect.innerHTML = html;
+}
+
+function selectCollection(event) {
+	var element = event.target;
+	if (element.value === '-1') {
+		return false;
+	} else if (element.value === 'addNewCollection') {
+		openCollectionForm();
+	} else {
+		var existingCollections = JSON.parse(localStorage.getItem("Collections")) || [];
+		//displayCards();			
+		for(var i = 0; i < existingCollections.length; i++) {
+			var obj = existingCollections[i];
+			if(obj.collection.indexOf(collections[element.value]) === -1) {
+				displayCards(collection);
+			}
+		}
+	}
+}
+
 
 function greetUser() {
 	hiUserName.innerHTML = userName;
@@ -106,6 +320,7 @@ function openTopicForm() {
 
 	var html = '';
 		html += '	<form id="topicForm">';
+		html += '		<h2>New Topic</h2>';		
 		html += '		<span id="closeBtn" class="close-btn">X</span>';
 		html += '		<div>';
 		html += '			<input type="text" id="topicName" name="topicName" placeholder="enter new topic" required>';
@@ -113,7 +328,7 @@ function openTopicForm() {
 		html += '		<div id="topicValidationBox"></div>';		
 		html += '		<div>';
 		html += '			<button>Add Topic</button>';
-		html += '			<a id="cancelTopicEdit">Cancel</a>';
+		html += '			<a class="cancel-form">Cancel</a>';
 		html += '		</div>';
 		html += '	</form>';
 
@@ -203,66 +418,6 @@ function searchCard(event) {
 	}
 }
 
-function handleCardEvents(event) {
-    var element = event.target,
-        parentId = element.parentNode.id ? element.parentNode.id.slice(-5) : '',
-        existingCards = JSON.parse(localStorage.getItem("Cards")),
-        i = null,
-        obj = null;
-
-    if(hasClass(element, 'remove-card')) {
-		if (document.getElementById('viewCardSection')) {
-			closeCardView();
-		}
-		for(i = 0; i < existingCards.length; i++) {
-			obj = existingCards[i];
-			if(parentId.indexOf(obj.id) !== -1) {
-				existingCards.splice(i, 1);
-				break;
-			}
-		}
-		localStorage.setItem("Cards", JSON.stringify(existingCards));
-		displayCards();
-		countCards();        
-    } else if (hasClass(element, 'edit-card')) {
-		if (document.getElementById('viewCardSection')) {
-			closeCardView();
-		}
-		var editableCard = '';
-		for(i = 0; i < existingCards.length; i++) {
-			obj = existingCards[i];
-			if(parentId.indexOf(obj.id) !== -1) {
-				editableCard = existingCards[i];
-				break;
-			}
-		}
-    	openCardForm(event, editableCard);
-    } else if (hasClass(element, 'card-thumb')) {
-		var viewImg = window.open("", "Image Preview", "height=500,width=500");
-		viewImg.document.write('<img src="' + element.src + '" />');
-	} else if (hasClass(element, 'data-details')) {
-		var detailedCard = '';
-		for(i = 0; i < existingCards.length; i++) {
-			obj = existingCards[i];
-			if(parentId.indexOf(obj.id) !== -1) {
-				detailedCard = existingCards[i];
-				break;
-			}
-		}		
-		viewCard(event, detailedCard);
-	} else if (hasClass(element, 'fog-blanket')) {
-		if (document.getElementById('createCardSection')) {
-			closeCardForm();
-		} else if (document.getElementById('viewCardSection')) {
-			closeCardView();
-		} else if (document.getElementById('userNameSection')) {		
-			closeUserNameForm();
-		} else if (document.getElementById('topicSection')) {		
-			closeTopicForm();
-		}
-	}
-}
-
 function viewCard(event, detailedCard) {
 	if (document.getElementById('viewCardSection')) {
 		return false;
@@ -301,10 +456,6 @@ function viewCard(event, detailedCard) {
 	fogBlanket.className = "fog-blanket";
 	fogBlanket.id = "fogBlanket";
 	pageWrapper.appendChild(fogBlanket);
-	
-	closeBtn.addEventListener('click', function(event) {
-		closeCardView();
-	});
 }
 
 function closeCardView() {
@@ -316,6 +467,12 @@ function closeCardView() {
 function closeUserNameForm() {
 	var userNameForm = document.getElementById("userNameForm").parentNode;
 	userNameForm.parentNode.removeChild(userNameForm);
+	closeFogBlanket(); 	
+}
+
+function closeCollectionForm() {
+	var collectionForm = document.getElementById("collectionForm").parentNode;
+	collectionForm.parentNode.removeChild(collectionForm);
 	closeFogBlanket(); 	
 }
 
@@ -335,17 +492,13 @@ function openCardForm(event, editableCard) {
 		cardFormSubmitLabel = editableCard ? "Update Card" : "Create Card",
 		updatedCardId = editableCard ? editableCard.id : null,
 		attachments = [],
-		cardTopics = '',
 		isFlashcard = editableCard ? editableCard.isFlashcard : false;
 	
 	var html = '';
 		html += '	<form id="createCardForm">';
+		html += '		<h2>New Card</h2>';		
 		html += '		<span id="closeBtn" class="close-btn">X</span>';		
-		html += '		<div id="cardTopicWrapper">';
-		html += '			<label for="cardTopic">Select Topic</label>';
-		html += '			<select id="cardTopic" required>' + cardTopics + '</select>';
-		html += '		</div>';
-		html += '		<div id="createTopicValidationBox"></div>';
+		html += '		<div id="cardTopicWrapper"></div>';
 		html += '		<div>';
 		html += '			<input type="text" id="cardTitle" name="cardTitle" value="' + cardTitle + '" placeholder="Card title" required>';
 		html += '		</div>';
@@ -362,7 +515,7 @@ function openCardForm(event, editableCard) {
 		html += '		</div>';				
 		html += '		<div>';		
 		html += '			<button>' + cardFormSubmitLabel + '</button>';
-		html += '			<a id="cancelCardCreate">Cancel</a>';
+		html += '			<a class="cancel-form">Cancel</a>';
 		html += '		</div>';
 		html += '	</form>';
 
@@ -377,11 +530,7 @@ function openCardForm(event, editableCard) {
 	fogBlanket.id = "fogBlanket";	 
 	pageWrapper.appendChild(fogBlanket);
 
-	var cancelCardCreate = document.getElementById("cancelCardCreate"),
-		cardAttachment = document.getElementById("cardAttachment"),
-		cardTopic = document.getElementById("cardTopic"),
-		addTopicLink = document.getElementById("addTopicLink"),
-		cardTopicWrapper = document.getElementById("cardTopicWrapper"),
+	var cardAttachment = document.getElementById("cardAttachment"),
 		flashcardCheck = document.getElementById("flashcardCheck");
 
 	if(isFlashcard) {
@@ -389,12 +538,6 @@ function openCardForm(event, editableCard) {
 	} else {
 		flashcardCheck.checked = false;
 	}
-	
-	getCardFormTopics();
-
-	cancelCardCreate.addEventListener('click', function(event) {
-		closeCardForm();
-	});
 
 	createCardForm.addEventListener('submit', function(event) {
 		event.preventDefault();
@@ -405,11 +548,26 @@ function openCardForm(event, editableCard) {
 		getAttachments(event, attachments);
 	});
 
-	closeBtn.addEventListener('click', function(event) {
-		closeCardForm();
-	});
+	createTopicAdder("cardTopicWrapper");
+}
 
-	createAddTopicLink();
+/**
+*  Topic Adder Component
+*/
+
+function createTopicAdder(parentId) {
+
+	var parent = document.getElementById(parentId),
+		cardTopics = '';
+
+	var html = '';
+		html += '	<label for="cardTopic">Select Topic</label>';
+		html += '	<select id="cardTopic" required>' + cardTopics + '</select>';
+		html += '	<div id="createTopicValidationBox"></div>';
+
+	parent.innerHTML = html;
+
+	cardTopic = document.getElementById("cardTopic");
 
 	function createAddTopicLink() {
 		var addTopicLink = document.createElement('a');
@@ -417,7 +575,7 @@ function openCardForm(event, editableCard) {
 		addTopicLink.className = "add-topic-link";
 		var addTopicLinkLabel = document.createTextNode("+ Add new topic");
 		addTopicLink.appendChild(addTopicLinkLabel);
-		cardTopicWrapper.appendChild(addTopicLink);
+		parent.appendChild(addTopicLink);
 
 		addTopicLink.addEventListener('click', function(event) {
 			createAddTopicInput(event);
@@ -475,7 +633,17 @@ function openCardForm(event, editableCard) {
 		cardTopic.innerHTML = cardTopics;		
 	}
 
+	createAddTopicLink();
+
+	var addTopicLink = document.getElementById("addTopicLink");
+	
+	getCardFormTopics();
+
+
 }
+
+
+
 
 function getAttachments(event, attachments) {
 	var files = event.target.files;
@@ -523,9 +691,6 @@ function countCards() {
 }
 
 function createCard(updatedCardId, attachments) {
-	
-	console.log('attachments ' + attachments.length);
-
 	var date = new Date(),
 		form = document.forms[0],
 		card = {
@@ -543,9 +708,6 @@ function createCard(updatedCardId, attachments) {
     if(existingCards === null) {
     	existingCards = [];
     }
-    // jeżeli jest editMode czyli updatedCardId
-	// znajdź index i czyli który element existingCards posiada id = updatedCardId
-	// ten element ma się równać - card
 	if (updatedCardId) {
 		for(var i = 0; i < existingCards.length; i++) {
 			var obj = existingCards[i];
@@ -558,9 +720,7 @@ function createCard(updatedCardId, attachments) {
 	else {
 		existingCards.push(card);	
 	}
-
 	localStorage.setItem("Cards", JSON.stringify(existingCards));
-
 	closeCardForm();
 	displayCards();
 	countCards();
@@ -575,8 +735,17 @@ function makeid()
     return text;
 }
 
-function displayCards() {
-	var existingCards = JSON.parse(localStorage.getItem("Cards")) || cards;
+function displayCards(collection) {
+	var existingCollection = collection || [],
+		existingCollections = JSON.parse(localStorage.getItem("Collections")) || collections,
+		existingCards = '';
+
+	for (i=0;i<existingCollections.length;i++) {
+		if (existingCollection.indexOf(existingCollections[i].name) !== -1) {
+			existingCards = existingCollections[i].cards;
+		}
+	}
+
 	cardsWrapper.innerHTML = '';
 	existingCards.forEach(buildCardMiniature);
 }
@@ -629,6 +798,7 @@ function buildCardMiniature(card) {
 }
 
 // Initialization
+getCollections();
 displayCards();
 countCards();
 getView();
