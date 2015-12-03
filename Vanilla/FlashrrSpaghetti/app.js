@@ -335,7 +335,8 @@ function openCardForm(event, editableCard) {
 		cardFormSubmitLabel = editableCard ? "Update Card" : "Create Card",
 		updatedCardId = editableCard ? editableCard.id : null,
 		attachments = [],
-		cardTopics = '';
+		cardTopics = '',
+		isFlashcard = editableCard ? editableCard.isFlashcard : false;
 	
 	var html = '';
 		html += '	<form id="createCardForm">';
@@ -383,7 +384,7 @@ function openCardForm(event, editableCard) {
 		cardTopicWrapper = document.getElementById("cardTopicWrapper"),
 		flashcardCheck = document.getElementById("flashcardCheck");
 
-	if(editableCard.isFlashcard) {
+	if(isFlashcard) {
 		flashcardCheck.checked = true;
 	} else {
 		flashcardCheck.checked = false;
