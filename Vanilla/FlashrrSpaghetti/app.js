@@ -2,14 +2,15 @@ var tempTopics = JSON.parse(localStorage.getItem("tempTopics")) || [],
 	gridView = JSON.parse(localStorage.getItem("gridView")) || true,
 	defaultCollection = {
 		id: 'xxxxx',
-		name: 'default_collection', 
-		description: 'initial collection to start off', 
-		topics: [], 
+		name: 'default_collection',
+		description: 'initial collection to start off',
+		topics: [],
 		cards: []
 	},
 	collections = JSON.parse(localStorage.getItem("Collections")) || [defaultCollection],
 	userName = JSON.parse(localStorage.getItem("userName")) || 'Guest',
-	selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
+	selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0],
+	cardsPerPage = 12;
 
 var createCardBtn = document.getElementById("createCardBtn"),
 	pageWrapper = document.getElementById("pageWrapper"),
@@ -20,7 +21,8 @@ var createCardBtn = document.getElementById("createCardBtn"),
 	gridViewBtn = document.getElementById("gridViewBtn"),
 	topicSelect = document.getElementById("topicSelect"),
 	hiUserName = document.getElementById("hiUserName"),
-	collectionSelect = document.getElementById("collectionSelect");
+	collectionSelect = document.getElementById("collectionSelect"),
+	pseudoFooter = document.getElementById("pseudoFooter");
 
 createCardBtn.addEventListener('click', openCardForm );
 document.addEventListener('click', handleCardEvents, true);
@@ -55,7 +57,7 @@ function handleCardEvents(event) {
 		}
 		localStorage.setItem("Cards", JSON.stringify(existingCards));
 		displayCards();
-		countCards();        
+		countCards();
     } else if (hasClass(element, 'edit-card')) {
 		if (document.getElementById('viewCardSection')) {
 			closeCardView();
@@ -93,20 +95,20 @@ function handleCardEvents(event) {
 				detailedCard = existingCards[i];
 				break;
 			}
-		}		
+		}
 		viewCard(event, detailedCard);
-	} else if ( (hasClass(element, 'fog-blanket')) || 
-				(hasClass(element, 'cancel-form')) || 
+	} else if ( (hasClass(element, 'fog-blanket')) ||
+				(hasClass(element, 'cancel-form')) ||
 				(hasClass(element, 'close-btn')) ) {
 		if (document.getElementById('createCardSection')) {
 			closeCardForm();
 		} else if (document.getElementById('viewCardSection')) {
 			closeCardView();
-		} else if (document.getElementById('userNameSection')) {		
+		} else if (document.getElementById('userNameSection')) {
 			closeUserNameForm();
-		} else if (document.getElementById('topicSection')) {		
+		} else if (document.getElementById('topicSection')) {
 			closeTopicForm();
-		} else if (document.getElementById('collectionSection')) {		
+		} else if (document.getElementById('collectionSection')) {
 			closeCollectionForm();
 		}
 	}
@@ -129,7 +131,7 @@ function openCollectionForm(event, editableCollection) {
 		html += '		<span id="closeBtn" class="close-btn">X</span>';
 		html += '		<div>';
 		html += '			<input type="text" id="collectionName" name="collectionName" placeholder="name">';
-		html += '		</div>';		
+		html += '		</div>';
 		html += '		<div>';
 		html += '			<input type="text" id="collectionDescription" name="collectionDescription" placeholder="description">';
 		html += '		</div>';
@@ -141,8 +143,8 @@ function openCollectionForm(event, editableCollection) {
 		html += '	</form>';
 
 	var collectionForm = document.createElement('SECTION');
-	collectionForm.id = "collectionSection"; 
-	collectionForm.className = "collection-section"; 
+	collectionForm.id = "collectionSection";
+	collectionForm.className = "collection-section";
 	collectionForm.innerHTML = html.trim();
 	pageWrapper.appendChild(collectionForm);
 
@@ -150,7 +152,7 @@ function openCollectionForm(event, editableCollection) {
 	fogBlanket.className = "fog-blanket";
 	fogBlanket.id = "fogBlanket";
 	pageWrapper.appendChild(fogBlanket);
-	
+
 	collectionForm.addEventListener('submit', function(event) {
 		event.preventDefault();
 		createCollection(updatedCollectionId);
@@ -186,11 +188,11 @@ function createCollection(updatedCollectionId) {
 		}
 	}
 	else {
-		existingCollections.push(collection);	
+		existingCollections.push(collection);
 	}
 	collections = existingCollections;
 	localStorage.setItem("Collections", JSON.stringify(existingCollections));
-	getCollections();	
+	getCollections();
 	closeCollectionForm();
 }
 
@@ -219,8 +221,8 @@ function openUserNameForm() {
 		html += '	</form>';
 
 	var userNameForm = document.createElement('SECTION');
-	userNameForm.id = "userNameSection"; 
-	userNameForm.className = "user-name-section"; 
+	userNameForm.id = "userNameSection";
+	userNameForm.className = "user-name-section";
 	userNameForm.innerHTML = html.trim();
 	pageWrapper.appendChild(userNameForm);
 
@@ -228,7 +230,7 @@ function openUserNameForm() {
 	fogBlanket.className = "fog-blanket";
 	fogBlanket.id = "fogBlanket";
 	pageWrapper.appendChild(fogBlanket);
-	
+
 	userNameForm.addEventListener('submit', function(event) {
 		event.preventDefault();
 		localStorage.setItem("userName", JSON.stringify(formUserName.value));
@@ -241,10 +243,11 @@ function openUserNameForm() {
 function getCollections() {
 	var collectionOptions = '';
 	for (var i = 0; i < collections.length; i++) {
-		collectionOptions += '<option value="' + i + '">' + collections[i].name + '</option>';
+		var isSelected = (selectedCollection.name.indexOf(collections[i].name) !== -1) ? 'selected="selected"' : '';
+		collectionOptions += '<option value="' + i + '"'+ isSelected +'>' + collections[i].name + '</option>';
 	}
 	var html = '';
-		html += '	<option value="-1" selected="selected">Collections</option>';
+		html += '	<option value="-1">Collections</option>';
 		html += collectionOptions;
 		html += '	<option value="addNewCollection">ADD NEW COLLECTION</option>';
 	collectionSelect.innerHTML = html;
@@ -257,7 +260,7 @@ function selectCollection(event) {
 	} else if (element.value === 'addNewCollection') {
 		openCollectionForm();
 	} else {
-		//displayCards();			
+		//displayCards();
 		selectedCollection = collections[element.value];
 		localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
 		displayCards(selectedCollection);
@@ -265,7 +268,6 @@ function selectCollection(event) {
 		getTopics();
 	}
 }
-
 
 function greetUser() {
 	hiUserName.innerHTML = userName;
@@ -304,12 +306,12 @@ function selectCardsByTopic(event) {
 		openTopicForm();
 	} else {
 		var existingCards = JSON.parse(localStorage.getItem("Cards")) || [];
-		displayCards();			
+		displayCards();
 		for(var i = 0; i < existingCards.length; i++) {
 			var obj = existingCards[i];
 			if(obj.topic.indexOf(topics[element.value]) === -1) {
 				var card = document.getElementById("cardMiniature" + obj.id);
-				card.parentNode.removeChild(card); 
+				card.parentNode.removeChild(card);
 			}
 		}
 	}
@@ -322,12 +324,12 @@ function openTopicForm() {
 
 	var html = '';
 		html += '	<form id="topicForm">';
-		html += '		<h2>New Topic</h2>';		
+		html += '		<h2>New Topic</h2>';
 		html += '		<span id="closeBtn" class="close-btn">X</span>';
 		html += '		<div>';
 		html += '			<input type="text" id="topicName" name="topicName" placeholder="enter new topic" required>';
 		html += '		</div>';
-		html += '		<div id="topicValidationBox"></div>';		
+		html += '		<div id="topicValidationBox"></div>';
 		html += '		<div>';
 		html += '			<button>Add Topic</button>';
 		html += '			<a class="cancel-form">Cancel</a>';
@@ -335,8 +337,8 @@ function openTopicForm() {
 		html += '	</form>';
 
 	var topicForm = document.createElement('SECTION');
-	topicForm.id = "topicSection"; 
-	topicForm.className = "topic-section"; 
+	topicForm.id = "topicSection";
+	topicForm.className = "topic-section";
 	topicForm.innerHTML = html.trim();
 	pageWrapper.appendChild(topicForm);
 
@@ -344,7 +346,7 @@ function openTopicForm() {
 	fogBlanket.className = "fog-blanket";
 	fogBlanket.id = "fogBlanket";
 	pageWrapper.appendChild(fogBlanket);
-	
+
 	closeBtn.addEventListener('click', function(event) {
 		closeTopicForm();
 	});
@@ -372,7 +374,7 @@ function closeTopicForm() {
 	var topicForm = document.getElementById("topicForm").parentNode;
 	topicForm.parentNode.removeChild(topicForm);
 	topicSelect.getElementsByTagName('option')[0].selected = 'selected';
-	closeFogBlanket();	
+	closeFogBlanket();
 }
 
 
@@ -410,12 +412,12 @@ function searchCard(event) {
 		existingCards = JSON.parse(localStorage.getItem("Cards"));
 
 	displayCards();
-		
+
 	for(var i = 0; i < existingCards.length; i++) {
 		var obj = existingCards[i];
 		if(obj.title.indexOf(searchValue) === -1) {
 			var card = document.getElementById("cardMiniature" + obj.id);
-			card.parentNode.removeChild(card); 
+			card.parentNode.removeChild(card);
 		}
 	}
 }
@@ -431,6 +433,8 @@ function viewCard(event, detailedCard) {
 		thumbs += '<img src="' + detailedCard.attachments[i] + '" class="view-card-thumb" />';
 	}
 
+	var urlifiedText = urlify(detailedCard.text);
+
 	var html = '';
 		html += '	<div id="viewCardForm">';
 		html += '		<span id="closeBtn" class="close-btn">X</span>';
@@ -438,19 +442,19 @@ function viewCard(event, detailedCard) {
 		html += '			<h3>' + detailedCard.title + '</h3>';
 		html += '			<p class="topic">in: ' + detailedCard.topic + ' by ' + detailedCard.author + '</p>';
 		html += '		</div>';
-		html += '		<div>';		
-		html += '			<p class="card-text">' + detailedCard.text + '</p>';
+		html += '		<div>';
+		html += '			<p class="card-text">' + urlifiedText + '</p>';
 		html += '		</div>';
 		html += '		<div class="view-thumb-list">' + thumbs + '</div>';
 		html += '		<div class="view-card-actions" id="actions' + detailedCard.id + '">';
-		html += '			<a class="edit-card">Edit</a>';		
+		html += '			<a class="edit-card">Edit</a>';
 		html += '			<a class="remove-card">Remove</a>';
 		html += '		</div>';
 		html += '	</div>';
 
 	var tempCardForm = document.createElement('SECTION');
-	tempCardForm.id = "viewCardSection"; 
-	tempCardForm.className = "view-card-section"; 
+	tempCardForm.id = "viewCardSection";
+	tempCardForm.className = "view-card-section";
 	tempCardForm.innerHTML = html.trim();
 	pageWrapper.appendChild(tempCardForm);
 
@@ -460,22 +464,27 @@ function viewCard(event, detailedCard) {
 	pageWrapper.appendChild(fogBlanket);
 }
 
+function urlify(text) {
+	var regexp =/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+	return text.replace(regexp, '<a href="$1" target="_blank">$1</a>');
+}
+
 function closeCardView() {
 	var viewCardForm = document.getElementById("viewCardForm").parentNode;
 	viewCardForm.parentNode.removeChild(viewCardForm);
-	closeFogBlanket(); 
+	closeFogBlanket();
 }
 
 function closeUserNameForm() {
 	var userNameForm = document.getElementById("userNameForm").parentNode;
 	userNameForm.parentNode.removeChild(userNameForm);
-	closeFogBlanket(); 	
+	closeFogBlanket();
 }
 
 function closeCollectionForm() {
 	var collectionForm = document.getElementById("collectionForm").parentNode;
 	collectionForm.parentNode.removeChild(collectionForm);
-	closeFogBlanket(); 	
+	closeFogBlanket();
 }
 
 function closeFogBlanket() {
@@ -495,41 +504,41 @@ function openCardForm(event, editableCard) {
 		updatedCardId = editableCard ? editableCard.id : null,
 		attachments = [],
 		isFlashcard = editableCard ? editableCard.isFlashcard : false;
-	
+
 	var html = '';
 		html += '	<form id="createCardForm">';
-		html += '		<h2>New Card</h2>';		
-		html += '		<span id="closeBtn" class="close-btn">X</span>';		
+		html += '		<h2>New Card</h2>';
+		html += '		<span id="closeBtn" class="close-btn">X</span>';
 		html += '		<div id="cardTopicWrapper"></div>';
 		html += '		<div>';
 		html += '			<input type="text" id="cardTitle" name="cardTitle" value="' + cardTitle + '" placeholder="Card title" required>';
 		html += '		</div>';
-		html += '		<div>';		
+		html += '		<div>';
 		html += '			<textarea id="cardText" name="cardText" placeholder="Card Text" required>' + cardText + '</textarea>';
 		html += '		</div>';
-		html += '		<div>';		
+		html += '		<div>';
 		html += '			<input type="file" id="cardAttachment" class="card-attachment" multiple>';
 		html += '		</div>';
 		html += '		<div id="thumbList" class="thumb-list"></div>';
 		html += '		<div>';
 		html += '			<input type="checkbox" id="flashcardCheck">';
-		html += '			<label for="flashcardCheck">Flashcard</label>';		
-		html += '		</div>';				
-		html += '		<div>';		
+		html += '			<label for="flashcardCheck">Flashcard</label>';
+		html += '		</div>';
+		html += '		<div>';
 		html += '			<button>' + cardFormSubmitLabel + '</button>';
 		html += '			<a class="cancel-form">Cancel</a>';
 		html += '		</div>';
 		html += '	</form>';
 
 	var tempCardForm = document.createElement('SECTION');
-	tempCardForm.id = "createCardSection"; 
-	tempCardForm.className = "create-card-section"; 
+	tempCardForm.id = "createCardSection";
+	tempCardForm.className = "create-card-section";
 	tempCardForm.innerHTML = html.trim();
 	pageWrapper.appendChild(tempCardForm);
 
 	var fogBlanket = document.createElement('div');
 	fogBlanket.className = "fog-blanket";
-	fogBlanket.id = "fogBlanket";	 
+	fogBlanket.id = "fogBlanket";
 	pageWrapper.appendChild(fogBlanket);
 
 	var cardAttachment = document.getElementById("cardAttachment"),
@@ -585,7 +594,7 @@ function createTopicAdder(parentId, isMultiple) {
 		addTopicLink.addEventListener('click', function(event) {
 			createAddTopicInput(event);
 			removeAddTopicLink();
-		});		
+		});
 	}
 
 	function createAddTopicInput(event) {
@@ -635,13 +644,13 @@ function createTopicAdder(parentId, isMultiple) {
 		for (var i = 0; i < tempTopics.length; i++) {
 			cardTopics += '<option>' + tempTopics[i] + '</option>';
 		}
-		cardTopic.innerHTML = cardTopics;		
+		cardTopic.innerHTML = cardTopics;
 	}
 
 	createAddTopicLink();
 
 	var addTopicLink = document.getElementById("addTopicLink");
-	
+
 	getCardFormTopics();
 }
 
@@ -673,7 +682,7 @@ function getAttachments(event, attachments) {
 			};
 		})(f);
 		// Read in the image file as a data URL.
-		reader.readAsDataURL(f);	
+		reader.readAsDataURL(f);
 	}
 
 	return attachments;
@@ -686,17 +695,9 @@ function closeCardForm() {
 }
 
 function countCards() {
-	var selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value;
-
-	console.log(selectedCollectionIndex);
-
-	var index = selectedCollectionIndex !== "-1" ? selectedCollectionIndex : 0;
-
-		
-	console.log(index);
-	console.log(collections[0].cards);
-
-		var existingCards = collections[index].cards,
+	var selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value,
+		index = selectedCollectionIndex !== "-1" ? selectedCollectionIndex : 0,
+		existingCards = collections[index].cards,
 		count = document.createTextNode(existingCards.length);
 	cardCounter.innerHTML = '';
 	cardCounter.appendChild(count);
@@ -717,7 +718,7 @@ function createCard(updatedCardId, attachments) {
 			isFlashcard: flashcardCheck.checked
 		},
 	existingCards = selectedCollection.cards;
-    
+
     if(existingCards === null) {
     	existingCards = [];
     }
@@ -731,7 +732,7 @@ function createCard(updatedCardId, attachments) {
 		}
 	}
 	else {
-		existingCards.push(card);	
+		existingCards.push(card);
 	}
 	localStorage.setItem("Collections", JSON.stringify(collections));
 	displayCards();
@@ -748,13 +749,45 @@ function makeid()
     return text;
 }
 
-function displayCards(collection) {
+function displayCards(page) {
+
+	var pageIndex = page || 1,
+		i = 0; // wybrana strona do pokazania: 1 lub 2
+
 	selectedCards = selectedCollection.cards;
 	cardsWrapper.innerHTML = '';
-	selectedCards.forEach(buildCardMiniature);
+
+	var cardsCount = selectedCards.length; // 19 - number of cards
+	var lastPageCardsCount = cardsCount % cardsPerPage; // 7 - liczba kart na ostatniej stronie
+	var pagesCount = Math.ceil(selectedCards.length / cardsPerPage); // 2 - liczba podstron
+
+	// jezeli pagesCount === 1 to 
+			//rob normalna petle [bedzie tylko jedna podstrona, nie ma paginacji]
+
+	// jezeli pagesCount jest > 1 to
+			// to jezeli wolana strona czyli pageIndex jest mniejsze od (pagesCount -1) [petla #1 do przedostatniej strony wlacznie]
+					//to pokazuj 12 kart: i = 12 * pageIndex; i < 12 * pageIndex + 12; i++ [petla do przedostatniej karty ]
+
+			// jezeli wolana strona jest pagesCount (ostatnia strona)
+					// iteracja z ostatniej karty: i = cardsCount - lastPageCardsCount (12) a i < cardsCount;
+
+	if (pagesCount === 1) {
+		for (i = 0; i < cardsCount; i++) {
+			buildCardMiniature(selectedCards[i]);
+		}
+	} else if (pageIndex < pagesCount) { // wiem, że będzie 12 kart
+		for (i = cardsPerPage * (pageIndex - 1);i < cardsPerPage * (pageIndex - 1) + cardsPerPage;i++) {
+			buildCardMiniature(selectedCards[i]);
+		}
+	} else if (pageIndex == pagesCount) {
+		for (i = (cardsCount - lastPageCardsCount);i < cardsCount;i++) {
+			console.log(selectedCards[i]);
+			buildCardMiniature(selectedCards[i]);
+		}		
+	}
 }
 
-function buildCardMiniature(card) {	
+function buildCardMiniature(card) {
 	var thumbs = '',
 		timeString = '';
 
@@ -781,24 +814,57 @@ function buildCardMiniature(card) {
 		html += ' <div id="data-container' + card.id + '" class="data-container data-details ' + flashcardClass +'">';
 		html += ' 	<h3 class="data-details">' + card.title + '</h3>';
 		html += ' 	<p class="topic data-details">' + timeString + ', in: ' + card.topic + ' by ' + card.author + '</p>';
-		if(!card.isFlashcard) {		
+		if(!card.isFlashcard) {
 			html += ' 	<p class="data-details">' + card.text + '</p>';
 		}
 		html += ' 	<div class="thumbs-container data-details">';
 		html += ' 		<p>Attachments: ' + card.attachments.length + '</p>';
 		html += ' 		<div>' + thumbs + '</div>';
-		html += ' 	</div>';		
-		html += ' </div>';		
+		html += ' 	</div>';
+		html += ' </div>';
 		html += ' <div class="card-actions" id="actions' + card.id + '">';
-		html += ' 	<a class="edit-card">Edit</a>';		
+		html += ' 	<a class="edit-card">Edit</a>';
 		html += ' 	<a class="remove-card">Remove</a>';
 		html += ' </div>';
 
 	var tempCardMiniature = document.createElement('DIV');
-	tempCardMiniature.id = "cardMiniature" + card.id; 
-	tempCardMiniature.className = "card-miniature"; 
+	tempCardMiniature.id = "cardMiniature" + card.id;
+	tempCardMiniature.className = "card-miniature";
 	tempCardMiniature.innerHTML = html.trim();
 	cardsWrapper.appendChild(tempCardMiniature);
+}
+
+function addPagination() {
+	if(selectedCards.length <= cardsPerPage) {
+		return false;
+	}
+
+	console.log('jest więcej niz cardsPerPage kart. buduje paginacje');
+
+	// if each site contains max 12 cards, the number of pages is selectedCards.length / 12 floored
+
+	var pagesCount = Math.ceil(selectedCards.length / cardsPerPage),
+		buttons = '';
+
+	console.log("liczba podstron: " + pagesCount);
+
+	for (var i=0; i < pagesCount; i++) {
+		buttons += '<li class="pagination-page">' + (i+1) + '</li>';
+	}
+
+	var html = '';
+		html += '	<ul id="paginationList" class="pagination-list">' + buttons + '</ul>';
+
+	pseudoFooter.innerHTML = html;
+
+	document.addEventListener("click", function(event) {
+		var element = event.target;
+		if(hasClass(element, "pagination-page")) {
+			var page = element.firstChild.nodeValue;
+			displayCards(page);
+		}
+	});
+
 }
 
 // Initialization
@@ -808,7 +874,7 @@ countCards();
 getView();
 getTopics();
 greetUser();
-
+addPagination();
 /* Utils */
 
 function hasClass(element, cls) {
