@@ -74,6 +74,30 @@ nav ul li {
 			cursor: pointer;
 		}
 
+.cards-filter {
+	text-align: center;
+	margin: 8px auto;
+	padding: 9px 0px;
+	border: 1px solid #eee;
+	width: 200px;
+	border-radius: 9px;
+	color: #aaa;
+	font-size: 14px;
+}
+
+.cards-filter select,
+.cards-filter option {
+	color: #aaa;
+	font-size: 14px;
+	border: none;
+	font-family: Arial;	
+}
+
+.cards-filter select:focus{
+	outline: none;
+	border: none;
+}
+
 form h2 {
 	margin: 0;
     font-size: 16px;	
@@ -125,14 +149,21 @@ form h2 {
 		visibility: visible;
 	}
 
-.validation-message {
-    float: right;
-    font-size: 13px;
-    background: red;
-    color: white;
-    padding: 3px 12px;
-    border-radius: 5px;	
+.validation-box {
+	position: absolute;
+	box-sizing: border-box;
+	padding: 0;
+	left: 0;
+	text-align: center;
+	top: 93px;	
 }
+
+	.validation-message {
+		font-size: 13px;
+		background: #ef5350;
+		color: white;
+		padding: 3px 12px;
+	}
 
 .user-name-section,
 .topic-section {
@@ -184,7 +215,7 @@ form h2 {
 	.create-card-section div,
 	.collection-section div {
 		width: 100%;
-		padding: 15px 0;
+		padding: 10px 0;
 	}
 	
 	.create-card-section input[type="text"],
@@ -282,7 +313,7 @@ form h2 {
 	
 	.data-container:hover {
 		cursor: pointer;
-		background: #efefef;
+		box-shadow: 0 0 20px -5px #ccc inset;
 		transition: all 0.5s ease-in-out;
 		-webkit-transition: all 0.5s ease-in-out;
 	}
@@ -378,7 +409,8 @@ form h2 {
 
 	.grid-view .card-actions {
 		padding: 8px 10%;
-		background: #eee;
+		border-top: 1px solid #eee;
+		background: #fff;
 		width: 100%;
 		left: 0;		
 	}

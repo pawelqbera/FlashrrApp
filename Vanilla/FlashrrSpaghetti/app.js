@@ -10,7 +10,8 @@ var tempTopics = JSON.parse(localStorage.getItem("tempTopics")) || [],
 	collections = JSON.parse(localStorage.getItem("Collections")) || [defaultCollection],
 	userName = JSON.parse(localStorage.getItem("userName")) || 'Guest',
 	selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0],
-	cardsPerPage = 12;
+	selectedCards = selectedCollection.cards,
+	cardsPerPage = 2;
 
 var createCardBtn = document.getElementById("createCardBtn"),
 	pageWrapper = document.getElementById("pageWrapper"),
@@ -39,12 +40,12 @@ collectionSelect.addEventListener('change', selectCollection);
 
 function handleCardEvents(event) {
     var element = event.target,
-        parentId = element.parentNode.id ? element.parentNode.id.slice(-5) : '',
-        existingCards = selectedCollection.cards,
-        i = null,
-        obj = null;
+		parentId = element.parentNode.id ? element.parentNode.id.slice(-5) : '',
+		existingCards = selectedCollection.cards,
+		i = null,
+		obj = null;
 
-    if(hasClass(element, 'remove-card')) {
+	if(hasClass(element, 'remove-card')) {
 		if (document.getElementById('viewCardSection')) {
 			closeCardView();
 		}
@@ -55,7 +56,9 @@ function handleCardEvents(event) {
 				break;
 			}
 		}
-		localStorage.setItem("Cards", JSON.stringify(existingCards));
+		var selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value;
+		collections[selectedCollectionIndex].cards = existingCards;
+		localStorage.setItem("Collections", JSON.stringify(collections));
 		displayCards();
 		countCards();
     } else if (hasClass(element, 'edit-card')) {
@@ -88,18 +91,18 @@ function handleCardEvents(event) {
 		var viewImg = window.open("", "Image Preview", "height=500,width=500");
 		viewImg.document.write('<img src="' + element.src + '" />');
 	} else if (hasClass(element, 'data-details')) {
-		var detailedCard = '';
+		var viewedCard = '';
 		for(i = 0; i < existingCards.length; i++) {
 			obj = existingCards[i];
 			if(parentId.indexOf(obj.id) !== -1) {
-				detailedCard = existingCards[i];
+				viewedCard = existingCards[i];
 				break;
 			}
 		}
 		// count view
-		countView(detailedCard);
+		countView(viewedCard);
 		// view card
-		viewCard(event, detailedCard);
+		viewCard(event, viewedCard);
 	} else if ( (hasClass(element, 'fog-blanket')) ||
 				(hasClass(element, 'cancel-form')) ||
 				(hasClass(element, 'close-btn')) ) {
@@ -117,17 +120,22 @@ function handleCardEvents(event) {
 	}
 }
 
-function countView(card) {
+function countView(viewedCard) {
 	var existingCards = selectedCollection.cards;
-	for(var i = 0; i < existingCards.length; i++) {
-		var obj = existingCards[i];
-		if(card.id.indexOf(obj.id) !== -1) {
-			existingCards[i].views += 1;
-			break;
-		}
-	}
+	viewedCard.views += 1;
+	var selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value;
+	
+	// Update and load new collections
+	collections[selectedCollectionIndex].cards = existingCards;
 	localStorage.setItem("Collections", JSON.stringify(collections));
-	displayCards();	
+	collections = JSON.parse(localStorage.getItem("Collections")) || [defaultCollection];
+
+	// Update and load new selectedCollection based on updated collections
+	selectedCollection = collections[selectedCollectionIndex];
+	localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
+	selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
+
+	displayCards();
 }
 
 /**
@@ -208,6 +216,7 @@ function createCollection(updatedCollectionId) {
 	}
 	collections = existingCollections;
 	localStorage.setItem("Collections", JSON.stringify(existingCollections));
+	localStorage.setItem("tempTopics", JSON.stringify(''));
 	getCollections();
 	closeCollectionForm();
 }
@@ -278,9 +287,12 @@ function selectCollection(event) {
 	} else {
 		selectedCollection = collections[element.value];
 		localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
-		displayCards(selectedCollection);
+		selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
+		selectedCards = selectedCollection.cards;
+		displayCards();
 		countCards();
 		getTopics();
+		addPagination();
 	}
 }
 
@@ -307,9 +319,7 @@ function getTempTopics() {
 		topicOptions += '<option value="' + i + '">' + tempTopics[i] + '</option>';
 	}
 	var html = '';
-		html += '	<option value="-1" selected="selected">select topic</option>';
 		html += topicOptions;
-		html += '	<option value="addNewTopic">ADD NEW TOPIC</option>';
 	cardTopic.innerHTML = html;
 }
 
@@ -392,7 +402,6 @@ function closeTopicForm() {
 	closeFogBlanket();
 }
 
-
 function toggleView(event) {
 	var element = event.target;
 	if (element.id === "gridViewBtn" && !gridView) {
@@ -437,31 +446,31 @@ function searchCard(event) {
 	}
 }
 
-function viewCard(event, detailedCard) {
+function viewCard(event, viewedCard) {
 	if (document.getElementById('viewCardSection')) {
 		return false;
 	}
 
 	var thumbs = '';
 
-	for (var i = 0; i < detailedCard.attachments.length; i++) {
-		thumbs += '<img src="' + detailedCard.attachments[i] + '" class="view-card-thumb" />';
+	for (var i = 0; i < viewedCard.attachments.length; i++) {
+		thumbs += '<img src="' + viewedCard.attachments[i] + '" class="view-card-thumb" />';
 	}
 
-	var urlifiedText = urlify(detailedCard.text);
+	var urlifiedText = urlify(viewedCard.text);
 
 	var html = '';
 		html += '	<div id="viewCardForm">';
 		html += '		<span id="closeBtn" class="close-btn">X</span>';
 		html += '		<div>';
-		html += '			<h3>' + detailedCard.title + '</h3>';
-		html += '			<p class="topic">in: ' + detailedCard.topic + ' by ' + detailedCard.author + '</p>';
+		html += '			<h3>' + viewedCard.title + '</h3>';
+		html += '			<p class="topic">in: ' + viewedCard.topic + ' by ' + viewedCard.author + '</p>';
 		html += '		</div>';
 		html += '		<div>';
 		html += '			<p class="card-text">' + urlifiedText + '</p>';
 		html += '		</div>';
 		html += '		<div class="view-thumb-list">' + thumbs + '</div>';
-		html += '		<div class="view-card-actions" id="actions' + detailedCard.id + '">';
+		html += '		<div class="view-card-actions" id="actions' + viewedCard.id + '">';
 		html += '			<a class="edit-card">Edit</a>';
 		html += '			<a class="remove-card">Remove</a>';
 		html += '		</div>';
@@ -589,7 +598,7 @@ function createTopicAdder(parentId, isMultiple) {
 	var html = '';
 		html += '	<label for="cardTopic">Select Topic</label>';
 		html += '	<select id="cardTopic" required>' + cardTopics + '</select>';
-		html += '	<div id="createTopicValidationBox"></div>';
+		html += '	<div id="createTopicValidationBox" class="validation-box"></div>';
 
 	parent.innerHTML = html;
 
@@ -643,7 +652,7 @@ function createTopicAdder(parentId, isMultiple) {
 		tempTopics.push(newTopic);
 		localStorage.setItem("tempTopics", JSON.stringify(tempTopics));
 		getTempTopics();
-		getCardFormTopics();
+		//getCardFormTopics();
 	}
 
 	function removeAddTopicLink() {
@@ -668,9 +677,6 @@ function createTopicAdder(parentId, isMultiple) {
 
 	getCardFormTopics();
 }
-
-
-
 
 function getAttachments(event, attachments) {
 	var files = event.target.files;
@@ -735,9 +741,10 @@ function createCard(updatedCardId, attachments) {
 		},
 	existingCards = selectedCollection.cards;
 
-    if(existingCards === null) {
+    if(!existingCards) {
     	existingCards = [];
     }
+
 	if (updatedCardId) {
 		for(var i = 0; i < existingCards.length; i++) {
 			var obj = existingCards[i];
@@ -750,9 +757,22 @@ function createCard(updatedCardId, attachments) {
 	else {
 		existingCards.push(card);
 	}
+
+	var selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value;
+	
+	// Update and load new collections
+	collections[selectedCollectionIndex].cards = existingCards;
 	localStorage.setItem("Collections", JSON.stringify(collections));
+	collections = JSON.parse(localStorage.getItem("Collections")) || [defaultCollection];
+
+	// Update and load new selectedCollection based on updated collections
+	selectedCollection = collections[selectedCollectionIndex];
+	localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
+	selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
+
 	displayCards();
 	countCards();
+	addPagination();
 	closeCardForm();
 }
 
@@ -767,14 +787,24 @@ function makeid()
 
 function displayCards(page) {
 
+	collections = JSON.parse(localStorage.getItem("Collections")) || [defaultCollection];
+
 	var pageIndex = parseInt(page) || 1,
 		i = 0; // wybrana strona do pokazania: 1 lub 2
 
+	// bug: outdated number of cards in selectedCollection
+	selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
 	selectedCards = selectedCollection.cards;
+
 	cardsWrapper.innerHTML = '';
 
 	var cardsCount = selectedCards.length; // 19 - number of cards
 	var lastPageCardsCount = cardsCount % cardsPerPage; // 7 - liczba kart na ostatniej stronie
+
+	if(lastPageCardsCount === 0) {
+		lastPageCardsCount = cardsPerPage;
+	}
+
 	var pagesCount = Math.ceil(selectedCards.length / cardsPerPage); // 2 - liczba podstron
 
 	// jezeli pagesCount === 1 to 
@@ -852,8 +882,9 @@ function buildCardMiniature(card) {
 
 function addPagination() {
 	if(selectedCards.length <= cardsPerPage) {
+		pseudoFooter.innerHTML = '';
 		return false;
-	}
+	}	
 
 	// if each site contains max 12 cards, the number of pages is selectedCards.length / 12 ceiled
 	var pagesCount = Math.ceil(selectedCards.length / cardsPerPage),
