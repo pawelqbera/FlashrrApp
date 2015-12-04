@@ -96,6 +96,9 @@ function handleCardEvents(event) {
 				break;
 			}
 		}
+		// count view
+		countView(detailedCard);
+		// view card
 		viewCard(event, detailedCard);
 	} else if ( (hasClass(element, 'fog-blanket')) ||
 				(hasClass(element, 'cancel-form')) ||
@@ -112,6 +115,19 @@ function handleCardEvents(event) {
 			closeCollectionForm();
 		}
 	}
+}
+
+function countView(card) {
+	var existingCards = selectedCollection.cards;
+	for(var i = 0; i < existingCards.length; i++) {
+		var obj = existingCards[i];
+		if(card.id.indexOf(obj.id) !== -1) {
+			existingCards[i].views += 1;
+			break;
+		}
+	}
+	localStorage.setItem("Collections", JSON.stringify(collections));
+	displayCards();	
 }
 
 /**
@@ -260,7 +276,6 @@ function selectCollection(event) {
 	} else if (element.value === 'addNewCollection') {
 		openCollectionForm();
 	} else {
-		//displayCards();
 		selectedCollection = collections[element.value];
 		localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
 		displayCards(selectedCollection);
@@ -715,7 +730,8 @@ function createCard(updatedCardId, attachments) {
 			attachments: attachments,
 			author: userName,
 			date: date.getTime(),
-			isFlashcard: flashcardCheck.checked
+			isFlashcard: flashcardCheck.checked,
+			views: 0
 		},
 	existingCards = selectedCollection.cards;
 
@@ -751,7 +767,7 @@ function makeid()
 
 function displayCards(page) {
 
-	var pageIndex = page || 1,
+	var pageIndex = parseInt(page) || 1,
 		i = 0; // wybrana strona do pokazania: 1 lub 2
 
 	selectedCards = selectedCollection.cards;
@@ -779,9 +795,8 @@ function displayCards(page) {
 		for (i = cardsPerPage * (pageIndex - 1);i < cardsPerPage * (pageIndex - 1) + cardsPerPage;i++) {
 			buildCardMiniature(selectedCards[i]);
 		}
-	} else if (pageIndex == pagesCount) {
+	} else if (pageIndex === pagesCount) {
 		for (i = (cardsCount - lastPageCardsCount);i < cardsCount;i++) {
-			console.log(selectedCards[i]);
 			buildCardMiniature(selectedCards[i]);
 		}		
 	}
@@ -814,6 +829,7 @@ function buildCardMiniature(card) {
 		html += ' <div id="data-container' + card.id + '" class="data-container data-details ' + flashcardClass +'">';
 		html += ' 	<h3 class="data-details">' + card.title + '</h3>';
 		html += ' 	<p class="topic data-details">' + timeString + ', in: ' + card.topic + ' by ' + card.author + '</p>';
+		html += ' 	<p class="topic data-details"><b>' + card.views + '</b> views</p>';
 		if(!card.isFlashcard) {
 			html += ' 	<p class="data-details">' + card.text + '</p>';
 		}
@@ -839,14 +855,9 @@ function addPagination() {
 		return false;
 	}
 
-	console.log('jest więcej niz cardsPerPage kart. buduje paginacje');
-
-	// if each site contains max 12 cards, the number of pages is selectedCards.length / 12 floored
-
+	// if each site contains max 12 cards, the number of pages is selectedCards.length / 12 ceiled
 	var pagesCount = Math.ceil(selectedCards.length / cardsPerPage),
 		buttons = '';
-
-	console.log("liczba podstron: " + pagesCount);
 
 	for (var i=0; i < pagesCount; i++) {
 		buttons += '<li class="pagination-page">' + (i+1) + '</li>';
@@ -875,6 +886,7 @@ getView();
 getTopics();
 greetUser();
 addPagination();
+
 /* Utils */
 
 function hasClass(element, cls) {

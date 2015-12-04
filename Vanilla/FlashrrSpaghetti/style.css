@@ -241,6 +241,12 @@ form h2 {
 			margin: 10px;
 		}
 
+.grid-view {
+	display: inline-block;
+    width: 100%;
+    margin: 14px 0;	
+}
+
 .card-miniature {
     float: left;
     box-sh//adow: 0px 0px 20px -5px #bbb;
@@ -319,7 +325,7 @@ form h2 {
 		}		
 
 		.card-miniature p {
-			height: 30px;
+			height: 22px;
 			overflow: hidden;
 			white-space: nowrap;
 			text-overflow: ellipsis;
@@ -418,8 +424,8 @@ form h2 {
 	
 		.pagination-list li {
 			float: left;
-			width: 40px;
-			height: 40px;
+			width: 35px;
+			height: 35px;
 			border: 1px solid #eee;
 			border-radius: 15px;
 			text-align: center;
@@ -431,4 +437,8 @@ form h2 {
 
 			.pagination-list li:hover {
 				font-weight: 600;
+			}
+
+			.current-page {
+				background: #4bbaf7;
 			}
