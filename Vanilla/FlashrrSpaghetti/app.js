@@ -11,7 +11,9 @@ var tempTopics = JSON.parse(localStorage.getItem("tempTopics")) || [],
 	userName = JSON.parse(localStorage.getItem("userName")) || 'Guest',
 	selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0],
 	selectedCards = selectedCollection.cards,
-	cardsPerPage = 2;
+	cardsPerPage = 2,
+	selectedSorting = JSON.parse(localStorage.getItem("selectedSorting")) || 'date',
+	selectedPage = JSON.parse(localStorage.getItem("selectedPage")) || 1;
 
 var createCardBtn = document.getElementById("createCardBtn"),
 	pageWrapper = document.getElementById("pageWrapper"),
@@ -23,7 +25,8 @@ var createCardBtn = document.getElementById("createCardBtn"),
 	topicSelect = document.getElementById("topicSelect"),
 	hiUserName = document.getElementById("hiUserName"),
 	collectionSelect = document.getElementById("collectionSelect"),
-	pseudoFooter = document.getElementById("pseudoFooter");
+	pseudoFooter = document.getElementById("pseudoFooter"),
+	cardsFilter = document.getElementById("cardsFilter");
 
 createCardBtn.addEventListener('click', openCardForm );
 document.addEventListener('click', handleCardEvents, true);
@@ -33,6 +36,7 @@ listViewBtn.addEventListener('click', toggleView);
 hiUserName.addEventListener('click', openUserNameForm );
 topicSelect.addEventListener('change', selectCardsByTopic);
 collectionSelect.addEventListener('change', selectCollection);
+cardsFilter.addEventListener('change', selectSortingMethod);
 
 /**
 *  Event Delegator
@@ -120,11 +124,55 @@ function handleCardEvents(event) {
 	}
 }
 
+function selectSortingMethod(event) {
+	var element = event.target;
+	if (element.value === selectedSorting) {
+		return false;
+	} else if (element.value === 'date') {
+		selectedSorting = element.value;
+		localStorage.setItem("selectedSorting", JSON.stringify(selectedSorting));
+		displayCards();
+	} else if (element.value === 'popularity') {
+		selectedSorting = element.value;
+		localStorage.setItem("selectedSorting", JSON.stringify(selectedSorting));
+		displayCards();
+	}
+}
+
+function sortCards(cards) {
+	if(selectedSorting === 'date') {
+		sortCardsByDate(cards);
+	} else if(selectedSorting === 'popularity') {
+		sortCardsByPopularity(cards);
+	}
+}
+
+function sortCardsByDate(cards) {
+	cards.sort(function(a, b){
+		return b.date - a.date;
+	});
+}
+
+function sortCardsByPopularity(cards) {
+	cards.sort(function(a, b){
+		return b.views - a.views;
+	});
+}
+
+function setSorting() {
+	if (selectedSorting === 'date') {
+		cardsFilter.getElementsByTagName('option')[0].selected = 'selected';
+	} else if (selectedSorting === 'popularity') {
+		cardsFilter.getElementsByTagName('option')[1].selected = 'selected';
+	}
+} 
+
 function countView(viewedCard) {
-	var existingCards = selectedCollection.cards;
-	viewedCard.views += 1;
-	var selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value;
+	var existingCards = selectedCollection.cards,
+		selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value;
 	
+	viewedCard.views += 1;
+
 	// Update and load new collections
 	collections[selectedCollectionIndex].cards = existingCards;
 	localStorage.setItem("Collections", JSON.stringify(collections));
@@ -135,7 +183,7 @@ function countView(viewedCard) {
 	localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
 	selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
 
-	displayCards();
+	displayCards(selectedPage);
 }
 
 /**
@@ -796,6 +844,8 @@ function displayCards(page) {
 	selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
 	selectedCards = selectedCollection.cards;
 
+	sortCards(selectedCards);
+
 	cardsWrapper.innerHTML = '';
 
 	var cardsCount = selectedCards.length; // 19 - number of cards
@@ -886,7 +936,6 @@ function addPagination() {
 		return false;
 	}	
 
-	// if each site contains max 12 cards, the number of pages is selectedCards.length / 12 ceiled
 	var pagesCount = Math.ceil(selectedCards.length / cardsPerPage),
 		buttons = '';
 
@@ -899,19 +948,32 @@ function addPagination() {
 
 	pseudoFooter.innerHTML = html;
 
+	setCurrentPageClass();
+
 	document.addEventListener("click", function(event) {
 		var element = event.target;
 		if(hasClass(element, "pagination-page")) {
+			for(var i=0; i < paginationList.childNodes.length;i++) {
+				paginationList.childNodes[i].className = "pagination-page";
+			}		
+			element.className += ' current-page';
 			var page = element.firstChild.nodeValue;
+			selectedPage = page;
+			localStorage.setItem("selectedPage", JSON.stringify(page));
 			displayCards(page);
 		}
 	});
 
 }
 
+function setCurrentPageClass() {
+	paginationList.childNodes[parseInt(selectedPage) - 1].className += ' current-page';
+}
+
 // Initialization
 getCollections();
-displayCards();
+setSorting();
+displayCards(selectedPage);
 countCards();
 getView();
 getTopics();

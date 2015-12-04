@@ -85,6 +85,10 @@ nav ul li {
 	font-size: 14px;
 }
 
+.cards-filter select {
+	margin-left: -5px;
+}
+
 .cards-filter select,
 .cards-filter option {
 	color: #aaa;
@@ -472,5 +476,6 @@ form h2 {
 			}
 
 			.current-page {
-				background: #4bbaf7;
+				box-shadow: 0 0 12px 0px #ddd;
+				font-weight: 600;
 			}
