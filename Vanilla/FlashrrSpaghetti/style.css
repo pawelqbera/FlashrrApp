@@ -32,92 +32,6 @@ ul li {
     list-style: none;
 }
 
-header {
-    display: inline-block;
-
-    width: 100%;
-
-    color: #323232;
-    bac//kground: #004d40;
-
-	/* alternative js-fiddle design */
-	background: #fff;
-	box-shadow: 0 0 5px rgba(0,0,0,.2);
-}
-
-	.header-label {
-		font-size: 13px;
-    	padding: 7px 6px;
-	}
-
-nav ul li {
-    float: left;
-
-    margin-right: 18px;
-}
-
-	nav {
-		padding: 21px 0;
-		width: 100%;
-		display: inline-block;
-	}
-
-	.logo {
-	    display: block;
-	}
-
-		.logo img {
-			width: 68px;
-			margin-top: 7px;
-		}
-
-	.card-counter {
-		font-weight: 600;
-	}
-
-.right-nav {
-	float: right;
-}
-
-	.greet-user span {
-		font-weight: 600;
-		cursor: pointer;
-	}
-
-.cards-filter {
-	background: #fff;
-	box-shadow: 0 0 5px rgba(0,0,0,.2);	
-	text-align: center;
-	margin: 21px auto;
-	padding: 9px 0px;
-	width: 200px;
-	border-radius: 9px;
-	color: #aaa;
-	font-size: 14px;
-}
-
-.cards-filter select {
-	margin-left: -5px;
-}
-
-.cards-filter select,
-.cards-filter option {
-	color: #aaa;
-	font-size: 14px;
-	border: none;
-	font-family: Arial;	
-}
-
-.cards-filter select:focus{
-	outline: none;
-	border: none;
-}
-
-form h2 {
-	margin: 0;
-    font-size: 16px;	
-}		
-
 .btn {
 	padding: 9px 12px;
     font-size: 12px;
@@ -160,184 +74,131 @@ input[type="text"]:focus {
 	outline: none;
 }
 
+/* Header */
 
-.close-btn {
-	position: absolute;
-	top: 25px;
-	right: 25px;
-	font-size: 20px;
-	cursor: pointer;
-}
+header {
+    display: inline-block;
 
-.fog-blanket {
-	background: #000 none repeat scroll 0% 0%;
-	height: 100%;
-	left: 0px;
-	position: fixed;
-	top: 0px;
-	width: 100%;
-	z-index: 2500;
-	opacity: 0.5;
-	transition: opacity 0.2s ease 0.1s;	
-}
+    width: 100%;
 
-	.visible {
-		visibility: visible;
-	}
+    color: #323232;
+    bac//kground: #004d40;
 
-.validation-box {
-	position: absolute;
-	box-sizing: border-box;
-	padding: 0;
-	left: 0;
-	text-align: center;
-	top: 93px;	
-}
-
-	.validation-message {
-		font-size: 13px;
-		background: #ef5350;
-		color: white;
-		padding: 3px 12px;
-	}
-
-.user-name-section,
-.topic-section {
-	position: fixed;
-	width: 25%;
-	box-sizing: border-box;
-	background: #ddd;
-	border-radius: 14px;
-	padding: 50px;
-	box-shadow: 0px 0px 23px -3px #333;
-	top: 75%;
-	bottom: 37.5%;
-	overflow: hidden;
-	left: 62.5%;
-	margin-left: -25%;
-	margin-top: -25%;
-	z-index: 3500;
-}
-
-	.user-name-section div,
-	.topic-section div {
-		width: 100%;
-		padding: 15px 0;
-	}
-
-	.user-name-section input[type="text"],
-	.topic-section input[type="text"] {
-		width: 100%;
-	}		
-
-.create-card-section,
-.collection-section {
-	position: fixed;
-	width: 50%;
-	box-sizing: border-box;
-	background: #ddd;
-	border-radius: 14px;
-	padding: 50px;
-	box-shadow: 0px 0px 23px -3px #333;
-	top: 50%;
-	bottom: 12.5%;
-	overflow: hidden;
-	left: 50%;
-	margin-left: -25%;
-	margin-top: -25%;
-	z-index: 3500;
-}
-
-	.create-card-section div,
-	.collection-section div {
-		width: 100%;
-		padding: 10px 0;
-	}
-	
-	.create-card-section input[type="text"],
-	.create-card-section textarea,
-	.collection-section input[type="text"]{
-		width: 100%;
-	}
-
-	.create-card-section textarea {
-		height: 260px;
-		overflow-y: scroll;
-		resize: none;
-	}
-
-	.add-topic-link {
-		margin-left: 12px;
-		font-size: 12px;
-	}
-
-	.create-card-section label,
-	.collection-section label {
-		font-size: 13px;
-		cursor: pointer;
-	}
-
-.view-card-section {
-	position: fixed;
-	width: 50%;
-	box-sizing: border-box;
+	/* alternative js-fiddle design */
 	background: #fff;
-	border-radius: 14px;
-	padding: 50px;
-	box-shadow: 0px 0px 23px -3px #333;
-	top: 50%;
-	bottom: 12.5%;
-	overflow: hidden;
-	left: 50%;
-	margin-left: -25%;
-	margin-top: -25%;
-	z-index: 3500;
+	box-shadow: 0 0 5px rgba(0,0,0,.2);
 }
-	
-	.view-card-section .card-text {
-		height: 425px;
-		overflow-y: scroll;
+
+	.header-label {
+		font-size: 13px;
+    	padding: 7px 6px;
 	}
 
-	.view-thumb-list {
-		height: 80px;
+	nav ul li {
+	    float: left;
+
+	    margin-right: 18px;
 	}
 
-		.view-thumb-list img {
-			height: 60px;
-			margin: 10px;
+		nav {
+			padding: 21px 0;
+			width: 100%;
+			display: inline-block;
 		}
+
+		.logo {
+		    display: block;
+		}
+
+			.logo img {
+				width: 68px;
+				margin-top: 7px;
+			}
+
+		.card-counter {
+			font-weight: 600;
+		}
+
+	.right-nav {
+		float: right;
+	}
+
+		.greet-user span {
+			font-weight: 600;
+			cursor: pointer;
+		}
+
+/* Main Section */
+
+.section-wrapper {
+	padding: 1% 1% 0 1%;
+}
+
+	.cards-filter {
+		background: #fff;
+		border: 1px solid #eee;	
+		text-align: center;
+		margin: 0 auto;
+		padding: 9px 0px;
+		width: 200px;
+		border-radius: 9px;
+		color: #aaa;
+		font-size: 14px;
+	}
+
+		.cards-filter select {
+			margin-left: -5px;
+		}
+
+		.cards-filter select,
+		.cards-filter option {
+			color: #aaa;
+			font-size: 14px;
+			border: none;
+			font-family: Arial;	
+		}
+
+			.cards-filter select:focus{
+				outline: none;
+				border: none;
+			}
+
+/* Card Miniatures */		
 
 .grid-view {
 	display: inline-block;
     width: 100%;
-    margin: 14px 0;	
+    padding: 1% 0;	
 }
 
-.card-miniature {
-    float: left;
-	border: 1px solid #eee;
-    overflow: hidden;
-	box-sizing: border-box;
-	position: relative;
-	background: #fff;
-}
+	.card-miniature {
+	    float: left;
+		border: 1px solid #eee;
+	    overflow: hidden;
+		box-sizing: border-box;
+		position: relative;
+		background: #fff;
+	}
 
-.grid-view .card-miniature {
-	width: 23%;
-    padding: 25px;
-    border-radius: 20px;
-    margin: 1.5% 0 0 1.5%;
-    height: 250px;
-}
+	.grid-view .card-miniature {
+		width: 24.25%;
+	    padding: 21px;
+	    border-radius: 20px;
+	    margin: 0 1% 1% 0;
+	    height: 228px;
+	}
 
-.list-view .card-miniature {
-	width: 97%;
-    padding: 15px;
-    border-radius: 14px;
-    margin: 10px 1.5%;
-    height: 130px;
-}
+	.grid-view .card-miniature:nth-child(4n) {
+		margin: 0;
+	}
+
+	.list-view .card-miniature {
+		width: 97%;
+	    padding: 15px;
+	    border-radius: 14px;
+	    margin: 10px 1.5%;
+	    height: 130px;
+	}
 
 	.flashcard {
 		background-color: #FFF59D;
@@ -474,15 +335,168 @@ input[type="text"]:focus {
     font-size: 12px;
 }
 
+/* Forms */
+
+form h2 {
+	margin: 0;
+    font-size: 16px;	
+}		
+
+	.close-btn {
+		position: absolute;
+		top: 25px;
+		right: 25px;
+		font-size: 20px;
+		cursor: pointer;
+	}
+
+	.fog-blanket {
+		background: #000 none repeat scroll 0% 0%;
+		height: 100%;
+		left: 0px;
+		position: fixed;
+		top: 0px;
+		width: 100%;
+		z-index: 2500;
+		opacity: 0.5;
+		transition: opacity 0.2s ease 0.1s;	
+	}
+
+		.visible {
+			visibility: visible;
+		}
+
+	.validation-box {
+		position: absolute;
+		box-sizing: border-box;
+		padding: 0;
+		left: 0;
+		text-align: center;
+		top: 93px;	
+	}
+
+		.validation-message {
+			font-size: 13px;
+			background: #ef5350;
+			color: white;
+			padding: 3px 12px;
+		}
+
+.user-name-section,
+.topic-section {
+	position: fixed;
+	width: 25%;
+	box-sizing: border-box;
+	background: #ddd;
+	border-radius: 14px;
+	padding: 50px;
+	box-shadow: 0px 0px 23px -3px #333;
+	top: 75%;
+	bottom: 37.5%;
+	overflow: hidden;
+	left: 62.5%;
+	margin-left: -25%;
+	margin-top: -25%;
+	z-index: 3500;
+}
+
+	.user-name-section div,
+	.topic-section div {
+		width: 100%;
+		padding: 15px 0;
+	}
+
+	.user-name-section input[type="text"],
+	.topic-section input[type="text"] {
+		width: 100%;
+	}		
+
+.create-card-section,
+.collection-section {
+	position: fixed;
+	width: 50%;
+	box-sizing: border-box;
+	background: #ddd;
+	border-radius: 14px;
+	padding: 50px;
+	box-shadow: 0px 0px 23px -3px #333;
+	top: 50%;
+	bottom: 12.5%;
+	overflow: hidden;
+	left: 50%;
+	margin-left: -25%;
+	margin-top: -25%;
+	z-index: 3500;
+}
+
+	.create-card-section div,
+	.collection-section div {
+		width: 100%;
+		padding: 10px 0;
+	}
+	
+	.create-card-section input[type="text"],
+	.create-card-section textarea,
+	.collection-section input[type="text"]{
+		width: 100%;
+	}
+
+	.create-card-section textarea {
+		height: 260px;
+		overflow-y: scroll;
+		resize: none;
+	}
+
+	.add-topic-link {
+		margin-left: 12px;
+		font-size: 12px;
+	}
+
+	.create-card-section label,
+	.collection-section label {
+		font-size: 13px;
+		cursor: pointer;
+	}
+
+.view-card-section {
+	position: fixed;
+	width: 50%;
+	box-sizing: border-box;
+	background: #fff;
+	border-radius: 14px;
+	padding: 50px;
+	box-shadow: 0px 0px 23px -3px #333;
+	top: 50%;
+	bottom: 12.5%;
+	overflow: hidden;
+	left: 50%;
+	margin-left: -25%;
+	margin-top: -25%;
+	z-index: 3500;
+}
+	
+	.view-card-section .card-text {
+		height: 425px;
+		overflow-y: scroll;
+	}
+
+	.view-thumb-list {
+		height: 80px;
+	}
+
+		.view-thumb-list img {
+			height: 60px;
+			margin: 10px;
+		}
+
+/* Footer */
+
 .pseudo-footer {
-    bottom: 0;
-    margin-top: 10px;
-   	border-top: 1px solid #eee;
-    width: 100%;
-    height: 75px;
-    position: absolute;
-    box-sizing: border-box;
-    padding: 1.5%;	
+	bottom: 0;
+	width: 100%;
+	position: absolute;
+	box-sizing: border-box;
+	padding: 1%;    
 }
 
 	.pagination-list {

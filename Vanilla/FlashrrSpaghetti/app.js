@@ -11,7 +11,7 @@ var tempTopics = JSON.parse(localStorage.getItem("tempTopics")) || [],
 	userName = JSON.parse(localStorage.getItem("userName")) || 'Guest',
 	selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0],
 	selectedCards = selectedCollection.cards,
-	cardsPerPage = 2,
+	cardsPerPage = 12,
 	selectedSorting = JSON.parse(localStorage.getItem("selectedSorting")) || 'date',
 	selectedPage = JSON.parse(localStorage.getItem("selectedPage")) || 1;
 
