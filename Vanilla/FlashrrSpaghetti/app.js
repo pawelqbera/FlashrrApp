@@ -481,15 +481,23 @@ function switchListView() {
 
 function searchCard(event) {
 	var searchValue = searchCards.value,
-		existingCards = JSON.parse(localStorage.getItem("Cards"));
+	selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0],
+	selectedCards = selectedCollection.cards;
 
-	displayCards();
+	displayCards(selectedPage);
+	
 
-	for(var i = 0; i < existingCards.length; i++) {
-		var obj = existingCards[i];
+	for(var i = 0; i < selectedCards.length; i++) {
+		var obj = selectedCards[i];
 		if(obj.title.indexOf(searchValue) === -1) {
 			var card = document.getElementById("cardMiniature" + obj.id);
 			card.parentNode.removeChild(card);
+			// muszę chyba usuwać z selectedCards na bieżąco 
+			// te karty, które usuwam z DOMa
+			// selectedCards[i].splice(i, 1);
+			// ponadto nie jestem pewien czy z paginacją filtruję po wszystkich faktycznie czy tylko po tych które są widoczne... sprawdzić 
+			console.log(selectedCards[i]);
+			addPagination();
 		}
 	}
 }
