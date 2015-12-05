@@ -188,6 +188,12 @@ header {
 	.right-nav {
 		float: right;
 	}
+		.fa-cog {
+			cursor: pointer;
+			padding: 7.5px;
+			margin-right: 15px;
+		}
+
 		.search-cards {
 			padding: 5.5px 25.5px 5.5px 5.5px;
 			width: 100px;
@@ -203,16 +209,17 @@ header {
 			width: 200px;
 		}
 
-			.fa-search {
-				position: absolute;
-				top: 0;
-				right: 0;	
-			}
-
 		.greet-user span {
 			font-weight: 600;
 			cursor: pointer;
 		}
+
+			.fa-search,
+			.fa-cog {
+				position: absolute;
+				top: 0;
+				right: 0;	
+			}		
 
 /* Main Section */
 
@@ -233,7 +240,8 @@ header {
 	}
 
 		.cards-filter select {
-			margin-left: -5px;
+			margin-left: -3px;
+			padding: 6px 0;
 		}
 
 		.cards-filter select,
@@ -453,7 +461,7 @@ form h2 {
 		}
 
 	.validation-box {
-		position: absolute;
+		position: relative;
 		box-sizing: border-box;
 		padding: 0;
 		left: 0;

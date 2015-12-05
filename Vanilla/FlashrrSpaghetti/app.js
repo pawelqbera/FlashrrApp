@@ -46,6 +46,7 @@ function handleCardEvents(event) {
     var element = event.target,
 		parentId = element.parentNode.id ? element.parentNode.id.slice(-5) : '',
 		existingCards = selectedCollection.cards,
+		selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value,
 		i = null,
 		obj = null;
 
@@ -63,7 +64,6 @@ function handleCardEvents(event) {
 		}
 		// DRY: Wstawić to do osobnej funkcji
 		//      updateCardCollections()
-		var selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value;		
 		// Update and load new collections
 		collections[selectedCollectionIndex].cards = existingCards;
 		localStorage.setItem("Collections", JSON.stringify(collections));
@@ -94,10 +94,10 @@ function handleCardEvents(event) {
 			closeCollectionView();
 		}
 		var editableCollection = '';
-		for(i = 0; i < existingCollections.length; i++) {
-			obj = existingCollections[i];
-			if(parentId.indexOf(obj.id) !== -1) {
-				editableCollection = existingCollections[i];
+		for(i = 0; i < collections.length; i++) {
+			obj = collections[i];
+			if(collections[selectedCollectionIndex].id.indexOf(obj.id) !== -1) {
+				editableCollection = collections[i];
 				break;
 			}
 		}
@@ -206,21 +206,30 @@ function openCollectionForm(event, editableCollection) {
 		return false;
 	}
 
-	var updatedCollectionId = editableCollection ? editableCollection.id : null;
+	console.log('editable collection passed: ' + editableCollection);
+
+	var editMode = editableCollection ? true : false,
+		collectionFormHeader = editableCollection ? "Edit Collection" : "New Collection",	
+		collectionName = editableCollection ? editableCollection.name : "",
+		collectionDescription = editableCollection ? editableCollection.description : "",
+		collectionTopics = editableCollection ? editableCollection.topics : [],
+		collectionFormSubmitLabel = editableCollection ? "Update Collection" : "Add New Collection",
+		updatedCollectionId = editableCollection ? editableCollection.id : null,
+		collectionCards = editableCollection ? editableCollection.cards : [];
 
 	var html = '';
 		html += '	<form id="collectionForm">';
-		html += '		<h2>New Collection</h2>';
+		html += '		<h2>' + collectionFormHeader + '</h2>';
 		html += '		<span id="closeBtn" class="close-btn">X</span>';
 		html += '		<div>';
-		html += '			<input type="text" id="collectionName" name="collectionName" placeholder="name">';
+		html += '			<input type="text" id="collectionName" name="collectionName" value="' + collectionName + '" placeholder="name">';
 		html += '		</div>';
 		html += '		<div>';
-		html += '			<input type="text" id="collectionDescription" name="collectionDescription" placeholder="description">';
+		html += '			<input type="text" id="collectionDescription" name="collectionDescription" value="' + collectionDescription + '" placeholder="description">';
 		html += '		</div>';
 		html += '		<div id="cardTopicWrapper"></div>';
 		html += '		<div>';
-		html += '			<button>Add New Collection</button>';
+		html += '			<button>' + collectionFormSubmitLabel + '</button>';
 		html += '			<a class="cancel-form">Cancel</a>';
 		html += '		</div>';
 		html += '	</form>';
@@ -238,13 +247,13 @@ function openCollectionForm(event, editableCollection) {
 
 	collectionForm.addEventListener('submit', function(event) {
 		event.preventDefault();
-		createCollection(updatedCollectionId);
+		createCollection(updatedCollectionId, collectionCards);
 	});
 
 	createTopicAdder("cardTopicWrapper", true);
 }
 
-function createCollection(updatedCollectionId) {
+function createCollection(updatedCollectionId, collectionCards) {
 	var date = new Date(),
 		form = document.forms[0],
 		collection = {
@@ -254,7 +263,7 @@ function createCollection(updatedCollectionId) {
 			author: userName,
 			date: date.getTime(),
 			topics: tempTopics,
-			cards: []
+			cards: collectionCards
 		},
 		existingCollections = JSON.parse(localStorage.getItem("Collections"));
 
@@ -276,6 +285,9 @@ function createCollection(updatedCollectionId) {
 	collections = existingCollections;
 	localStorage.setItem("Collections", JSON.stringify(existingCollections));
 	localStorage.setItem("tempTopics", JSON.stringify(''));
+	selectedCollection = collection;
+	localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
+	selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];	
 	getCollections();
 	closeCollectionForm();
 }
@@ -335,10 +347,14 @@ function getCollections() {
 		html += collectionOptions;
 		html += '	<option value="addNewCollection">ADD NEW COLLECTION</option>';
 	collectionSelect.innerHTML = html;
+	if(collectionSelect.value !== '-1' && collectionSelect.value !== 'addNewCollection'){
+		addEditCollectionBtn();
+	}
 }
 
 function selectCollection(event) {
 	var element = event.target;
+	removeEditCollectionBtn();
 	if (element.value === '-1') {
 		return false;
 	} else if (element.value === 'addNewCollection') {
@@ -352,7 +368,22 @@ function selectCollection(event) {
 		countCards();
 		getTopics();
 		addPagination();
+		addEditCollectionBtn();
 	}
+}
+
+function addEditCollectionBtn() {
+	var editCollectionBtn = document.createElement("i");
+	editCollectionBtn.className = "edit-collection fa fa-cog";
+	editCollectionBtn.id = "editCollectionBtn";
+	collectionSelect.parentNode.appendChild(editCollectionBtn);
+}
+
+function removeEditCollectionBtn() {
+	if(!document.getElementById("editCollectionBtn")) {
+		return false;
+	}
+	collectionSelect.parentNode.removeChild(editCollectionBtn);
 }
 
 function greetUser() {
@@ -593,6 +624,7 @@ function openCardForm(event, editableCard) {
 	}
 
 	var editMode = editableCard ? true : false,
+		cardFormHeader = editableCard ? "Edit Card" : "Create Card",
 		cardTitle = editableCard ? editableCard.title : "",
 		cardText = editableCard ? editableCard.text : "",
 		cardFormSubmitLabel = editableCard ? "Update Card" : "Create Card",
@@ -602,7 +634,7 @@ function openCardForm(event, editableCard) {
 
 	var html = '';
 		html += '	<form id="createCardForm">';
-		html += '		<h2>New Card</h2>';
+		html += '		<h2>' + cardFormHeader + '</h2>';
 		html += '		<span id="closeBtn" class="close-btn">X</span>';
 		html += '		<div id="cardTopicWrapper"></div>';
 		html += '		<div>';
