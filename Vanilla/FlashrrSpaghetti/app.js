@@ -470,12 +470,16 @@ function getView() {
 function switchGridView() {
 	gridView = true;
 	cardsWrapper.className = 'grid-view';
+	gridViewBtn.className += ' active';
+	listViewBtn.className = listViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
 	localStorage.setItem("gridView", JSON.stringify(true));
 }
 
 function switchListView() {
 	gridView = false;
 	cardsWrapper.className = 'list-view';
+	listViewBtn.className += ' active';
+	gridViewBtn.className = gridViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
 	localStorage.setItem("gridView", JSON.stringify(false));
 }
 

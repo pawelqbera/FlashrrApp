@@ -4,6 +4,8 @@
 	<title>Flashrr | Vanilla | Spaghetti</title>
 	<meta charset="utf-8" />
 	<link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,600,300' rel='stylesheet' type='text/css'>
 </head>
 <body>
     <div class="page" id="pageWrapper">
@@ -19,7 +21,10 @@
           </ul>
           <ul class="right-nav">
             <li><select name="collectionSelect" id="collectionSelect"></select></li>
-            <li><input id="searchCards" class="search-cards" type="text" placeholder="Search cards"></li>
+            <li class="relative">
+              <input id="searchCards" class="search-cards" type="text" placeholder="Search cards">
+              <i class="fa fa-search"></i>
+            </li>
             <li>
               <a id="gridViewBtn" class="btn btn-secondary switch-view">Grid View</a>
               <a id="listViewBtn" class="btn btn-secondary switch-view">List View</a>
