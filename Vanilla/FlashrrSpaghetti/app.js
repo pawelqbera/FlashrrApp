@@ -53,6 +53,7 @@ function handleCardEvents(event) {
 		if (document.getElementById('viewCardSection')) {
 			closeCardView();
 		}
+		console.log('clicked');
 		for(i = 0; i < existingCards.length; i++) {
 			obj = existingCards[i];
 			if(parentId.indexOf(obj.id) !== -1) {
@@ -60,10 +61,20 @@ function handleCardEvents(event) {
 				break;
 			}
 		}
-		var selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value;
+		// DRY: Wstawić to do osobnej funkcji
+		//      updateCardCollections()
+		var selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value;		
+		// Update and load new collections
 		collections[selectedCollectionIndex].cards = existingCards;
 		localStorage.setItem("Collections", JSON.stringify(collections));
-		displayCards();
+		collections = JSON.parse(localStorage.getItem("Collections")) || [defaultCollection];
+
+		// Update and load new selectedCollection based on updated collections
+		selectedCollection = collections[selectedCollectionIndex];
+		localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
+		selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
+		
+		displayCards(selectedPage);
 		countCards();
     } else if (hasClass(element, 'edit-card')) {
 		if (document.getElementById('viewCardSection')) {
@@ -830,7 +841,7 @@ function createCard(updatedCardId, attachments) {
 	localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
 	selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
 
-	displayCards();
+	displayCards(selectedPage);
 	countCards();
 	addPagination();
 	closeCardForm();
