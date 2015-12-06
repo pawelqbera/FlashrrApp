@@ -1,5 +1,4 @@
-var tempTopics = JSON.parse(localStorage.getItem("tempTopics")) || [],
-	gridView = JSON.parse(localStorage.getItem("gridView")) || true,
+var gridView = JSON.parse(localStorage.getItem("gridView")) || true,
 	defaultCollection = {
 		id: 'xxxxx',
 		name: 'default_collection',
@@ -48,7 +47,7 @@ function handleCardEvents(event) {
 		existingCards = selectedCollection.cards,
 		selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value,
 		i = null,
-		obj = null;
+		obj = null; 
 
 	if(hasClass(element, 'remove-card')) {
 		if (document.getElementById('viewCardSection')) {
@@ -205,9 +204,6 @@ function openCollectionForm(event, editableCollection) {
 	if (document.getElementById('collectionSection')) {
 		return false;
 	}
-
-	console.log('editable collection passed: ' + editableCollection);
-
 	var editMode = editableCollection ? true : false,
 		collectionFormHeader = editableCollection ? "Edit Collection" : "New Collection",	
 		collectionName = editableCollection ? editableCollection.name : "",
@@ -216,6 +212,8 @@ function openCollectionForm(event, editableCollection) {
 		collectionFormSubmitLabel = editableCollection ? "Update Collection" : "Add New Collection",
 		updatedCollectionId = editableCollection ? editableCollection.id : null,
 		collectionCards = editableCollection ? editableCollection.cards : [];
+
+	selectedCollection.topics = editableCollection ? selectedCollection.topics : [];
 
 	var html = '';
 		html += '	<form id="collectionForm">';
@@ -262,7 +260,7 @@ function createCollection(updatedCollectionId, collectionCards) {
 			description: collectionDescription.value,
 			author: userName,
 			date: date.getTime(),
-			topics: tempTopics,
+			topics: selectedCollection.topics,
 			cards: collectionCards
 		},
 		existingCollections = JSON.parse(localStorage.getItem("Collections"));
@@ -284,11 +282,32 @@ function createCollection(updatedCollectionId, collectionCards) {
 	}
 	collections = existingCollections;
 	localStorage.setItem("Collections", JSON.stringify(existingCollections));
-	localStorage.setItem("tempTopics", JSON.stringify(''));
+	collections = JSON.parse(localStorage.getItem("Collections"));
+	//localStorage.setItem("tempTopics", JSON.stringify(''));
 	selectedCollection = collection;
 	localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
 	selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];	
+	removeEditCollectionBtn();
 	getCollections();
+	getTopics();
+	//displayCards();
+
+	//var selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value;
+	
+	// Update and load new collections
+	//collections[selectedCollectionIndex].cards = existingCards;
+	//localStorage.setItem("Collections", JSON.stringify(collections));
+	//collections = JSON.parse(localStorage.getItem("Collections")) || [defaultCollection];
+
+	// Update and load new selectedCollection based on updated collections
+	//selectedCollection = collections[selectedCollectionIndex];
+	//localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
+	//selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
+
+	displayCards(selectedPage);
+	countCards();
+	addPagination();
+
 	closeCollectionForm();
 }
 
@@ -402,7 +421,7 @@ function getTopics() {
 	topicSelect.innerHTML = html;
 }
 
-function getTempTopics() {
+/*function getTempTopics() {
 	tempTopics = JSON.parse(localStorage.getItem("tempTopics"));
 	var topicOptions = '';
 	for (var i = 0; i < tempTopics.length; i++) {
@@ -411,7 +430,7 @@ function getTempTopics() {
 	var html = '';
 		html += topicOptions;
 	cardTopic.innerHTML = html;
-}
+}*/
 
 function selectCardsByTopic(event) {
 	var element = event.target;
@@ -420,12 +439,10 @@ function selectCardsByTopic(event) {
 	} else if (element.value === 'addNewTopic') {
 		openTopicForm();
 	} else {
-		var existingCards = JSON.parse(localStorage.getItem("Cards")) || [];
 		displayCards();
-		for(var i = 0; i < existingCards.length; i++) {
-			var obj = existingCards[i];
-			if(obj.topic.indexOf(topics[element.value]) === -1) {
-				var card = document.getElementById("cardMiniature" + obj.id);
+		for(var i = 0; i < selectedCards.length; i++) {
+			if(selectedCollection.topics[element.value].indexOf(selectedCards[i].topic) === -1) {
+				var card = document.getElementById("cardMiniature" + selectedCards[i].id);
 				card.parentNode.removeChild(card);
 			}
 		}
@@ -479,9 +496,20 @@ function openTopicForm() {
 			}
 		}
 		selectedCollection.topics.push(newTopic);
+		
+		// wstawić nową selectedCollection do collections
+		var selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value;	
+		// Update and load new collections
+		collections[selectedCollectionIndex] = selectedCollection;
 		localStorage.setItem("Collections", JSON.stringify(collections));
+		collections = JSON.parse(localStorage.getItem("Collections")) || [defaultCollection];
+
+		// Update and load new selectedCollection based on updated collections
+		selectedCollection = collections[selectedCollectionIndex];
+		localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
+		selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];		
+		getTopics();		
 		closeTopicForm();
-		getTopics();
 	});
 }
 
@@ -708,6 +736,24 @@ function createTopicAdder(parentId, isMultiple) {
 	var cardTopic = document.getElementById("cardTopic");
 	if(isMultiple) {
 		cardTopic.multiple = "multiple";
+	
+		cardTopic.addEventListener('change', function(event) {
+			setSelectedTopics();
+		});
+
+	}
+
+	function setSelectedTopics() {
+		var selectedTopics = [],
+			options = cardTopic && cardTopic.options;
+
+		for (var i=0, iLen=options.length; i<iLen; i++) {
+			if (options[i].selected) {
+				selectedTopics.push(options[i].text);
+			}
+		}
+
+		selectedCollection.topics = selectedTopics;
 	}
 
 	function createAddTopicLink() {
@@ -746,15 +792,21 @@ function createTopicAdder(parentId, isMultiple) {
 		var createTopicValidationBox = document.getElementById('createTopicValidationBox'),
 			newTopic = event.target.value;
 
-		for(var i=0; i < tempTopics.length;i++) {
-			if(newTopic.indexOf(tempTopics[i]) !== -1) {
+		for(var i=0; i < selectedCollection.topics.length;i++) {
+			if(newTopic.indexOf(selectedCollection.topics[i]) !== -1) {
 				createTopicValidationBox.innerHTML = '<p class="validation-message">Specified topic already exists!</p>';
 				return false;
 			}
 		}
-		tempTopics.push(newTopic);
-		localStorage.setItem("tempTopics", JSON.stringify(tempTopics));
-		getTempTopics();
+		//tempTopics.push(newTopic);
+		//localStorage.setItem("tempTopics", JSON.stringify(tempTopics));
+		selectedCollection.topics.push(newTopic);
+		localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
+		selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];		
+		
+
+		cardTopic.innerHTML = '';
+		getCollectionTopics();
 		//getCardFormTopics();
 	}
 
@@ -767,10 +819,16 @@ function createTopicAdder(parentId, isMultiple) {
 		createTopicInput.parentNode.removeChild(createTopicInput);
 	}
 
-	function getCardFormTopics() {
-		for (var i = 0; i < tempTopics.length; i++) {
-			cardTopics += '<option>' + tempTopics[i] + '</option>';
+	function getCollectionTopics() {
+		// Get Collection Topics
+		cardTopics = '';
+		for (var i = 0; i < selectedCollection.topics.length; i++) {
+			cardTopics += '<option>' + selectedCollection.topics[i] + '</option>';
 		}
+		// Get temp topics
+/*		for (i = 0; i < tempTopics.length; i++) {
+			cardTopics += '<option>' + tempTopics[i] + '</option>';
+		}*/
 		cardTopic.innerHTML = cardTopics;
 	}
 
@@ -778,35 +836,48 @@ function createTopicAdder(parentId, isMultiple) {
 
 	var addTopicLink = document.getElementById("addTopicLink");
 
-	getCardFormTopics();
+	getCollectionTopics();	
 }
 
 function getAttachments(event, attachments) {
 	var files = event.target.files;
 
-	for (var i = 0, f; f = files[i]; i++) {
-
-		if (!f.type.match('image.*')) {
-			continue;
-		}
+	for (var i = 0, f = files[i]; i < files.length; i++) {
 
 		var reader = new FileReader();
-
-		// Closure to capture the file information.
-		reader.onload = (function(theFile) {
-			return function(e) {
-				// Render thumbnail.
-				var span = document.createElement('span');
-				span.innerHTML = ['<img class="thumb" src="', e.target.result,
-				'" title="', escape(theFile.name), '"/>'].join('');
-				var thumbList = document.getElementById("thumbList");
-				thumbList.insertBefore(span, null);
-				//localStorage.setItem('img', e.target.result);
-				attachments.push(e.target.result);
-			};
-		})(f);
-		// Read in the image file as a data URL.
-		reader.readAsDataURL(f);
+		
+		if (f.type.match('image.*')) {	
+			// Closure to capture the file information.
+			reader.onload = (function(theFile) {
+				return function(e) {
+					// Render thumbnail.
+					var span = document.createElement('span');
+					span.innerHTML = ['<img class="thumb" src="', e.target.result,
+					'" title="', escape(theFile.name), '"/>'].join('');
+					var thumbList = document.getElementById("thumbList");
+					thumbList.insertBefore(span, null);
+					//localStorage.setItem('img', e.target.result);
+					attachments.push(e.target.result);
+				};
+			})(f);
+			// Read in the image file as a data URL.
+			reader.readAsDataURL(f);
+		} else if (f.type.match('text.*')) {
+			// Closure to capture the file information.
+			reader.onload = (function(theFile) {
+				return function(e) {
+					// Render fileicon
+					var span = document.createElement('span');
+					span.innerHTML = ['<a download="file.txt" class="file-link" href="data:application/octet-stream;charset=utf-16le,' + encodeURIComponent(e.target.result) + '">', escape(theFile.name), '</a>'].join('');
+					var thumbList = document.getElementById("thumbList");
+					thumbList.insertBefore(span, null);
+					//localStorage.setItem('img', e.target.result);
+					//attachments.push(e.target.result);
+				};
+			})(f);
+			// Read in the image file as a data URL.
+			reader.readAsText(f);			
+		}
 	}
 
 	return attachments;
@@ -833,7 +904,7 @@ function createCard(updatedCardId, attachments) {
 		form = document.forms[0],
 		card = {
 			id: updatedCardId || makeid(),
-			topic: cardTopic.value,
+			topic: cardTopic.options[cardTopic.selectedIndex].text,
 			title: cardTitle.value,
 			text: cardText.value,
 			attachments: attachments,
@@ -869,10 +940,14 @@ function createCard(updatedCardId, attachments) {
 	collections = JSON.parse(localStorage.getItem("Collections")) || [defaultCollection];
 
 	// Update and load new selectedCollection based on updated collections
+	collections[selectedCollectionIndex].topics = selectedCollection.topics;
 	selectedCollection = collections[selectedCollectionIndex];
 	localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
 	selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
 
+	//tempTopics = [];
+	//localStorage.setItem("tempTopics", JSON.stringify(tempTopics));
+	getTopics();
 	displayCards(selectedPage);
 	countCards();
 	addPagination();
