@@ -53,7 +53,6 @@ function handleCardEvents(event) {
 		if (document.getElementById('viewCardSection')) {
 			closeCardView();
 		}
-		console.log('clicked');
 		for(i = 0; i < existingCards.length; i++) {
 			obj = existingCards[i];
 			if(parentId.indexOf(obj.id) !== -1) {
@@ -283,31 +282,15 @@ function createCollection(updatedCollectionId, collectionCards) {
 	collections = existingCollections;
 	localStorage.setItem("Collections", JSON.stringify(existingCollections));
 	collections = JSON.parse(localStorage.getItem("Collections"));
-	//localStorage.setItem("tempTopics", JSON.stringify(''));
 	selectedCollection = collection;
 	localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
 	selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];	
 	removeEditCollectionBtn();
 	getCollections();
 	getTopics();
-	//displayCards();
-
-	//var selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value;
-	
-	// Update and load new collections
-	//collections[selectedCollectionIndex].cards = existingCards;
-	//localStorage.setItem("Collections", JSON.stringify(collections));
-	//collections = JSON.parse(localStorage.getItem("Collections")) || [defaultCollection];
-
-	// Update and load new selectedCollection based on updated collections
-	//selectedCollection = collections[selectedCollectionIndex];
-	//localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
-	//selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
-
 	displayCards(selectedPage);
 	countCards();
 	addPagination();
-
 	closeCollectionForm();
 }
 
@@ -420,17 +403,6 @@ function getTopics() {
 		html += '	<option value="addNewTopic">ADD NEW TOPIC</option>';
 	topicSelect.innerHTML = html;
 }
-
-/*function getTempTopics() {
-	tempTopics = JSON.parse(localStorage.getItem("tempTopics"));
-	var topicOptions = '';
-	for (var i = 0; i < tempTopics.length; i++) {
-		topicOptions += '<option value="' + i + '">' + tempTopics[i] + '</option>';
-	}
-	var html = '';
-		html += topicOptions;
-	cardTopic.innerHTML = html;
-}*/
 
 function selectCardsByTopic(event) {
 	var element = event.target;
@@ -740,7 +712,6 @@ function createTopicAdder(parentId, isMultiple) {
 		cardTopic.addEventListener('change', function(event) {
 			setSelectedTopics();
 		});
-
 	}
 
 	function setSelectedTopics() {
@@ -752,7 +723,6 @@ function createTopicAdder(parentId, isMultiple) {
 				selectedTopics.push(options[i].text);
 			}
 		}
-
 		selectedCollection.topics = selectedTopics;
 	}
 
@@ -798,8 +768,6 @@ function createTopicAdder(parentId, isMultiple) {
 				return false;
 			}
 		}
-		//tempTopics.push(newTopic);
-		//localStorage.setItem("tempTopics", JSON.stringify(tempTopics));
 		selectedCollection.topics.push(newTopic);
 		localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
 		selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];		
@@ -807,7 +775,6 @@ function createTopicAdder(parentId, isMultiple) {
 
 		cardTopic.innerHTML = '';
 		getCollectionTopics();
-		//getCardFormTopics();
 	}
 
 	function removeAddTopicLink() {
@@ -825,10 +792,6 @@ function createTopicAdder(parentId, isMultiple) {
 		for (var i = 0; i < selectedCollection.topics.length; i++) {
 			cardTopics += '<option>' + selectedCollection.topics[i] + '</option>';
 		}
-		// Get temp topics
-/*		for (i = 0; i < tempTopics.length; i++) {
-			cardTopics += '<option>' + tempTopics[i] + '</option>';
-		}*/
 		cardTopic.innerHTML = cardTopics;
 	}
 
@@ -945,8 +908,6 @@ function createCard(updatedCardId, attachments) {
 	localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
 	selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
 
-	//tempTopics = [];
-	//localStorage.setItem("tempTopics", JSON.stringify(tempTopics));
 	getTopics();
 	displayCards(selectedPage);
 	countCards();
