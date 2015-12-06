@@ -17,7 +17,7 @@ body {
 
 a {
 	cursor: pointer;
-	color: #009688;
+	color: #43d3c5;
 }
 
 a:hover {
@@ -610,19 +610,31 @@ form h2 {
 			width: 35px;
 			height: 35px;
 			border: 1px solid #eee;
-			border-radius: 15px;
+			border-radius: 50%;
 			text-align: center;
 			cursor: pointer;
 			line-height: 2.5;
 			font-size: 14px;
 			margin-right: 8px;
+			box-shadow: 0 1px 0 rgba(0, 0, 0,0.2);
 		}
 
+			.card-miniature:hover {
+				border-color: #009688;
+				box-shadow: 0 1px 0 rgba(221, 255, 251,0.07);
+			}	
+
 			.pagination-list li:hover {
+				border-color: #009688;
+				box-shadow: 0 1px 0 rgba(221, 255, 251,0.07);
 				font-weight: 600;
+				transition: all 0.2s ease-in-out;
+				-webkit-transition: all 0.2s ease-in-out;				
 			}
 
 			.current-page {
-				box-shadow: 0 0 12px 0px #ddd;
+				background: #f0f0f0;
+				border-color: #fff!important;
+				box-shadow: 0 1px 0 rgba(221, 255, 251,0.07), 0 0 2px 1px rgba(0,0,0,0.2) inset!important;
 				font-weight: 600;
 			}

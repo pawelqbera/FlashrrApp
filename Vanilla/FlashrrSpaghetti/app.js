@@ -809,7 +809,7 @@ function getAttachments(event, attachments) {
 
 		var reader = new FileReader();
 		
-		if (f.type.match('image.*')) {	
+		if (f.type.match('image.*')) {
 			// Closure to capture the file information.
 			reader.onload = (function(theFile) {
 				return function(e) {
@@ -824,22 +824,7 @@ function getAttachments(event, attachments) {
 				};
 			})(f);
 			// Read in the image file as a data URL.
-			reader.readAsDataURL(f);
-		} else if (f.type.match('text.*')) {
-			// Closure to capture the file information.
-			reader.onload = (function(theFile) {
-				return function(e) {
-					// Render fileicon
-					var span = document.createElement('span');
-					span.innerHTML = ['<a download="file.txt" class="file-link" href="data:application/octet-stream;charset=utf-16le,' + encodeURIComponent(e.target.result) + '">', escape(theFile.name), '</a>'].join('');
-					var thumbList = document.getElementById("thumbList");
-					thumbList.insertBefore(span, null);
-					//localStorage.setItem('img', e.target.result);
-					//attachments.push(e.target.result);
-				};
-			})(f);
-			// Read in the image file as a data URL.
-			reader.readAsText(f);			
+			reader.readAsDataURL(f);		
 		}
 	}
 
