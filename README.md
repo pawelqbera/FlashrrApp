@@ -55,6 +55,7 @@ All the versions in 'Vanilla' directory can simply be downloaded and run locally
 ## Features to be added in 0.3.0
 - BUG: Edit Card click - attachments are disapearing
 - BUG: default collection: when searching for specific cards and decreasing the range of displayed cards to less than a page capacity - the pagination doesn't disappear
+- BUG: app.js:782 Uncaught TypeError: Cannot read property 'parentNode' of nullremoveAddTopicLink @ app.js:782(anonymous function) @ app.js:739
 - save currently selected topic in local storage
 - sort cards in collection by title (alphabetically)
 - searching options: add a select to a search input with the following options: search in titles, text and authors
