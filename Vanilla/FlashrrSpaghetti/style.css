@@ -237,11 +237,13 @@ header {
 		border-radius: 9px;
 		color: #aaa;
 		font-size: 14px;
+		box-shadow: 0 1px 0 rgba(0,0,0,0.07);
 	}
 
 		.cards-filter select {
 			margin-left: -3px;
 			padding: 6px 0;
+			cursor: pointer;
 		}
 
 		.cards-filter select,
@@ -272,7 +274,15 @@ header {
 		box-sizing: border-box;
 		position: relative;
 		background: #fff;
+		box-shadow: 0 1px 0 rgba(0,0,0,0.07);
 	}
+
+		.card-miniature:hover {
+			border-color: #009688;
+			box-shadow: 0 1px 0 rgba(221, 255, 251,0.07);
+			transition: all 0.5s ease-in-out;
+			-webkit-transition: all 0.5s ease-in-out;
+		}
 
 	.grid-view .card-miniature {
 		width: 24.25%;
@@ -304,9 +314,6 @@ header {
 	
 	.data-container:hover {
 		cursor: pointer;
-		box-shadow: 0 0 20px -5px #ccc inset;
-		transition: all 0.5s ease-in-out;
-		-webkit-transition: all 0.5s ease-in-out;
 	}
 
 	.grid-view .data-container {
