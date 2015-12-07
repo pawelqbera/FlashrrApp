@@ -24,8 +24,15 @@
               <select name="collectionSelect" id="collectionSelect"></select>
             </li>
             <li class="relative">
-              <input id="searchCards" class="search-cards" type="text" placeholder="Search cards">
+              <input id="searchCards" class="search-cards" type="text" placeholder="Search">
               <i class="fa fa-search"></i>
+              <div id="searchCategoryWrapper" class="search-category-wrapper" >
+                <select name="categorySearchSelect" id="categorySearchSelect">
+                  <option value="title">by title</option>
+                  <option value="text">by text</option>
+                  <option value="author">by authors</option>
+                </select>
+              </div>
             </li>
             <li>
               <a id="gridViewBtn" class="btn btn-secondary switch-view">Grid View</a>

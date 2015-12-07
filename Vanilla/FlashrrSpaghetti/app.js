@@ -26,11 +26,12 @@ var createCardBtn = document.getElementById("createCardBtn"),
 	hiUserName = document.getElementById("hiUserName"),
 	collectionSelect = document.getElementById("collectionSelect"),
 	pseudoFooter = document.getElementById("pseudoFooter"),
-	cardsFilter = document.getElementById("cardsFilter");
+	cardsFilter = document.getElementById("cardsFilter"),
+	categorySearchSelect = document.getElementById("categorySearchSelect");
 
 createCardBtn.addEventListener('click', openCardForm );
 document.addEventListener('click', handleCardEvents, true);
-searchCards.addEventListener('keyup', searchCard );
+searchCards.addEventListener('keyup', searchCard);
 gridViewBtn.addEventListener('click', toggleView);
 listViewBtn.addEventListener('click', toggleView);
 hiUserName.addEventListener('click', openUserNameForm );
@@ -180,8 +181,8 @@ function sortCardsByTitle(cards) {
 }
 
 function setSorting() {
-	// Zamienić to pętlę
-	
+	// Zamienić to na pętlę
+
 	if (selectedSorting === 'date') {
 		cardsFilter.getElementsByTagName('option')[0].selected = 'selected';
 	} else if (selectedSorting === 'popularity') {
@@ -189,7 +190,7 @@ function setSorting() {
 	} else if (selectedSorting === 'title') {
 		cardsFilter.getElementsByTagName('option')[2].selected = 'selected';
 	}
-} 
+}
 
 function countView(viewedCard) {
 	var existingCards = selectedCollection.cards,
@@ -550,15 +551,17 @@ function switchListView() {
 
 function searchCard(event) {
 	var searchValue = searchCards.value,
-	selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0],
+		selectedCategorySearch = categorySearchSelect.options[categorySearchSelect.selectedIndex].value;
+	selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
 	selectedCards = selectedCollection.cards;
-
 	displayCards(selectedPage);
-	
 
 	for(var i = 0; i < selectedCards.length; i++) {
 		var obj = selectedCards[i];
-		if(obj.title.indexOf(searchValue) === -1) {
+		if(obj[selectedCategorySearch].indexOf(searchValue) === -1) {
+			if(!document.getElementById("cardMiniature" + obj.id)) {
+				return;
+			}
 			var card = document.getElementById("cardMiniature" + obj.id);
 			card.parentNode.removeChild(card);
 			// muszę chyba usuwać z selectedCards na bieżąco 

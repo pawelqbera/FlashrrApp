@@ -195,19 +195,36 @@ header {
 		}
 
 		.search-cards {
-			padding: 5.5px 25.5px 5.5px 5.5px;
-			width: 100px;
+			width: 128px;
 			-webkit-transition: width 0.1s ease;
 			transition: width 0.1s ease;
 		}
 
 		input[type="text"].search-cards {
+			padding: 5.5px 25.5px 5.5px 5.5px;
 			box-sizing: content-box;
 		}
 
 		.search-cards:focus {
-			width: 200px;
+			width: 228px;
 		}
+
+			.fa-search {
+				padding: 7px;
+			}
+
+		.search-category-wrapper {
+			position: absolute;
+			top: 0;
+			right: 22px;
+		}
+			.search-category-wrapper select {
+				border: none;
+				padding: 0;
+				margin-top: 5px;
+				font-family: Open Sans;
+				color: #ccc;
+			}
 
 		.greet-user span {
 			font-weight: 600;
