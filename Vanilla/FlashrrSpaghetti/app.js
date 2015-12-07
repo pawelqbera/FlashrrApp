@@ -571,22 +571,24 @@ function getView() {
 
 function switchGridView() {
 	gridView = true;
-	cardsPerPage = 12;
-	displayCards(selectedPage);
+	cardsPerPage = 12;	
+	displayCards(selectedPage);	
 	cardsWrapper.className = 'grid-view';
 	gridViewBtn.className += ' active';
 	listViewBtn.className = listViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
 	localStorage.setItem("gridView", JSON.stringify(true));
+	addPagination();
 }
 
 function switchListView() {
 	gridView = false;
 	cardsPerPage = 5;
-	displayCards(selectedPage);	
+	displayCards(selectedPage);
 	cardsWrapper.className = 'list-view';
 	listViewBtn.className += ' active';
 	gridViewBtn.className = gridViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
 	localStorage.setItem("gridView", JSON.stringify(false));
+	addPagination();
 }
 
 function searchCard(event) {
