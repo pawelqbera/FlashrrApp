@@ -12,7 +12,8 @@ var gridView = JSON.parse(localStorage.getItem("gridView")) || true,
 	selectedCards = selectedCollection.cards,
 	cardsPerPage = 12,
 	selectedSorting = JSON.parse(localStorage.getItem("selectedSorting")) || 'date',
-	selectedPage = JSON.parse(localStorage.getItem("selectedPage")) || 1;
+	selectedPage = JSON.parse(localStorage.getItem("selectedPage")) || 1,
+	selectedTopic = JSON.parse(localStorage.getItem("selectedTopic")) || -1;
 
 var createCardBtn = document.getElementById("createCardBtn"),
 	pageWrapper = document.getElementById("pageWrapper"),
@@ -137,11 +138,7 @@ function selectSortingMethod(event) {
 	var element = event.target;
 	if (element.value === selectedSorting) {
 		return false;
-	} else if (element.value === 'date') {
-		selectedSorting = element.value;
-		localStorage.setItem("selectedSorting", JSON.stringify(selectedSorting));
-		displayCards();
-	} else if (element.value === 'popularity') {
+	} else {
 		selectedSorting = element.value;
 		localStorage.setItem("selectedSorting", JSON.stringify(selectedSorting));
 		displayCards();
@@ -153,6 +150,8 @@ function sortCards(cards) {
 		sortCardsByDate(cards);
 	} else if(selectedSorting === 'popularity') {
 		sortCardsByPopularity(cards);
+	} else if(selectedSorting === 'title') {
+		sortCardsByTitle(cards);
 	}
 }
 
@@ -168,11 +167,27 @@ function sortCardsByPopularity(cards) {
 	});
 }
 
+function sortCardsByTitle(cards) {
+	cards.sort(function(a, b){
+		if (a.title < b.title) {
+			return -1;
+		} else if (a.title > b.title) {
+			return 1;
+		} else {
+			return 0;
+		}
+	});
+}
+
 function setSorting() {
+	// Zamienić to pętlę
+	
 	if (selectedSorting === 'date') {
 		cardsFilter.getElementsByTagName('option')[0].selected = 'selected';
 	} else if (selectedSorting === 'popularity') {
 		cardsFilter.getElementsByTagName('option')[1].selected = 'selected';
+	} else if (selectedSorting === 'title') {
+		cardsFilter.getElementsByTagName('option')[2].selected = 'selected';
 	}
 } 
 
@@ -395,27 +410,35 @@ function greetUser() {
 function getTopics() {
 	var topicOptions = '';
 	for (var i = 0; i < selectedCollection.topics.length; i++) {
-		topicOptions += '<option value="' + i + '">' + selectedCollection.topics[i] + '</option>';
+		if (parseInt(selectedTopic) !== i) {
+			topicOptions += '<option value="' + i + '">' + selectedCollection.topics[i] + '</option>';
+		} else {
+			topicOptions += '<option value="' + i + '" selected="selected">' + selectedCollection.topics[i] + '</option>';
+		}	
 	}
 	var html = '';
-		html += '	<option value="-1" selected="selected">select topic</option>';
+		html += '	<option value="-1">select topic</option>';
 		html += topicOptions;
 		html += '	<option value="addNewTopic">ADD NEW TOPIC</option>';
 	topicSelect.innerHTML = html;
 }
 
 function selectCardsByTopic(event) {
-	var element = event.target;
-	if (element.value === '-1') {
+	var element = event ? event.target.value : selectedTopic;
+	if (element === '-1') {
+		selectedTopic = topicSelect.options[topicSelect.selectedIndex].value;
+		localStorage.setItem("selectedTopic", JSON.stringify(selectedTopic));
 		displayCards();
-	} else if (element.value === 'addNewTopic') {
+	} else if (element === 'addNewTopic') {
 		openTopicForm();
 	} else {
 		displayCards();
 		for(var i = 0; i < selectedCards.length; i++) {
-			if(selectedCollection.topics[element.value].indexOf(selectedCards[i].topic) === -1) {
+			if(selectedCollection.topics[element].indexOf(selectedCards[i].topic) === -1) {
 				var card = document.getElementById("cardMiniature" + selectedCards[i].id);
 				card.parentNode.removeChild(card);
+				selectedTopic = topicSelect.options[topicSelect.selectedIndex].value;
+				localStorage.setItem("selectedTopic", JSON.stringify(selectedTopic));			
 			}
 		}
 	}
@@ -1055,6 +1078,7 @@ getView();
 getTopics();
 greetUser();
 addPagination();
+selectCardsByTopic();
 
 /* Utils */
 
