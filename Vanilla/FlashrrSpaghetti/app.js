@@ -1,4 +1,4 @@
-var gridView = JSON.parse(localStorage.getItem("gridView")) || true,
+var gridView = JSON.parse(localStorage.getItem("gridView")),
 	defaultCollection = {
 		id: 'xxxxx',
 		name: 'default_collection',
@@ -10,7 +10,7 @@ var gridView = JSON.parse(localStorage.getItem("gridView")) || true,
 	userName = JSON.parse(localStorage.getItem("userName")) || 'Guest',
 	selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0],
 	selectedCards = selectedCollection.cards,
-	cardsPerPage = 12,
+	cardsPerPage = gridView ? 12 : 5,
 	selectedSorting = JSON.parse(localStorage.getItem("selectedSorting")) || 'date',
 	selectedPage = JSON.parse(localStorage.getItem("selectedPage")) || 1,
 	selectedTopic = JSON.parse(localStorage.getItem("selectedTopic")) || -1,
@@ -562,7 +562,7 @@ function toggleView(event) {
 }
 
 function getView() {
-	if(gridView) {
+	if(gridView === true) {
 		switchGridView();
 	} else {
 		switchListView();
@@ -571,6 +571,8 @@ function getView() {
 
 function switchGridView() {
 	gridView = true;
+	cardsPerPage = 12;
+	displayCards(selectedPage);
 	cardsWrapper.className = 'grid-view';
 	gridViewBtn.className += ' active';
 	listViewBtn.className = listViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
@@ -579,6 +581,8 @@ function switchGridView() {
 
 function switchListView() {
 	gridView = false;
+	cardsPerPage = 5;
+	displayCards(selectedPage);	
 	cardsWrapper.className = 'list-view';
 	listViewBtn.className += ' active';
 	gridViewBtn.className = gridViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );

@@ -57,6 +57,7 @@ All the versions in 'Vanilla' directory can simply be downloaded and run locally
 - add searching cards by tags
 - add "previous" and "next" card navigation into detailed card view 
 - removing collections (additional confirmation required)
+- improve the pagination displaying in the "list" view mode
 
 ## Currently working on Flashrr 0.3.0, Vanilla, Spaghetti 
 
@@ -68,7 +69,6 @@ All the versions in 'Vanilla' directory can simply be downloaded and run locally
 - new card type: a link/url to an external resources eg. articles, products etc.
 - "link" types are automatically previewed in their miniatures when YouTube video or other media (eg. images) are detected
 - new card type: an image (with title and [optional] URL and description)
-- improve the pagination displaying in the "list" view mode
 - drag and drop attachments
 - automatically read and fill in a new card form depending on a dragged and dropped file to the app stage
 - BUG: Edit Card click - attachments are disappearing
