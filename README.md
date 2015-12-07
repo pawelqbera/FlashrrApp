@@ -60,7 +60,7 @@ All the versions in 'Vanilla' directory can simply be downloaded and run locally
 ## Currently working on Flashrr 0.3.0, Vanilla, Spaghetti 
 
 ## Features to be added in 0.3.0
-- drag and drop attachments
+- removing collections (additional confirmation required)
 - anchors in card miniature: topic and author (on anchor click, display cards with specified topic or these, created by a specified author)
 - flashcards - on click, open yellow card with the title only  (more interactive and advanced design), also add transform3d animation when the back side requested 
 - YouTube videos and images are previewed in the card content when its details are viewed
@@ -68,9 +68,9 @@ All the versions in 'Vanilla' directory can simply be downloaded and run locally
 - new card type: a link/url to an external resources eg. articles, products etc.
 - "link" types are automatically previewed in their miniatures when YouTube video or other media (eg. images) are detected
 - new card type: an image (with title and [optional] URL and description)
-- removing collections (additional confirmation required)
-- automatically read and fill in a new card form depending on a dragged and dropped file to the app stage
 - improve the pagination displaying in the "list" view mode
+- drag and drop attachments
+- automatically read and fill in a new card form depending on a dragged and dropped file to the app stage
 - BUG: Edit Card click - attachments are disappearing
 - BUG: default collection: when searching for specific cards and decreasing the range of displayed cards to less than a page capacity - the pagination doesn't disappear
 - BUG: app.js:782 Uncaught TypeError: Cannot read property 'parentNode' of nullremoveAddTopicLink @ app.js:782(anonymous function) @ app.js:739

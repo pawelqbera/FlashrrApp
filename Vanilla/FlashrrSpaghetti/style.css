@@ -565,9 +565,20 @@ form h2 {
 		resize: none;
 	}
 
-	.add-topic-link {
-		margin-left: 12px;
+	.view-card-section a,
+	.view-collection-section a,
+	.create-card-section a,
+	.collection-section a {
 		font-size: 12px;
+	}
+
+	.add-topic-link,
+	.delete-collection {
+		margin-left: 12px;
+	}
+
+	.delete-collection {
+		float: right;
 	}
 
 	.create-card-section label,

@@ -74,9 +74,27 @@ function handleCardEvents(event) {
 		selectedCollection = collections[selectedCollectionIndex];
 		localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
 		selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
-		
 		displayCards(selectedPage);
 		countCards();
+    } else if (hasClass(element, 'delete-collection')) {
+ 		var confirmDelete = confirm("All your collection data including cards will be permanently deleted. Continue?");
+ 		if (confirmDelete) {
+			if (document.getElementById('collectionForm')) {
+				closeCollectionForm();
+			}
+			collections.splice(selectedCollectionIndex, 1);
+
+			localStorage.setItem("Collections", JSON.stringify(collections));
+			collections = JSON.parse(localStorage.getItem("Collections")) || [defaultCollection];
+			selectedCollection = collections[selectedCollectionIndex - 1];
+			localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
+			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
+			getCollections();
+			displayCards(selectedPage);
+			countCards();
+ 		} else {
+ 			return false;
+ 		}
     } else if (hasClass(element, 'edit-card')) {
 		if (document.getElementById('viewCardSection')) {
 			closeCardView();
@@ -261,6 +279,7 @@ function openCollectionForm(event, editableCollection) {
 		html += '		<div>';
 		html += '			<button>' + collectionFormSubmitLabel + '</button>';
 		html += '			<a class="cancel-form">Cancel</a>';
+		html += '			<a class="delete-collection">Delete Collection</a>';		
 		html += '		</div>';
 		html += '	</form>';
 
