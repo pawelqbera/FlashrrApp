@@ -13,7 +13,8 @@ var gridView = JSON.parse(localStorage.getItem("gridView")) || true,
 	cardsPerPage = 12,
 	selectedSorting = JSON.parse(localStorage.getItem("selectedSorting")) || 'date',
 	selectedPage = JSON.parse(localStorage.getItem("selectedPage")) || 1,
-	selectedTopic = JSON.parse(localStorage.getItem("selectedTopic")) || -1;
+	selectedTopic = JSON.parse(localStorage.getItem("selectedTopic")) || -1,
+	viewedCardIndex = null;
 
 var createCardBtn = document.getElementById("createCardBtn"),
 	pageWrapper = document.getElementById("pageWrapper"),
@@ -114,6 +115,8 @@ function handleCardEvents(event) {
 				break;
 			}
 		}
+		// setViewedCardIndex
+		viewedCardIndex = i + 1;
 		// count view
 		countView(viewedCard);
 		// view card
@@ -132,6 +135,20 @@ function handleCardEvents(event) {
 		} else if (document.getElementById('collectionSection')) {
 			closeCollectionForm();
 		}
+	} else if (hasClass(element, 'previous-card-link')) {
+		if(viewedCardIndex === 1) {
+			return false;
+		}
+		closeCardView();
+		viewedCardIndex -= 1;
+		viewCard(event, existingCards[viewedCardIndex - 1]);
+	} else if (hasClass(element, 'next-card-link')) {
+		if(viewedCardIndex === existingCards.length) {
+			return false;
+		}
+		closeCardView();
+		viewedCardIndex += 1;
+		viewCard(event, existingCards[viewedCardIndex - 1]);
 	}
 }
 
@@ -580,7 +597,7 @@ function viewCard(event, viewedCard) {
 	}
 
 	var thumbs = '';
-
+	
 	for (var i = 0; i < viewedCard.attachments.length; i++) {
 		thumbs += '<img src="' + viewedCard.attachments[i] + '" class="view-card-thumb" />';
 	}
@@ -589,7 +606,12 @@ function viewCard(event, viewedCard) {
 
 	var html = '';
 		html += '	<div id="viewCardForm">';
-		html += '		<span id="closeBtn" class="close-btn">X</span>';
+		html += '		<ul id="viewCardNavigation" class="view-card-navigation">';
+		html += '			<li><span>' + viewedCardIndex + ' of ' + selectedCollection.cards.length + '</span></li>';
+		html += '			<li><a class="previous-card-link">Previous</a></li>';
+		html += '			<li><a class="next-card-link">Next</a></li>';
+		html += '		</ul>';
+		html += '			<span id="closeBtn" class="close-btn">X</span>';
 		html += '		<div>';
 		html += '			<h3>' + viewedCard.title + '</h3>';
 		html += '			<p class="topic">in: ' + viewedCard.topic + ' by ' + viewedCard.author + '</p>';

@@ -54,17 +54,17 @@ All the versions in 'Vanilla' directory can simply be downloaded and run locally
 - save currently selected topic in local storage
 - sort cards in collection by title (alphabetically)
 - searching options: add a select to a search input with the following options: search in titles, text and authors
+- add searching cards by tags
+- add "previous" and "next" card navigation into detailed card view 
 
 ## Currently working on Flashrr 0.3.0, Vanilla, Spaghetti 
 
 ## Features to be added in 0.3.0
-- add "previous" and "next" card navigation into detailed card view 
 - drag and drop attachments
 - anchors in card miniature: topic and author (on anchor click, display cards with specified topic or these, created by a specified author)
 - flashcards - on click, open yellow card with the title only  (more interactive and advanced design), also add transform3d animation when the back side requested 
 - YouTube videos and images are previewed in the card content when its details are viewed
 - add [optional] tags for cards to be specified
-- add searching cards by tags
 - new card type: a link/url to an external resources eg. articles, products etc.
 - "link" types are automatically previewed in their miniatures when YouTube video or other media (eg. images) are detected
 - new card type: an image (with title and [optional] URL and description)

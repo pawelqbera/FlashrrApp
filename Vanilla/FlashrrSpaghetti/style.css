@@ -592,6 +592,18 @@ form h2 {
 	margin-top: -25%;
 	z-index: 3500;
 }
+	.view-card-navigation {
+		display: inline-block;
+		width: 100%;
+		margin: 0;
+		padding: 0;		
+	}
+
+		.view-card-navigation li {
+			float: left;
+			margin-right: 12px;
+			font-size: 13px;
+		}
 	
 	.view-card-section .card-text {
 		height: 425px;
