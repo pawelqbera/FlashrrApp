@@ -167,6 +167,26 @@ function handleCardEvents(event) {
 		closeCardView();
 		viewedCardIndex += 1;
 		viewCard(event, existingCards[viewedCardIndex - 1]);
+	} else if (hasClass(element, 'card-author-anchor')) {
+		searchCards.value = element.text;
+		categorySearchSelect.getElementsByTagName('option')[3].selected = 'selected';
+		topicSelect.getElementsByTagName('option')[0].selected = 'selected';
+		selectedTopic = topicSelect.options[topicSelect.selectedIndex].value;
+		localStorage.setItem("selectedTopic", JSON.stringify(selectedTopic));
+		selectCardsByTopic();		
+		searchCard();
+		// ustawiam search category
+	} else if (hasClass(element, 'card-topic-anchor')) {
+		searchCards.value = '';
+		categorySearchSelect.getElementsByTagName('option')[0].selected = 'selected';				
+		for (i = 0;i < selectedCollection.topics.length;i++) {
+			if(element.text.indexOf(selectedCollection.topics[i]) !== -1) {
+				topicSelect.getElementsByTagName('option')[i+1].selected = 'selected';
+			}
+		}
+		selectedTopic = topicSelect.options[topicSelect.selectedIndex].value;
+		localStorage.setItem("selectedTopic", JSON.stringify(selectedTopic));
+		selectCardsByTopic();
 	}
 }
 
@@ -473,7 +493,9 @@ function selectCardsByTopic(event) {
 		for(var i = 0; i < selectedCards.length; i++) {
 			if(selectedCollection.topics[element].indexOf(selectedCards[i].topic) === -1) {
 				var card = document.getElementById("cardMiniature" + selectedCards[i].id);
-				card.parentNode.removeChild(card);
+				if(card) {
+					card.parentNode.removeChild(card);					
+				}
 				selectedTopic = topicSelect.options[topicSelect.selectedIndex].value;
 				localStorage.setItem("selectedTopic", JSON.stringify(selectedTopic));			
 			}
@@ -605,12 +627,9 @@ function searchCard(event) {
 				return;
 			}
 			var card = document.getElementById("cardMiniature" + obj.id);
-			card.parentNode.removeChild(card);
-			// muszę chyba usuwać z selectedCards na bieżąco 
-			// te karty, które usuwam z DOMa
-			// selectedCards[i].splice(i, 1);
-			// ponadto nie jestem pewien czy z paginacją filtruję po wszystkich faktycznie czy tylko po tych które są widoczne... sprawdzić 
-			console.log(selectedCards[i]);
+			if (card) {
+				card.parentNode.removeChild(card);				
+			}
 			addPagination();
 		}
 	}
@@ -1057,7 +1076,11 @@ function buildCardMiniature(card) {
 	var html = '';
 		html += ' <div id="data-container' + card.id + '" class="data-container data-details ' + flashcardClass +'">';
 		html += ' 	<h3 class="data-details">' + card.title + '</h3>';
-		html += ' 	<p class="topic data-details">' + timeString + ', in: ' + card.topic + ' by ' + card.author + '</p>';
+		html += ' 	<p class="topic data-details">';
+		html += '		<span>' + timeString + '</span>';
+		html += '		<span>, in: <a class="card-topic-anchor">' + card.topic + '</a></span>';
+		html += '		<span> by <a class="card-author-anchor">' + card.author + '</a></span>';
+		html += '	</p>';
 		html += ' 	<p class="topic data-details"><b>' + card.views + '</b> views</p>';
 		if(!card.isFlashcard) {
 			html += ' 	<p class="data-details">' + card.text + '</p>';

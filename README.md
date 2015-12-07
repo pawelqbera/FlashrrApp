@@ -62,7 +62,7 @@ All the versions in 'Vanilla' directory can simply be downloaded and run locally
 ## Currently working on Flashrr 0.3.0, Vanilla, Spaghetti 
 
 ## Features to be added in 0.3.0
-- anchors in card miniature: topic and author (on anchor click, display cards with specified topic or these, created by a specified author)
+- anchors in card miniature: topic and author (on anchor click, display cards with specified topic or created by a specified author)
 - flashcards - on click, open yellow card with the title only  (more interactive and advanced design), also add transform3d animation when the back side requested 
 - YouTube videos and images are previewed in the card content when its details are viewed
 - add [optional] tags for cards to be specified
