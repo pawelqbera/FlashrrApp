@@ -753,6 +753,13 @@ function openCardForm(event, editableCard) {
 		html += '	<form id="createCardForm">';
 		html += '		<h2>' + cardFormHeader + '</h2>';
 		html += '		<span id="closeBtn" class="close-btn">X</span>';
+		html += '		<div>';
+		html += '			<label for="cardType">Card Type</label>';
+		html += '			<select id="cardType" name="cardType" required>';
+		html +=	'				<option value="text" selected="selected">default text</option>';
+		html +=	'				<option value="link">external link</option>';
+		html += '			</select>';
+		html += '		</div>';		
 		html += '		<div id="cardTopicWrapper"></div>';
 		html += '		<div>';
 		html += '			<input type="text" id="cardTitle" name="cardTitle" value="' + cardTitle + '" placeholder="Card title" required>';

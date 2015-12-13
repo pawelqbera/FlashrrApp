@@ -560,7 +560,7 @@ form h2 {
 	}
 
 	.create-card-section textarea {
-		height: 260px;
+		height: 350px;
 		overflow-y: scroll;
 		resize: none;
 	}

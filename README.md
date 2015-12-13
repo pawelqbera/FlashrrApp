@@ -66,9 +66,8 @@ All the versions in 'Vanilla' directory can simply be downloaded and run locally
 
 ## Features to be added in 0.3.0
 - flashcards - on click, open yellow card with the title only  (more interactive and advanced design), also add transform3d animation when the back side requested 
-- new card type: a link/url to an external resources eg. articles, products etc.
+- new card type: a link/url to an external resources eg. articles, products, videos, images etc.
 - "link" types are automatically previewed in their miniatures when YouTube video or other media (eg. images) are detected
-- new card type: an image (with title and [optional] URL and description)
 - drag and drop attachments
 - automatically read and fill in a new card form depending on a dragged and dropped file to the app stage
 
