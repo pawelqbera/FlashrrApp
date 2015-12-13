@@ -640,10 +640,16 @@ function viewCard(event, viewedCard) {
 		return false;
 	}
 
-	var thumbs = '';
+	var thumbs = '',
+		tags = '',
+		i;
 	
-	for (var i = 0; i < viewedCard.attachments.length; i++) {
+	for (i = 0; i < viewedCard.attachments.length; i++) {
 		thumbs += '<img src="' + viewedCard.attachments[i] + '" class="view-card-thumb" />';
+	}
+
+	for (i = 0; i < viewedCard.tags.length; i++) {
+		tags += '<span class="tag">' + viewedCard.tags[i] + '</span>';
 	}
 
 	var urlifiedText = urlify(viewedCard.text);
@@ -663,6 +669,10 @@ function viewCard(event, viewedCard) {
 		html += '		<div>';
 		html += '			<p class="card-text">' + urlifiedText + '</p>';
 		html += '		</div>';
+		html += '		<div>';
+		html += '			<label>Tags:</label>';
+		html += '			<p>' + tags + '</p>';
+		html += '		</div>';		
 		html += '		<div class="view-thumb-list">' + thumbs + '</div>';
 		html += '		<div class="view-card-actions" id="actions' + viewedCard.id + '">';
 		html += '			<a class="edit-card">Edit</a>';
@@ -683,8 +693,17 @@ function viewCard(event, viewedCard) {
 }
 
 function urlify(text) {
-	var ordinaryUrlRegexp = /(?!(https?:\/\/.*\.(?:png|jpg|gif|jpeg)))(?!(http(?:s)?:\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?[\w\?​=]*)?))(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+	/**
+	* Match all URLs except image and YouTube video links
+	*/ 
+	var ordinaryUrlRegexp = /(?!(https?:\/\/.*\.(?:png|jpg|gif|jpeg)))(?!(http(?:s)?:\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?[\w\?​=]*)?))(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;	
+	/**
+	* Match all YouTube video links
+	*/
 	var ytUrlRegexp = /http(?:s)?:\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?[\w\?​=]*)?/ig;	
+	/**
+	* Match all image links
+	*/   
 	var imgUrlRegexp = /(https?:\/\/.*\.(?:png|jpg|gif|jpeg))/ig;
 	text = text.replace(ordinaryUrlRegexp, '<a href="$6" target="_blank">$6</a>');
 	text = text.replace(ytUrlRegexp, '<iframe width="560" height="315" src="https://www.youtube.com/embed/$1" frameborder="0" allowfullscreen></iframe>');
@@ -724,6 +743,7 @@ function openCardForm(event, editableCard) {
 		cardFormHeader = editableCard ? "Edit Card" : "Create Card",
 		cardTitle = editableCard ? editableCard.title : "",
 		cardText = editableCard ? editableCard.text : "",
+		cardTags = editableCard ? editableCard.tags : "",
 		cardFormSubmitLabel = editableCard ? "Update Card" : "Create Card",
 		updatedCardId = editableCard ? editableCard.id : null,
 		attachments = [],
@@ -740,6 +760,10 @@ function openCardForm(event, editableCard) {
 		html += '		<div>';
 		html += '			<textarea id="cardText" name="cardText" placeholder="Card Text" required>' + cardText + '</textarea>';
 		html += '		</div>';
+		html += '		<div>';
+		html += '			<label>Tags [optional]</label>';
+		html += '			<input type="text" id="cardTags" name="cardTags" value="' + cardTags + '" placeholder="eg. books, reading, literature">';
+		html += '		</div>';		
 		html += '		<div>';
 		html += '			<input type="file" id="cardAttachment" class="card-attachment" multiple>';
 		html += '		</div>';
@@ -945,13 +969,15 @@ function countCards() {
 }
 
 function createCard(updatedCardId, attachments) {
-	var date = new Date(),
+	var tags = cardTags.value.split(","),
+		date = new Date(),
 		form = document.forms[0],
 		card = {
 			id: updatedCardId || makeid(),
 			topic: cardTopic.options[cardTopic.selectedIndex].text,
 			title: cardTitle.value,
 			text: cardText.value,
+			tags: tags || [],
 			attachments: attachments,
 			author: userName,
 			date: date.getTime(),

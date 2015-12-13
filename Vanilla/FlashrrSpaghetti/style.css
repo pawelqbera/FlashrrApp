@@ -536,14 +536,14 @@ form h2 {
 	box-sizing: border-box;
 	background: #ddd;
 	border-radius: 14px;
-	padding: 50px;
+	padding: 25px;
 	box-shadow: 0px 0px 23px -3px #333;
-	top: 50%;
-	bottom: 12.5%;
+	top: 25%;
+	bottom: 6.25%;
 	overflow: hidden;
 	left: 50%;
 	margin-left: -25%;
-	margin-top: -25%;
+	margin-top: -12.5%;
 	z-index: 3500;
 }
 
@@ -593,14 +593,14 @@ form h2 {
 	box-sizing: border-box;
 	background: #fff;
 	border-radius: 14px;
-	padding: 50px;
+	padding: 25px;
 	box-shadow: 0px 0px 23px -3px #333;
-	top: 50%;
-	bottom: 12.5%;
+	top: 25%;
+	bottom: 6.25%;
 	overflow: hidden;
 	left: 50%;
 	margin-left: -25%;
-	margin-top: -25%;
+	margin-top: -12.5%;
 	z-index: 3500;
 }
 	.view-card-navigation {
@@ -617,8 +617,18 @@ form h2 {
 		}
 	
 	.view-card-section .card-text {
-		height: 425px;
+		height: 510px;
 		overflow-y: scroll;
+	}
+
+	.view-card-section .tag {
+		display: inline-block;
+		padding: 3px 6px;
+		float: left;
+		background: #43d3c5;
+		margin-right: 4px;
+		font-size: 13px;
+		color: #fff;
 	}
 
 	.view-thumb-list {
