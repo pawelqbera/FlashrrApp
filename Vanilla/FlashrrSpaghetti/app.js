@@ -1,3 +1,14 @@
+/*!
+ * Flashrr App v0.3.0
+ * http://flashrr.com/
+ *
+ * Author Paweł Kubera
+ * Released under the MIT license
+ * http://jquery.org/license
+ *
+ * Date: 2016-01-24
+ */
+
 var gridView = JSON.parse(localStorage.getItem("gridView")),
 	defaultCollection = {
 		id: 'xxxxx',
