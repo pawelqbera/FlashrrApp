@@ -4,30 +4,29 @@
  *
  * Author Paweł Kubera
  * Released under the MIT license
- * http://jquery.org/license
+ * http://flashrr.com/license
  *
  * Date: 2016-01-24
  */
 
 var gridView = JSON.parse(localStorage.getItem("gridView")),
 	defaultCollection = {
-		id: 'xxxxx',
-		name: 'default_collection',
-		description: 'initial collection to start off',
+		id: "xxxxx",
+		name: "default_collection",
+		description: "initial collection to start off",
 		topics: [],
 		cards: []
 	},
 	collections = JSON.parse(localStorage.getItem("Collections")) || [defaultCollection],
-	userName = JSON.parse(localStorage.getItem("userName")) || 'Guest',
+	userName = JSON.parse(localStorage.getItem("userName")) || "Guest",
 	selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0],
 	selectedCards = selectedCollection.cards,
 	cardsPerPage = gridView ? 12 : 5,
-	selectedSorting = JSON.parse(localStorage.getItem("selectedSorting")) || 'date',
+	selectedSorting = JSON.parse(localStorage.getItem("selectedSorting")) || "date",
 	selectedPage = JSON.parse(localStorage.getItem("selectedPage")) || 1,
 	selectedTopic = JSON.parse(localStorage.getItem("selectedTopic")) || -1,
-	viewedCardIndex = null;
-
-var createCardBtn = document.getElementById("createCardBtn"),
+	viewedCardIndex = null,
+	createCardBtn = document.getElementById("createCardBtn"),
 	pageWrapper = document.getElementById("pageWrapper"),
 	cardCounter = document.getElementById("cardCounter"),
 	cardsWrapper = document.getElementById("cardsWrapper"),
@@ -41,15 +40,19 @@ var createCardBtn = document.getElementById("createCardBtn"),
 	cardsFilter = document.getElementById("cardsFilter"),
 	categorySearchSelect = document.getElementById("categorySearchSelect");
 
-createCardBtn.addEventListener('click', openCardForm );
-document.addEventListener('click', handleCardEvents, true);
-searchCards.addEventListener('keyup', searchCard);
-gridViewBtn.addEventListener('click', toggleView);
-listViewBtn.addEventListener('click', toggleView);
-hiUserName.addEventListener('click', openUserNameForm );
-topicSelect.addEventListener('change', selectCardsByTopic);
-collectionSelect.addEventListener('change', selectCollection);
-cardsFilter.addEventListener('change', selectSortingMethod);
+/**
+*  Event Listeners
+*/
+
+document.addEventListener("click", handleCardEvents, true);
+createCardBtn.addEventListener("click", openCardForm );
+searchCards.addEventListener("keyup", searchCard);
+gridViewBtn.addEventListener("click", toggleView);
+listViewBtn.addEventListener("click", toggleView);
+hiUserName.addEventListener("click", openUserNameForm );
+topicSelect.addEventListener("change", selectCardsByTopic);
+collectionSelect.addEventListener("change", selectCollection);
+cardsFilter.addEventListener("change", selectSortingMethod);
 
 /**
 *  Event Delegator
@@ -88,7 +91,7 @@ function handleCardEvents(event) {
 		displayCards(selectedPage);
 		countCards();
     } else if (hasClass(element, 'delete-collection')) {
- 		var confirmDelete = confirm("All your collection data including cards will be permanently deleted. Continue?");
+ 		var confirmDelete = confirm("All your collection data including cards will be deleted. Continue?");
  		if (confirmDelete) {
 			if (document.getElementById('collectionForm')) {
 				closeCollectionForm();
