@@ -791,7 +791,26 @@ function urlify(text) {
 	*/   
 	var imgUrlRegexp = /(https?:\/\/.*\.(?:png|jpg|gif|jpeg))/ig;
 	text = text.replace(ordinaryUrlRegexp, '<a href="$6" target="_blank">$6</a>');
-	text = text.replace(ytUrlRegexp, '<iframe width="560" height="315" src="https://www.youtube.com/embed/$1" frameborder="0" allowfullscreen></iframe>');
+	text = text.replace(ytUrlRegexp, '<iframe width="100%" height="100%" src="https://www.youtube.com/embed/$1" frameborder="0" allowfullscreen></iframe>');
+	text = text.replace(imgUrlRegexp, '<img src="$1" alt />');	
+	return text;
+}
+
+function miniatureUrlify(text) {
+	/**
+	* Match all URLs except image and YouTube video links
+	*/ 
+	var ordinaryUrlRegexp = /(?!(https?:\/\/.*\.(?:png|jpg|gif|jpeg)))(?!(http(?:s)?:\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?[\w\?​=]*)?))(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;	
+	/**
+	* Match all YouTube video links
+	*/
+	var ytUrlRegexp = /http(?:s)?:\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?[\w\?​=]*)?/ig;	
+	/**
+	* Match all image links
+	*/   
+	var imgUrlRegexp = /(https?:\/\/.*\.(?:png|jpg|gif|jpeg))/ig;
+	text = text.replace(ordinaryUrlRegexp, '');
+	text = text.replace(ytUrlRegexp, '<iframe width="100%" height="100%" src="https://www.youtube.com/embed/$1" frameborder="0" allowfullscreen></iframe>');
 	text = text.replace(imgUrlRegexp, '<img src="$1" alt />');	
 	return text;
 }
@@ -827,7 +846,7 @@ function openCardForm(event, editableCard) {
 	var editMode = editableCard ? true : false,
 		cardFormHeader = editableCard ? "Edit Card" : "Create Card",
 		cardTitle = editableCard ? editableCard.title : "",
-		cardUrl = editableCard ? editableCard.cardUrl : "",
+		cardUrl = editableCard ? editableCard.url : "",
 		cardText = editableCard ? editableCard.text : "",
 		cardTags = editableCard ? editableCard.tags : "",
 		cardFormSubmitLabel = editableCard ? "Update Card" : "Create Card",
@@ -1199,6 +1218,7 @@ function buildCardMiniature(card) {
 	}
 
 	var flashcardClass = card.isFlashcard ? 'flashcard' : 'note',
+		urlifiedText = miniatureUrlify(card.url),
 		domain = extractDomain(card.url);
 
 	var html = '';
@@ -1220,6 +1240,7 @@ function buildCardMiniature(card) {
 		html += '		<div class="card-url">';
 		html += '			<label>External link:</label>';
 		html += '			<a rel="nofollow" href="' + card.url + '" target="_blank">' + domain + '</a>';
+		html += ' 			<div class="preview">' + urlifiedText + '</div>';
 		html += '		</div>';		
 		html += ' </div>';
 		html += ' <div class="card-actions" id="actions' + card.id + '">';

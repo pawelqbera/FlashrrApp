@@ -382,6 +382,13 @@ header {
 			margin: 0;
 		}
 
+		.card-miniature .preview {
+			position: absolute;
+			top: 50px;
+			left: 0;
+			width: 100%;
+		}
+
 	.thumbs-container {
 		font-size: 13px;
 	}
