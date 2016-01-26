@@ -673,7 +673,7 @@ function viewCard(event, viewedCard) {
 	function renderCardSide() {
 		document.getElementById('cardContent').innerHTML = '';
 		flashCardHtml = '';
-		flashCardHtml += '	<div id="flashCardContent">';
+		flashCardHtml += '	<div id="flashCardContent" class="flash-card-content">';
 		if(frontSide) {
 			flashCardHtml += '	<h3>' + viewedCard.title + '</h3>';
 		} else {
@@ -685,6 +685,7 @@ function viewCard(event, viewedCard) {
 	}
 
 	var urlifiedText = urlify(viewedCard.text);
+	var domain = extractDomain(viewedCard.url);
 
 	var html = '';
 		html += '	<div id="viewCardForm">';
@@ -698,8 +699,7 @@ function viewCard(event, viewedCard) {
 		if(cardTypeClass === 'flashcard') {	
 			html += flashCardHtml;			
 		} 
-		else 
-		{			
+		else {			
 			html += '		<div>';
 			html += '			<h3>' + viewedCard.title + '</h3>';
 			html += '			<p class="topic">in: ' + viewedCard.topic + ' by ' + viewedCard.author + '</p>';
@@ -712,6 +712,12 @@ function viewCard(event, viewedCard) {
 			html += '			<p>' + tags + '</p>';
 			html += '		</div>';		
 			html += '		<div class="view-thumb-list">' + thumbs + '</div>';
+			if(viewedCard.url) {
+				html += '		<div class="card-url">';
+				html += '			<label>External link:</label>';
+				html += '			<a rel="nofollow" href="' + viewedCard.url + '" target="_blank">' + domain + '</a>';
+				html += '		</div>';
+			}
 			html += '		<div class="view-card-actions" id="actions' + viewedCard.id + '">';
 			html += '			<a class="edit-card">Edit</a>';
 			html += '			<a class="remove-card">Remove</a>';
@@ -754,6 +760,21 @@ function viewCard(event, viewedCard) {
 	if(viewedCard.isFlashcard) {
 		renderCardSide();	
 	}
+}
+
+function extractDomain(url) {
+	var domain;
+	//find & remove protocol (http, ftp, etc.) and get domain
+	if (url.indexOf("://") > -1) {
+		domain = url.split('/')[2];
+	} else {
+		domain = url.split('/')[0];
+	}
+
+	//find & remove port number
+	domain = domain.split(':')[0];
+
+	return domain;
 }
 
 function urlify(text) {
@@ -806,6 +827,7 @@ function openCardForm(event, editableCard) {
 	var editMode = editableCard ? true : false,
 		cardFormHeader = editableCard ? "Edit Card" : "Create Card",
 		cardTitle = editableCard ? editableCard.title : "",
+		cardUrl = editableCard ? editableCard.cardUrl : "",
 		cardText = editableCard ? editableCard.text : "",
 		cardTags = editableCard ? editableCard.tags : "",
 		cardFormSubmitLabel = editableCard ? "Update Card" : "Create Card",
@@ -821,15 +843,17 @@ function openCardForm(event, editableCard) {
 		html += '			<label for="cardType">Card Type</label>';
 		html += '			<select id="cardType" name="cardType" required>';
 		html +=	'				<option value="text" selected="selected">default text</option>';
-		html +=	'				<option value="link">external link</option>';
 		html += '			</select>';
 		html += '		</div>';		
 		html += '		<div id="cardTopicWrapper"></div>';
 		html += '		<div>';
-		html += '			<input type="text" id="cardTitle" name="cardTitle" value="' + cardTitle + '" placeholder="Card title" required>';
+		html += '			<input type="text" id="cardTitle" name="cardTitle" value="' + cardTitle + '" placeholder="title" required>';
+		html += '		</div>';		
+		html += '		<div>';
+		html += '			<input type="text" id="cardUrl" name="cardUrl" value="' + cardUrl + '" placeholder="external link">';
 		html += '		</div>';
 		html += '		<div>';
-		html += '			<textarea id="cardText" name="cardText" placeholder="Card Text" required>' + cardText + '</textarea>';
+		html += '			<textarea id="cardText" name="cardText" placeholder="enter some content here..." required>' + cardText + '</textarea>';
 		html += '		</div>';
 		html += '		<div>';
 		html += '			<label>Tags [optional]</label>';
@@ -1047,6 +1071,7 @@ function createCard(updatedCardId, attachments) {
 			id: updatedCardId || makeid(),
 			topic: cardTopic.options[cardTopic.selectedIndex].text,
 			title: cardTitle.value,
+			url: cardUrl.value || '',
 			text: cardText.value,
 			tags: tags || [],
 			attachments: attachments,
@@ -1173,7 +1198,8 @@ function buildCardMiniature(card) {
 		timeString = (Math.floor(relativeDate / 86400000)) + ' days ago';
 	}
 
-	var flashcardClass = card.isFlashcard ? 'flashcard' : 'note';
+	var flashcardClass = card.isFlashcard ? 'flashcard' : 'note',
+		domain = extractDomain(card.url);
 
 	var html = '';
 		html += ' <div id="data-container' + card.id + '" class="data-container data-details ' + flashcardClass +'">';
@@ -1191,6 +1217,10 @@ function buildCardMiniature(card) {
 		html += ' 		<p>Attachments: ' + card.attachments.length + '</p>';
 		html += ' 		<div>' + thumbs + '</div>';
 		html += ' 	</div>';
+		html += '		<div class="card-url">';
+		html += '			<label>External link:</label>';
+		html += '			<a rel="nofollow" href="' + card.url + '" target="_blank">' + domain + '</a>';
+		html += '		</div>';		
 		html += ' </div>';
 		html += ' <div class="card-actions" id="actions' + card.id + '">';
 		html += ' 	<a class="edit-card">Edit</a>';

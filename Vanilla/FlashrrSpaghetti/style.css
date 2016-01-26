@@ -397,6 +397,22 @@ header {
 		padding: 0 12px 0 12px;
 	}
 
+		.card-url {
+			display: inline-block;
+			margin: 18px 0;
+			border-radius: 4px;		
+		}
+
+			.view-card-section .card-url a {
+				padding: 6px 10px;
+				font-size: 15px;
+				display: inline-block;
+				text-decoration: none;
+				font-weight: 600;
+				border: 1px solid #eee;
+				box-shadow: 0 4px 7px -6px rgba(0,0,0,0.4);	
+			}
+
 		.card-thumb {
 			margin-right: 10px;
 			float: left;
@@ -564,7 +580,7 @@ form h2 {
 	}
 
 	.create-card-section textarea {
-		height: 350px;
+		height: 235px;
 		overflow-y: scroll;
 		resize: none;
 	}
@@ -628,6 +644,15 @@ form h2 {
 		right: 15px;		
 	}
 
+	.flash-card-content h3,
+	.flash-card-content p.card-text {
+		display: table-cell;
+		text-align: center;
+		vertical-align: middle;
+		height: 265px;
+		width: 410px;
+	}
+
 	.view-card-navigation {
 		display: inline-block;
 		width: 100%;
@@ -642,14 +667,9 @@ form h2 {
 		}
 	
 	.view-card-section .card-text {
-		height: 510px;
+		height: 400px;
 		overflow-y: scroll;
 	}
-
-	.view-card-section.flashcard .card-text {
-		height: auto;
-		overflow-y: hidden;
-	}	
 
 	.view-card-section .tag {
 		display: inline-block;
