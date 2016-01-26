@@ -64,11 +64,11 @@ All the versions in 'Vanilla' directory can simply be downloaded and run locally
 - flashcards - on click, open yellow card with the title only  (more interactive and advanced design)
 - new card type: a link/url to an external resources eg. articles, products, videos, images etc.
 - "link" types are automatically previewed in their miniatures when YouTube video or image urls are detected
+- drag and drop attachments
 
 ## Currently working on Flashrr 0.3.0, Vanilla, Spaghetti 
 
 ## Features to be added in 0.3.0
-- drag and drop attachments
 - automatically read and fill in a new card form depending on a dragged and dropped file to the app stage
 
 ## Bugs

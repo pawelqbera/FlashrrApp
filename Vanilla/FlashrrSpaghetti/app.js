@@ -881,7 +881,7 @@ function openCardForm(event, editableCard) {
 		html += '			<label>Tags [optional]</label>';
 		html += '			<input type="text" id="cardTags" name="cardTags" value="' + cardTags + '" placeholder="eg. books, reading, literature">';
 		html += '		</div>';		
-		html += '		<div>';
+		html += '		<div id="cardDropArea" class="card-drop-area">';
 		html += '			<input type="file" id="cardAttachment" class="card-attachment" multiple>';
 		html += '		</div>';
 		html += '		<div id="thumbList" class="thumb-list"></div>';
@@ -907,7 +907,8 @@ function openCardForm(event, editableCard) {
 	pageWrapper.appendChild(fogBlanket);
 
 	var cardAttachment = document.getElementById("cardAttachment"),
-		flashcardCheck = document.getElementById("flashcardCheck");
+		flashcardCheck = document.getElementById("flashcardCheck"),
+		cardDropArea = document.getElementById("cardDropArea");
 
 	if(isFlashcard) {
 		flashcardCheck.checked = true;
@@ -924,13 +925,26 @@ function openCardForm(event, editableCard) {
 		getAttachments(event, attachments);
 	});
 
+	cardDropArea.addEventListener("dragover", function(event) {
+		event.stopPropagation();
+		event.preventDefault();
+	});
+
+	cardDropArea.addEventListener("dragleave", function(event) {
+		event.stopPropagation();
+		event.preventDefault();
+	});
+
+	cardDropArea.addEventListener("drop", function(event) {
+		getAttachments(event, attachments);
+	});
+
 	createTopicAdder("cardTopicWrapper");
 }
 
 /**
 *  Topic Adder Component
 */
-
 function createTopicAdder(parentId, isMultiple) {
 
 	var parent = document.getElementById(parentId),
@@ -1040,8 +1054,23 @@ function createTopicAdder(parentId, isMultiple) {
 	getCollectionTopics();	
 }
 
+/**
+*  Handles File Selection
+*/
+/*function fileSelectHandler(event, attachments) {
+	event.stopPropagation();
+	event.preventDefault();
+
+	// fetch FileList object
+	var files = event.target.files || event.dataTransfer.files;
+	getAttachments(event, files, attachments);
+}*/
+
 function getAttachments(event, attachments) {
-	var files = event.target.files;
+	event.stopPropagation();
+	event.preventDefault();	
+	
+	var files = event.target.files || event.dataTransfer.files;
 
 	for (var i = 0, f = files[i]; i < files.length; i++) {
 
@@ -1053,8 +1082,10 @@ function getAttachments(event, attachments) {
 				return function(e) {
 					// Render thumbnail.
 					var span = document.createElement('span');
+					
 					span.innerHTML = ['<img class="thumb" src="', e.target.result,
 					'" title="', escape(theFile.name), '"/>'].join('');
+					
 					var thumbList = document.getElementById("thumbList");
 					thumbList.insertBefore(span, null);
 					//localStorage.setItem('img', e.target.result);

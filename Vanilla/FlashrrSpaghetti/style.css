@@ -602,7 +602,7 @@ form h2 {
 	}
 
 	.create-card-section textarea {
-		height: 205px;
+		height: 155px;
 		overflow-y: scroll;
 		resize: none;
 	}
@@ -627,6 +627,24 @@ form h2 {
 	.collection-section label {
 		font-size: 13px;
 		cursor: pointer;
+	}
+
+	.create-card-section div.card-drop-area {
+		border: 3px dashed #bbb;
+		border-radius: 14px;
+		padding: 25px 35px;
+		box-sizing: border-box;
+		margin-top: 10px;
+		position: relative;
+	}
+
+	.create-card-section div.card-drop-area:before {
+		content: "Drag and drop your images here";
+		position: absolute;
+		top: 3px;
+		left: 6px;
+		color: #bbb;
+		font-size: 13px;
 	}
 
 .view-card-section {
