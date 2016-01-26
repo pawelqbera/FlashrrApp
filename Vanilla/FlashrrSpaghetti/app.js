@@ -709,9 +709,12 @@ function viewCard(event, viewedCard) {
 			html += '		</div>';
 			html += '		<div>';
 			html += '			<label>Tags:</label>';
-			html += '			<p>' + tags + '</p>';
-			html += '		</div>';		
-			html += '		<div class="view-thumb-list">' + thumbs + '</div>';
+			html += '			<p class="tags">' + tags + '</p>';
+			html += '		</div>';
+			html += '		<div>';
+			html += '			<label>Attachments:</label>';				
+			html += '			<div class="view-thumb-list">' + thumbs + '</div>';
+			html += '		</div>';			
 			if(viewedCard.url) {
 				html += '		<div class="card-url">';
 				html += '			<label>External link:</label>';
@@ -1231,18 +1234,18 @@ function buildCardMiniature(card) {
 		html += '	</p>';
 		html += ' 	<p class="topic data-details"><b>' + card.views + '</b> views</p>';
 		if(!card.isFlashcard) {
-			html += ' 	<p class="data-details">' + card.text + '</p>';
+			html += ' 	<p class="data-details">' + card.text + '</p>';		
+			html += ' 	<div class="thumbs-container data-details">';
+			html += ' 		<p>Attachments: ' + card.attachments.length + '</p>';
+			html += ' 		<div>' + thumbs + '</div>';
+			html += ' 	</div>';
+			html += '		<div class="card-url">';
+			html += '			<label>External link:</label>';
+			html += '			<a rel="nofollow" href="' + card.url + '" target="_blank">' + domain + '</a>';
+			html += ' 			<div class="preview">' + urlifiedText + '</div>';
+			html += '		</div>';		
+			html += ' </div>';
 		}
-		html += ' 	<div class="thumbs-container data-details">';
-		html += ' 		<p>Attachments: ' + card.attachments.length + '</p>';
-		html += ' 		<div>' + thumbs + '</div>';
-		html += ' 	</div>';
-		html += '		<div class="card-url">';
-		html += '			<label>External link:</label>';
-		html += '			<a rel="nofollow" href="' + card.url + '" target="_blank">' + domain + '</a>';
-		html += ' 			<div class="preview">' + urlifiedText + '</div>';
-		html += '		</div>';		
-		html += ' </div>';
 		html += ' <div class="card-actions" id="actions' + card.id + '">';
 		html += ' 	<a class="edit-card">Edit</a>';
 		html += ' 	<a class="remove-card">Remove</a>';

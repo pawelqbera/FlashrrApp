@@ -672,6 +672,7 @@ form h2 {
 		vertical-align: middle;
 		height: 265px;
 		width: 410px;
+		overflow-y: auto;
 	}
 
 	.view-card-navigation {
@@ -692,6 +693,11 @@ form h2 {
 		overflow-y: scroll;
 	}
 
+	p.tags {
+		width: 100%;
+		float: left;
+	}
+
 	.view-card-section .tag {
 		display: inline-block;
 		padding: 3px 6px;
@@ -704,6 +710,8 @@ form h2 {
 
 	.view-thumb-list {
 		height: 80px;
+		display: inline-block;
+		width: 100%;
 	}
 
 		.view-thumb-list img {
