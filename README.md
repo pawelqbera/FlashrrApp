@@ -61,11 +61,11 @@ All the versions in 'Vanilla' directory can simply be downloaded and run locally
 - anchors in card miniature: topic and author (on anchor click, display cards with specified topic or created by a specified author)
 - YouTube videos and images are previewed in the card content when its details are viewed
 - add [optional] tags for cards to be specified
+- flashcards - on click, open yellow card with the title only  (more interactive and advanced design)
 
 ## Currently working on Flashrr 0.3.0, Vanilla, Spaghetti 
 
 ## Features to be added in 0.3.0
-- flashcards - on click, open yellow card with the title only  (more interactive and advanced design), also add transform3d animation when the back side requested 
 - new card type: a link/url to an external resources eg. articles, products, videos, images etc.
 - "link" types are automatically previewed in their miniatures when YouTube video or other media (eg. images) are detected
 - drag and drop attachments
@@ -76,7 +76,8 @@ All the versions in 'Vanilla' directory can simply be downloaded and run locally
 - BUG: default collection: when searching for specific cards and decreasing the range of displayed cards to less than a page capacity - the pagination doesn't disappear
 - BUG: app.js:782 Uncaught TypeError: Cannot read property 'parentNode' of nullremoveAddTopicLink @ app.js:782(anonymous function) @ app.js:739
 - BUG: after closing a detailed card view, all collection cards are displayed even if the recent topic remains selected
-- BUG: if you're on the last page of "list" view and switch the view type to "grid" a following error is thrown: Uncaught TypeError: Cannot read property 'className' of undefined 
+- BUG: if you're on the last page of "list" view and switch the view type to "grid" a following error is thrown: Uncaught TypeError: Cannot read property 'className' of undefined
+- BUG: memory leak on flipCard (event listener has to removed on viewcard close) 
 
 
 # License

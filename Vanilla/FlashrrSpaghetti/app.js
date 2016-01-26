@@ -656,7 +656,9 @@ function viewCard(event, viewedCard) {
 
 	var thumbs = '',
 		tags = '',
-		i;
+		i,
+		cardTypeClass = viewedCard.isFlashcard ? 'flashcard' : 'textcard',
+		frontSide = true;
 	
 	for (i = 0; i < viewedCard.attachments.length; i++) {
 		thumbs += '<img src="' + viewedCard.attachments[i] + '" class="view-card-thumb" />';
@@ -664,6 +666,22 @@ function viewCard(event, viewedCard) {
 
 	for (i = 0; i < viewedCard.tags.length; i++) {
 		tags += '<span class="tag">' + viewedCard.tags[i] + '</span>';
+	}
+
+	var flashCardHtml = '';
+		
+	function renderCardSide() {
+		document.getElementById('cardContent').innerHTML = '';
+		flashCardHtml = '';
+		flashCardHtml += '	<div id="flashCardContent">';
+		if(frontSide) {
+			flashCardHtml += '	<h3>' + viewedCard.title + '</h3>';
+		} else {
+			flashCardHtml += '	<p class="card-text">' + urlifiedText + '</p>';
+		}
+		flashCardHtml += '		<p class="flashcard-action-info">Hit SPACE to flip the card</p>';
+		flashCardHtml += '	</div>';
+		document.getElementById('cardContent').innerHTML = flashCardHtml;
 	}
 
 	var urlifiedText = urlify(viewedCard.text);
@@ -675,28 +693,37 @@ function viewCard(event, viewedCard) {
 		html += '			<li><a class="previous-card-link">Previous</a></li>';
 		html += '			<li><a class="next-card-link">Next</a></li>';
 		html += '		</ul>';
-		html += '			<span id="closeBtn" class="close-btn">X</span>';
-		html += '		<div>';
-		html += '			<h3>' + viewedCard.title + '</h3>';
-		html += '			<p class="topic">in: ' + viewedCard.topic + ' by ' + viewedCard.author + '</p>';
-		html += '		</div>';
-		html += '		<div>';
-		html += '			<p class="card-text">' + urlifiedText + '</p>';
-		html += '		</div>';
-		html += '		<div>';
-		html += '			<label>Tags:</label>';
-		html += '			<p>' + tags + '</p>';
+		html += '		<span id="closeBtn" class="close-btn">X</span>';
+		html += '		<div id="cardContent">';		
+		if(cardTypeClass === 'flashcard') {	
+			html += flashCardHtml;			
+		} 
+		else 
+		{			
+			html += '		<div>';
+			html += '			<h3>' + viewedCard.title + '</h3>';
+			html += '			<p class="topic">in: ' + viewedCard.topic + ' by ' + viewedCard.author + '</p>';
+			html += '		</div>';
+			html += '		<div>';
+			html += '			<p class="card-text">' + urlifiedText + '</p>';
+			html += '		</div>';
+			html += '		<div>';
+			html += '			<label>Tags:</label>';
+			html += '			<p>' + tags + '</p>';
+			html += '		</div>';		
+			html += '		<div class="view-thumb-list">' + thumbs + '</div>';
+			html += '		<div class="view-card-actions" id="actions' + viewedCard.id + '">';
+			html += '			<a class="edit-card">Edit</a>';
+			html += '			<a class="remove-card">Remove</a>';
+			html += '		</div>';
+		}
 		html += '		</div>';		
-		html += '		<div class="view-thumb-list">' + thumbs + '</div>';
-		html += '		<div class="view-card-actions" id="actions' + viewedCard.id + '">';
-		html += '			<a class="edit-card">Edit</a>';
-		html += '			<a class="remove-card">Remove</a>';
-		html += '		</div>';
 		html += '	</div>';
+
 
 	var tempCardForm = document.createElement('SECTION');
 	tempCardForm.id = "viewCardSection";
-	tempCardForm.className = "view-card-section";
+	tempCardForm.className = "view-card-section " + cardTypeClass;
 	tempCardForm.innerHTML = html.trim();
 	pageWrapper.appendChild(tempCardForm);
 
@@ -704,6 +731,29 @@ function viewCard(event, viewedCard) {
 	fogBlanket.className = "fog-blanket";
 	fogBlanket.id = "fogBlanket";
 	pageWrapper.appendChild(fogBlanket);
+
+	var cardSection = document.getElementById('viewCardSection');
+	var flipCard = function(event) {
+		if ((event.keyCode === 0 || event.keyCode === 32) && viewedCard.isFlashcard) {
+			event.preventDefault();
+			console.log("flip the f card");
+			if(frontSide) {
+				frontSide = false;
+				renderCardSide();
+			} else {
+				frontSide = true;
+				renderCardSide();				
+			}
+			//this event listener has to be removed somehow at viewCardClose
+			// - for now it causes a memory leak
+			//document.removeEventListener("keydown", flipCard);
+		}
+	};
+	document.addEventListener("keydown", flipCard);
+
+	if(viewedCard.isFlashcard) {
+		renderCardSide();	
+	}
 }
 
 function urlify(text) {
