@@ -389,6 +389,10 @@ header {
 			width: 100%;
 		}
 
+			.preview img {
+				width: 100%;
+			}
+
 	.thumbs-container {
 		font-size: 13px;
 	}
@@ -405,9 +409,16 @@ header {
 	}
 
 		.card-url {
-			display: inline-block;
-			margin: 18px 0;
-			border-radius: 4px;		
+			display: inline-block;			
+			border-radius: 4px;	
+		}
+
+		.view-card-section .card-url {
+			margin: 15px 0 0 0;		
+		}
+
+		.card-miniature .card-url {
+			margin: 3px 0 0 0;		
 		}
 
 			.view-card-section .card-url a {
@@ -418,6 +429,11 @@ header {
 				font-weight: 600;
 				border: 1px solid #eee;
 				box-shadow: 0 4px 7px -6px rgba(0,0,0,0.4);	
+			}
+
+			.card-miniature .card-url a,
+			.card-miniature .card-url label { 
+				font-size: 12px;
 			}
 
 		.card-thumb {
@@ -470,9 +486,9 @@ header {
 }
 
 	.thumb {
-		height: 75px;
+		height: 65px;
 		border: 1px solid #000;
-		margin: 10px 5px 0 0;
+		margin: 0 5px 0 0;
 	} 
 
 .switch-view {
@@ -565,19 +581,18 @@ form h2 {
 	border-radius: 14px;
 	padding: 25px;
 	box-shadow: 0px 0px 23px -3px #333;
-	top: 25%;
-	bottom: 6.25%;
+	top: 64px;
+	bottom: 64px;
 	overflow: hidden;
 	left: 50%;
 	margin-left: -25%;
-	margin-top: -12.5%;
 	z-index: 3500;
 }
 
 	.create-card-section div,
 	.collection-section div {
 		width: 100%;
-		padding: 10px 0;
+		padding: 6px 0;
 	}
 	
 	.create-card-section input[type="text"],
@@ -587,7 +602,7 @@ form h2 {
 	}
 
 	.create-card-section textarea {
-		height: 235px;
+		height: 205px;
 		overflow-y: scroll;
 		resize: none;
 	}
@@ -626,11 +641,10 @@ form h2 {
 .view-card-section.textcard {
 	width: 50%;
 	border-radius: 14px;
-	top: 25%;
-	bottom: 6.25%;
+	top: 64px;
+	bottom: 64px;
 	left: 50%;
 	margin-left: -25%;
-	margin-top: -12.5%;
 }
 
 .view-card-section.flashcard {
@@ -674,7 +688,7 @@ form h2 {
 		}
 	
 	.view-card-section .card-text {
-		height: 400px;
+		max-height: 340px;
 		overflow-y: scroll;
 	}
 
@@ -696,6 +710,15 @@ form h2 {
 			height: 60px;
 			margin: 10px;
 		}
+
+	.view-card-actions {
+		position: absolute;
+		bottom: 25px;
+		left: 0;
+		width: 100%;
+		box-sizing: border-box;
+		padding: 0 25px;		
+	}
 
 /* Footer */
 
