@@ -62,11 +62,11 @@ All the versions in 'Vanilla' directory can simply be downloaded and run locally
 - YouTube videos and images are previewed in the card content when its details are viewed
 - add [optional] tags for cards to be specified
 - flashcards - on click, open yellow card with the title only  (more interactive and advanced design)
+- new card type: a link/url to an external resources eg. articles, products, videos, images etc.
 
 ## Currently working on Flashrr 0.3.0, Vanilla, Spaghetti 
 
 ## Features to be added in 0.3.0
-- new card type: a link/url to an external resources eg. articles, products, videos, images etc.
 - "link" types are automatically previewed in their miniatures when YouTube video or other media (eg. images) are detected
 - drag and drop attachments
 - automatically read and fill in a new card form depending on a dragged and dropped file to the app stage
