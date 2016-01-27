@@ -82,6 +82,7 @@ All the versions in 'Vanilla' directory can simply be downloaded and run locally
 - presentation view where you can see the list of the cards and preview them at once  
 
 ## Bugs
+- BUG: Cards height issues on different screens
 - BUG: Edit Card click - attachments are disappearing
 - BUG: default collection: when searching for specific cards and decreasing the range of displayed cards to less than a page capacity - the pagination doesn't disappear
 - BUG: app.js:782 Uncaught TypeError: Cannot read property 'parentNode' of nullremoveAddTopicLink @ app.js:782(anonymous function) @ app.js:739
