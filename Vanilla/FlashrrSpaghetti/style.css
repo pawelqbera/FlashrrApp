@@ -15,6 +15,22 @@ body {
 		background: #f9f9f9;
 	}
 
+	.drag {
+		background: #eee;
+	}
+
+		.drag:before {
+			content: "Drag .txt file here";
+			position: absolute;
+			bottom: 50%;
+			width: 100%;
+			text-align: center;
+			color: #999;
+			font-size: 75px;
+			letter-spacing: -2px;
+			z-index: 10000;
+		}
+
 a {
 	cursor: pointer;
 	color: #43d3c5;

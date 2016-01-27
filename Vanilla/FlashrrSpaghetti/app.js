@@ -45,7 +45,7 @@ var gridView = JSON.parse(localStorage.getItem("gridView")),
 */
 
 document.addEventListener("click", handleCardEvents, true);
-createCardBtn.addEventListener("click", openCardForm );
+createCardBtn.addEventListener("click", openCardForm);
 searchCards.addEventListener("keyup", searchCard);
 gridViewBtn.addEventListener("click", toggleView);
 listViewBtn.addEventListener("click", toggleView);
@@ -53,6 +53,26 @@ hiUserName.addEventListener("click", openUserNameForm );
 topicSelect.addEventListener("change", selectCardsByTopic);
 collectionSelect.addEventListener("change", selectCollection);
 cardsFilter.addEventListener("change", selectSortingMethod);
+
+pageWrapper.addEventListener("dragover", function(event) {
+	event.preventDefault();
+	if(hasClass(pageWrapper, "drag")) {
+		return false;		
+	}
+	pageWrapper.className += " drag";
+});
+
+pageWrapper.addEventListener("dragleave", function(event) {
+	event.preventDefault();
+	pageWrapper.className = pageWrapper.className.replace( /(?:^|\s)drag(?!\S)/g , '' );		
+});
+
+pageWrapper.addEventListener("drop", function(event) {
+	event.stopPropagation();
+	event.preventDefault();
+	getCardFromTxt(event);
+	pageWrapper.className = pageWrapper.className.replace( /(?:^|\s)drag(?!\S)/g , '' );		
+});
 
 /**
 *  Event Delegator
@@ -278,6 +298,37 @@ function countView(viewedCard) {
 	selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
 
 	displayCards(selectedPage);
+}
+
+/**
+*	Handle drag and drop txt files
+*/
+function getCardFromTxt(event) {
+
+	var files = event.target.files || event.dataTransfer.files;
+
+	var f = files[0];
+		
+	if (!f) {
+		alert("Failed to load file");
+	} else if (!f.type.match('text.*')) {
+		alert(f.name + " is not a valid text file.");
+	} else {
+
+		var reader = new FileReader();
+
+		reader.onload = function(e) { 
+			var contents = {
+				title: f.name,
+				url: '',
+				text : e.target.result,
+				tags : '',
+				submitLabel: 'Create Card'
+			};
+			openCardForm(event, contents);
+		};
+		reader.readAsText(f);	
+	}
 }
 
 /**
@@ -852,7 +903,7 @@ function openCardForm(event, editableCard) {
 		cardUrl = editableCard ? editableCard.url : "",
 		cardText = editableCard ? editableCard.text : "",
 		cardTags = editableCard ? editableCard.tags : "",
-		cardFormSubmitLabel = editableCard ? "Update Card" : "Create Card",
+		cardFormSubmitLabel = editableCard ? editableCard.submitLabel : "Create Card",
 		updatedCardId = editableCard ? editableCard.id : null,
 		attachments = [],
 		isFlashcard = editableCard ? editableCard.isFlashcard : false;
@@ -1057,19 +1108,10 @@ function createTopicAdder(parentId, isMultiple) {
 /**
 *  Handles File Selection
 */
-/*function fileSelectHandler(event, attachments) {
-	event.stopPropagation();
-	event.preventDefault();
-
-	// fetch FileList object
-	var files = event.target.files || event.dataTransfer.files;
-	getAttachments(event, files, attachments);
-}*/
-
 function getAttachments(event, attachments) {
 	event.stopPropagation();
 	event.preventDefault();	
-	
+
 	var files = event.target.files || event.dataTransfer.files;
 
 	for (var i = 0, f = files[i]; i < files.length; i++) {
@@ -1131,7 +1173,8 @@ function createCard(updatedCardId, attachments) {
 			author: userName,
 			date: date.getTime(),
 			isFlashcard: flashcardCheck.checked,
-			views: 0
+			views: 0,
+			submitLabel: 'Update Card'
 		},
 	existingCards = selectedCollection.cards;
 
