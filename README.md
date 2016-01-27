@@ -65,11 +65,14 @@ All the versions in 'Vanilla' directory can simply be downloaded and run locally
 - new card type: a link/url to an external resources eg. articles, products, videos, images etc.
 - "link" types are automatically previewed in their miniatures when YouTube video or image urls are detected
 - drag and drop attachments
-
-## Currently working on Flashrr 0.3.0, Vanilla, Spaghetti 
-
-## Features to be added in 0.3.0
 - automatically read and fill in a new card form depending on a dragged and dropped file to the app stage
+
+## 0.4.0
+
+## Currently working on Flashrr 0.4.0, Vanilla, Spaghetti 
+
+## Features to be added in 0.4.0
+- bugs fixing
 
 ## Bugs
 - BUG: Edit Card click - attachments are disappearing
@@ -77,8 +80,7 @@ All the versions in 'Vanilla' directory can simply be downloaded and run locally
 - BUG: app.js:782 Uncaught TypeError: Cannot read property 'parentNode' of nullremoveAddTopicLink @ app.js:782(anonymous function) @ app.js:739
 - BUG: after closing a detailed card view, all collection cards are displayed even if the recent topic remains selected
 - BUG: if you're on the last page of "list" view and switch the view type to "grid" a following error is thrown: Uncaught TypeError: Cannot read property 'className' of undefined
-- BUG: memory leak on flipCard (event listener has to removed on viewcard close) 
-
+- BUG: memory leak on flipCard (event listener has to removed on viewcard close)
 
 # License
 
