@@ -73,6 +73,12 @@ All the versions in 'Vanilla' directory can simply be downloaded and run locally
 
 ## Features to be added in 0.4.0
 - bugs fixing
+- move card from one collection to another
+- more advanced and user friendly text editor (bold, italic, underline, lists, headlines, urls...)
+- update counter every time when number of displayed cards changes 
+- checkbox in header "show flashcards only"
+- add comments on cards
+- presentation view where you can see the list of the cards and preview them at once  
 
 ## Bugs
 - BUG: Edit Card click - attachments are disappearing
