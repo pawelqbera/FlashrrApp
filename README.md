@@ -73,6 +73,7 @@ All the versions in 'Vanilla' directory can simply be downloaded and run locally
 
 ## Features to be added in 0.4.0
 - bugs fixing
+- card drafts (save unfinished cards and mark them as drafts)
 - move card from one collection to another
 - more advanced and user friendly text editor (bold, italic, underline, lists, headlines, urls...)
 - update counter every time when number of displayed cards changes 
