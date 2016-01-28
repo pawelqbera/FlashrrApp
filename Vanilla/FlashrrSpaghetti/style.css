@@ -322,7 +322,7 @@ header {
 	    padding: 21px;
 	    border-radius: 20px;
 	    margin: 0 1% 1% 0;
-	    height: 228px;
+	    height: 30%;
 	}
 
 	.grid-view .card-miniature:nth-child(4n) {

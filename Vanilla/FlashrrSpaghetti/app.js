@@ -21,13 +21,15 @@ var gridView = JSON.parse(localStorage.getItem("gridView")),
 	userName = JSON.parse(localStorage.getItem("userName")) || "Guest",
 	selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0],
 	selectedCards = selectedCollection.cards,
-	cardsPerPage = gridView ? 12 : 5,
 	selectedSorting = JSON.parse(localStorage.getItem("selectedSorting")) || "date",
 	selectedPage = JSON.parse(localStorage.getItem("selectedPage")) || 1,
 	selectedTopic = JSON.parse(localStorage.getItem("selectedTopic")) || -1,
 	viewedCardIndex = null,
+	listViewCardHeight = 150,
 	createCardBtn = document.getElementById("createCardBtn"),
 	pageWrapper = document.getElementById("pageWrapper"),
+	header = document.getElementById("header"),
+	cardsFilter = document.getElementById("cardsFilter"),
 	cardCounter = document.getElementById("cardCounter"),
 	cardsWrapper = document.getElementById("cardsWrapper"),
 	searchCards = document.getElementById("searchCards"),
@@ -38,13 +40,14 @@ var gridView = JSON.parse(localStorage.getItem("gridView")),
 	collectionSelect = document.getElementById("collectionSelect"),
 	pseudoFooter = document.getElementById("pseudoFooter"),
 	cardsFilter = document.getElementById("cardsFilter"),
-	categorySearchSelect = document.getElementById("categorySearchSelect");
+	categorySearchSelect = document.getElementById("categorySearchSelect"),	
+	cardsPerPage = setCardsPerPage();
 
 /**
 *  Event Listeners
 */
-
 document.addEventListener("click", handleCardEvents, true);
+window.addEventListener("resize", handleResize, true);
 createCardBtn.addEventListener("click", openCardForm);
 searchCards.addEventListener("keyup", searchCard);
 gridViewBtn.addEventListener("click", toggleView);
@@ -658,7 +661,7 @@ function getView() {
 
 function switchGridView() {
 	gridView = true;
-	cardsPerPage = 12;	
+	cardsPerPage = setCardsPerPage();
 	displayCards(selectedPage);	
 	cardsWrapper.className = 'grid-view';
 	gridViewBtn.className += ' active';
@@ -669,7 +672,7 @@ function switchGridView() {
 
 function switchListView() {
 	gridView = false;
-	cardsPerPage = 5;
+	cardsPerPage = setCardsPerPage();
 	displayCards(selectedPage);
 	cardsWrapper.className = 'list-view';
 	listViewBtn.className += ' active';
@@ -1271,6 +1274,8 @@ function displayCards(page) {
 			buildCardMiniature(selectedCards[i]);
 		}		
 	}
+
+	setHeights();
 }
 
 function buildCardMiniature(card) {
@@ -1370,6 +1375,30 @@ function addPagination() {
 
 function setCurrentPageClass() {
 	paginationList.childNodes[parseInt(selectedPage) - 1].className += ' current-page';
+}
+
+// Set Heights
+function setHeights() {
+	//cardsWrapper = wysokość okna - ( header + cardsFilter + pseudoFooter)
+	var cardsWrapperHeight = window.innerHeight - (header.clientHeight + cardsFilter.clientHeight + pseudoFooter.clientHeight);
+	cardsWrapper.style.height = cardsWrapperHeight + 'px';
+}
+
+//Determine the number of cards to be displayed in the list view on a single page
+function countCardsPerPage() {
+	var cardsWrapperHeight = window.innerHeight - (header.clientHeight + cardsFilter.clientHeight + pseudoFooter.clientHeight),
+		cards = Math.floor(cardsWrapperHeight / listViewCardHeight);
+	return cards;
+}
+
+function setCardsPerPage() {
+	return gridView ? 12 : countCardsPerPage();
+}
+
+function handleResize() {
+	setHeights();
+	setCardsPerPage();
+	getView();
 }
 
 // Initialization
