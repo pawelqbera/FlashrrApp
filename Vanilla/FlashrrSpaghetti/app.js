@@ -40,14 +40,15 @@ var gridView = JSON.parse(localStorage.getItem("gridView")),
 	collectionSelect = document.getElementById("collectionSelect"),
 	pseudoFooter = document.getElementById("pseudoFooter"),
 	cardsFilter = document.getElementById("cardsFilter"),
-	categorySearchSelect = document.getElementById("categorySearchSelect"),	
+	categorySearchSelect = document.getElementById("categorySearchSelect"),
+	showFlashcardsOnly = document.getElementById("showFlashcardsOnly"),	
 	cardsPerPage = setCardsPerPage();
 
 /**
 *  Event Listeners
 */
-document.addEventListener("click", handleCardEvents, true);
-window.addEventListener("resize", handleResize, true);
+document.addEventListener("click", handleCardEvents);
+window.addEventListener("resize", handleResize);
 createCardBtn.addEventListener("click", openCardForm);
 searchCards.addEventListener("keyup", searchCard);
 gridViewBtn.addEventListener("click", toggleView);
@@ -56,6 +57,7 @@ hiUserName.addEventListener("click", openUserNameForm );
 topicSelect.addEventListener("change", selectCardsByTopic);
 collectionSelect.addEventListener("change", selectCollection);
 cardsFilter.addEventListener("change", selectSortingMethod);
+showFlashcardsOnly.addEventListener("click", toggleTextCards);
 
 pageWrapper.addEventListener("dragover", function(event) {
 	event.preventDefault();
@@ -80,7 +82,6 @@ pageWrapper.addEventListener("drop", function(event) {
 /**
 *  Event Delegator
 */
-
 function handleCardEvents(event) {
     var element = event.target,
 		parentId = element.parentNode.id ? element.parentNode.id.slice(-5) : '',
@@ -225,6 +226,31 @@ function handleCardEvents(event) {
 		localStorage.setItem("selectedTopic", JSON.stringify(selectedTopic));
 		selectCardsByTopic();
 	}
+}
+
+function toggleTextCards(event) {
+	var element = event.target;
+	if(element.checked === true) {
+		displayCards(selectedCards);
+
+		for (var i=0;i<selectedCollection.cards.length;i++) {
+
+			if(selectedCollection.cards[i].isFlashcard === false) {
+				if(!document.getElementById("cardMiniature" + selectedCollection.cards[i].id)) {
+					return;
+				}
+				var card = document.getElementById("cardMiniature" + selectedCollection.cards[i].id);
+				if (card) {
+					card.parentNode.removeChild(card);				
+				}
+				addPagination();
+			}
+		}
+
+	} else {
+		displayCards(selectedCards);
+	}
+	
 }
 
 function selectSortingMethod(event) {

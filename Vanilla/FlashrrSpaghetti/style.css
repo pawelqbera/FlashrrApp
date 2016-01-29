@@ -727,6 +727,10 @@ form h2 {
 		overflow-y: scroll;
 	}
 
+	.view-card-section .card-text img {
+		max-width: 100%;
+	}
+
 	p.tags {
 		width: 100%;
 		float: left;
