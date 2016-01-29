@@ -69,6 +69,7 @@ All the versions in 'Vanilla' directory can simply be downloaded and run locally
 
 ## 0.4.0
 - FIXED: Cards height issues on different screens
+- checkbox in header "show flashcards only"
 
 ## Currently working on Flashrr 0.4.0, Vanilla, Spaghetti 
 
@@ -78,7 +79,6 @@ All the versions in 'Vanilla' directory can simply be downloaded and run locally
 - move card from one collection to another
 - more advanced and user friendly text editor (bold, italic, underline, lists, headlines, urls...)
 - update counter every time when number of displayed cards changes 
-- checkbox in header "show flashcards only"
 - add comments on cards
 - presentation view where you can see the list of the cards and preview them at once  
 
