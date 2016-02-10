@@ -72,11 +72,17 @@ pageWrapper.addEventListener("dragleave", function(event) {
 	pageWrapper.className = pageWrapper.className.replace( /(?:^|\s)drag(?!\S)/g , '' );		
 });
 
-pageWrapper.addEventListener("drop", function(event) {
-	event.stopPropagation();
-	event.preventDefault();
-	getCardFromTxt(event);
-	pageWrapper.className = pageWrapper.className.replace( /(?:^|\s)drag(?!\S)/g , '' );		
+function FU(extractedMethodSettings) {
+    extractedMethodSettings.pageWrapper.addEventListener("drop", function(event) {
+        event.stopPropagation();
+        event.preventDefault();
+        getCardFromTxt(event);
+        extractedMethodSettings.pageWrapper.className = extractedMethodSettings.pageWrapper.className.replace(/(?:^|\s)drag(?!\S)/g, "")
+    });
+}
+
+FU({
+    pageWrapper: pageWrapper
 });
 
 /**
