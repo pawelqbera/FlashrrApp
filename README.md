@@ -1,7 +1,7 @@
 # FlashrrApp
 Flashrr is a knowledge management tool that helps you organize data in the clear form of flashcard collections
 
-Visit offcial [Flashrr.com](http://flashrr.com) website for more details.
+Visit official [Flashrr.com](http://flashrr.com) website for more details.
 
 # WHYS
 The goal is to create an example web app in many possible ways starting off from filthy and messy vanilla JavaScript spaghetti, continue by gradually refactoring and adding design patterns and libraries, to finally end up with a full stack web apps built with the most popular frameworks. 
@@ -71,6 +71,7 @@ All the versions in 'Vanilla' directory can simply be downloaded and run locally
 
 ## 0.4.0
 - FIXED: Cards height issues on different screens
+- FIXED: Edit Card click - attachments are disappearing
 - checkbox in header "show flashcards only"
 
 ## Currently working on Flashrr 0.4.0, Vanilla, Spaghetti 
@@ -85,7 +86,6 @@ All the versions in 'Vanilla' directory can simply be downloaded and run locally
 - presentation view where you can see the list of the cards and preview them at once  
 
 ## Bugs
-- BUG: Edit Card click - attachments are disappearing
 - BUG: default collection: when searching for specific cards and decreasing the range of displayed cards to less than a page capacity - the pagination doesn't disappear
 - BUG: app.js:782 Uncaught TypeError: Cannot read property 'parentNode' of nullremoveAddTopicLink @ app.js:782(anonymous function) @ app.js:739
 - BUG: after closing a detailed card view, all collection cards are displayed even if the recent topic remains selected

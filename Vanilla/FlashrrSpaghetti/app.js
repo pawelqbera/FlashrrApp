@@ -358,7 +358,8 @@ function getCardFromTxt(event) {
 				url: '',
 				text : e.target.result,
 				tags : '',
-				submitLabel: 'Create Card'
+				submitLabel: 'Create Card',
+				attachments: []
 			};
 			openCardForm(event, contents);
 		};
@@ -887,6 +888,10 @@ function urlify(text) {
 
 function miniatureUrlify(text) {
 	/**
+	* Store the base text string for further comparison
+	*/
+	var baseStr = text;
+	/**
 	* Match all URLs except image and YouTube video links
 	*/ 
 	var ordinaryUrlRegexp = /(?!(https?:\/\/.*\.(?:png|jpg|gif|jpeg)))(?!(http(?:s)?:\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?[\w\?​=]*)?))(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;	
@@ -901,6 +906,9 @@ function miniatureUrlify(text) {
 	text = text.replace(ordinaryUrlRegexp, '');
 	text = text.replace(ytUrlRegexp, '<iframe width="100%" height="100%" src="https://www.youtube.com/embed/$1" frameborder="0" allowfullscreen></iframe>');
 	text = text.replace(imgUrlRegexp, '<img src="$1" alt />');	
+
+	baseStr === text ? text = '' : text;			
+
 	return text;
 }
 
@@ -938,10 +946,19 @@ function openCardForm(event, editableCard) {
 		cardUrl = editableCard ? editableCard.url : "",
 		cardText = editableCard ? editableCard.text : "",
 		cardTags = editableCard ? editableCard.tags : "",
+		cardThumbs = editableCard ? editableCard.thumbs : "",
 		cardFormSubmitLabel = editableCard ? editableCard.submitLabel : "Create Card",
 		updatedCardId = editableCard ? editableCard.id : null,
-		attachments = [],
+		cardAttachments = editableCard ? editableCard.attachments : [],
 		isFlashcard = editableCard ? editableCard.isFlashcard : false;
+
+	var cardThumbs = '',
+		i = 0;
+
+		for (; i < cardAttachments.length; i++) {
+			cardThumbs += '<img src="' + cardAttachments[i] + '" class="view-card-thumb" />';
+		}
+
 
 	var html = '';
 		html += '	<form id="createCardForm">';
@@ -970,6 +987,10 @@ function openCardForm(event, editableCard) {
 		html += '		<div id="cardDropArea" class="card-drop-area">';
 		html += '			<input type="file" id="cardAttachment" class="card-attachment" multiple>';
 		html += '		</div>';
+		html += '		<div>';
+		html += '			<label>Attachments:</label>';				
+		html += '			<div class="view-thumb-list">' + cardThumbs + '</div>';
+		html += '		</div>';		
 		html += '		<div id="thumbList" class="thumb-list"></div>';
 		html += '		<div>';
 		html += '			<input type="checkbox" id="flashcardCheck">';
@@ -1004,11 +1025,11 @@ function openCardForm(event, editableCard) {
 
 	createCardForm.addEventListener('submit', function(event) {
 		event.preventDefault();
-		createCard(updatedCardId, attachments);
+		createCard(updatedCardId, cardAttachments);
 	});
 
 	cardAttachment.addEventListener('change', function(event) {
-		getAttachments(event, attachments);
+		getAttachments(event, cardAttachments);
 	});
 
 	cardDropArea.addEventListener("dragover", function(event) {
@@ -1022,7 +1043,7 @@ function openCardForm(event, editableCard) {
 	});
 
 	cardDropArea.addEventListener("drop", function(event) {
-		getAttachments(event, attachments);
+		getAttachments(event, cardAttachments);
 	});
 
 	createTopicAdder("cardTopicWrapper");
@@ -1143,7 +1164,7 @@ function createTopicAdder(parentId, isMultiple) {
 /**
 *  Handles File Selection
 */
-function getAttachments(event, attachments) {
+function getAttachments(event, cardAttachments) {
 	event.stopPropagation();
 	event.preventDefault();	
 
@@ -1166,7 +1187,7 @@ function getAttachments(event, attachments) {
 					var thumbList = document.getElementById("thumbList");
 					thumbList.insertBefore(span, null);
 					//localStorage.setItem('img', e.target.result);
-					attachments.push(e.target.result);
+					cardAttachments.push(e.target.result);
 				};
 			})(f);
 			// Read in the image file as a data URL.
@@ -1174,7 +1195,7 @@ function getAttachments(event, attachments) {
 		}
 	}
 
-	return attachments;
+	return cardAttachments;
 }
 
 function closeCardForm() {
@@ -1193,7 +1214,7 @@ function countCards() {
 	count.nodeValue = existingCards.length;
 }
 
-function createCard(updatedCardId, attachments) {
+function createCard(updatedCardId, cardAttachments) {
 	var tags = cardTags.value.split(","),
 		date = new Date(),
 		form = document.forms[0],
@@ -1204,7 +1225,7 @@ function createCard(updatedCardId, attachments) {
 			url: cardUrl.value || '',
 			text: cardText.value,
 			tags: tags || [],
-			attachments: attachments,
+			attachments: cardAttachments,
 			author: userName,
 			date: date.getTime(),
 			isFlashcard: flashcardCheck.checked,
