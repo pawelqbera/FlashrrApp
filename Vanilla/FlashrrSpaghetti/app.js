@@ -62,7 +62,7 @@ showFlashcardsOnly.addEventListener("click", toggleTextCards);
 pageWrapper.addEventListener("dragover", function(event) {
 	event.preventDefault();
 	if(hasClass(pageWrapper, "drag")) {
-		return false;		
+		return false;
 	}
 	pageWrapper.className += " drag";
 });

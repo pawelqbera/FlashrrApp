@@ -1,6 +1,8 @@
 # FlashrrApp
 Flashrr is a knowledge management tool that helps you organize data in the clear form of flashcard collections
 
+Visit offcial [Flashrr.com](http://flashrr.com) website for more details.
+
 # WHYS
 The goal is to create an example web app in many possible ways starting off from filthy and messy vanilla JavaScript spaghetti, continue by gradually refactoring and adding design patterns and libraries, to finally end up with a full stack web apps built with the most popular frameworks. 
 
@@ -78,7 +80,7 @@ All the versions in 'Vanilla' directory can simply be downloaded and run locally
 - card drafts (save unfinished cards and mark them as drafts)
 - move card from one collection to another
 - more advanced and user friendly text editor (bold, italic, underline, lists, headlines, urls...)
-- update counter every time when number of displayed cards changes 
+- update counter every time when number of displayed cards changes
 - add comments on cards
 - presentation view where you can see the list of the cards and preview them at once  
 
