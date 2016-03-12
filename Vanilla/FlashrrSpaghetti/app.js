@@ -1095,8 +1095,8 @@ function createTopicAdder(parentId, isMultiple) {
 		parent.appendChild(addTopicLink);
 
 		addTopicLink.addEventListener('click', function(event) {
+			event.stopPropagation();
 			createAddTopicInput(event);
-			removeAddTopicLink();
 		});
 	}
 
@@ -1122,8 +1122,10 @@ function createTopicAdder(parentId, isMultiple) {
 		var createTopicValidationBox = document.getElementById('createTopicValidationBox'),
 			newTopic = event.target.value;
 
-		for(var i=0; i < selectedCollection.topics.length;i++) {
-			if(newTopic.indexOf(selectedCollection.topics[i]) !== -1) {
+			console.log('newTopic' + newTopic);
+
+		for(var i = 0; i < selectedCollection.topics.length; i++) {
+			if(selectedCollection.topics[i].indexOf(newTopic) !== -1) {
 				createTopicValidationBox.innerHTML = '<p class="validation-message">Specified topic already exists!</p>';
 				return false;
 			}
