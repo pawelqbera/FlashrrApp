@@ -47,7 +47,8 @@ var gridView = JSON.parse(localStorage.getItem("gridView")),
 /**
 *  Event Listeners
 */
-document.addEventListener("click", handleCardEvents);
+document.addEventListener("click", handleCardClickEvents);
+document.addEventListener("keydown", handleCardKeydownEvents);
 window.addEventListener("resize", handleResize);
 createCardBtn.addEventListener("click", openCardForm);
 searchCards.addEventListener("keyup", searchCard);
@@ -88,7 +89,23 @@ FU({
 /**
 *  Event Delegator
 */
-function handleCardEvents(event) {
+function handleCardKeydownEvents(event) {
+	var existingCards = selectedCollection.cards,
+		selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value,
+		i = null,
+		obj = null;
+
+	if (viewedCardIndex !== null) {
+		var viewedCard = existingCards[viewedCardIndex - 1];
+
+		if ((event.keyCode === 0 || event.keyCode === 32) && viewedCard.isFlashcard) {
+			renderCardSide(event, viewedCard);				
+		}
+	}
+		
+}
+
+function handleCardClickEvents(event) {
     var element = event.target,
 		parentId = element.parentNode.id ? element.parentNode.id.slice(-5) : '',
 		existingCards = selectedCollection.cards,
@@ -708,13 +725,21 @@ function switchGridView() {
 
 function switchListView() {
 	gridView = false;
-	cardsPerPage = setCardsPerPage();
+	cardsPerPage = setCardsPerPage();	
 	displayCards(selectedPage);
 	cardsWrapper.className = 'list-view';
 	listViewBtn.className += ' active';
 	gridViewBtn.className = gridViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
 	localStorage.setItem("gridView", JSON.stringify(false));
 	addPagination();
+}
+
+function updateSelectedPage(selectedPage) {
+	var pagesCount = Math.ceil(selectedCards.length / cardsPerPage);
+	if(selectedPage > pagesCount) {
+		selectedPage = pagesCount;
+		console.log('new sp: ' + selectedPage);
+	}
 }
 
 function searchCard(event) {
@@ -739,6 +764,26 @@ function searchCard(event) {
 	}
 }
 
+function renderCardSide(event, viewedCard, frontSide) {
+	var flashCardText = document.getElementById('flashCardText') ? document.getElementById('flashCardText') : null;	
+	
+	document.getElementById('cardContent').innerHTML = '';
+	var flashCardHtml = '';
+
+	flashCardHtml += '	<div id="flashCardContent" class="flash-card-content">';
+	
+	if(frontSide || hasClass(flashCardText, 'back-side')) {
+		flashCardHtml += '	<p id="flashCardText" class="front-side">' + viewedCard.title + '</h3>';
+		frontSide = false;
+	} else {
+		flashCardHtml += '	<p id="flashCardText" class="back-side">' + urlify(viewedCard.text) + '</p>';
+		frontSide = true;
+	}
+	flashCardHtml += '		<p class="flashcard-action-info">Hit SPACE to flip the card</p>';
+	flashCardHtml += '	</div>';
+	document.getElementById('cardContent').innerHTML = flashCardHtml;
+}
+
 function viewCard(event, viewedCard) {
 	if (document.getElementById('viewCardSection')) {
 		return false;
@@ -747,8 +792,7 @@ function viewCard(event, viewedCard) {
 	var thumbs = '',
 		tags = '',
 		i,
-		cardTypeClass = viewedCard.isFlashcard ? 'flashcard' : 'textcard',
-		frontSide = true;
+		cardTypeClass = viewedCard.isFlashcard ? 'flashcard' : 'textcard';
 	
 	for (i = 0; i < viewedCard.attachments.length; i++) {
 		thumbs += '<img src="' + viewedCard.attachments[i] + '" class="view-card-thumb" />';
@@ -760,20 +804,6 @@ function viewCard(event, viewedCard) {
 
 	var flashCardHtml = '';
 		
-	function renderCardSide() {
-		document.getElementById('cardContent').innerHTML = '';
-		flashCardHtml = '';
-		flashCardHtml += '	<div id="flashCardContent" class="flash-card-content">';
-		if(frontSide) {
-			flashCardHtml += '	<h3>' + viewedCard.title + '</h3>';
-		} else {
-			flashCardHtml += '	<p class="card-text">' + urlifiedText + '</p>';
-		}
-		flashCardHtml += '		<p class="flashcard-action-info">Hit SPACE to flip the card</p>';
-		flashCardHtml += '	</div>';
-		document.getElementById('cardContent').innerHTML = flashCardHtml;
-	}
-
 	var urlifiedText = urlify(viewedCard.text);
 	var domain = extractDomain(viewedCard.url);
 
@@ -831,27 +861,8 @@ function viewCard(event, viewedCard) {
 	fogBlanket.id = "fogBlanket";
 	pageWrapper.appendChild(fogBlanket);
 
-	var cardSection = document.getElementById('viewCardSection');
-	var flipCard = function(event) {
-		if ((event.keyCode === 0 || event.keyCode === 32) && viewedCard.isFlashcard) {
-			event.preventDefault();
-			console.log("flip the f card");
-			if(frontSide) {
-				frontSide = false;
-				renderCardSide();
-			} else {
-				frontSide = true;
-				renderCardSide();				
-			}
-			//this event listener has to be removed somehow at viewCardClose
-			// - for now it causes a memory leak
-			//document.removeEventListener("keydown", flipCard);
-		}
-	};
-	document.addEventListener("keydown", flipCard);
-
 	if(viewedCard.isFlashcard) {
-		renderCardSide();	
+		renderCardSide(event, viewedCard, true);	
 	}
 }
 
@@ -919,6 +930,7 @@ function closeCardView() {
 	var viewCardForm = document.getElementById("viewCardForm").parentNode;
 	viewCardForm.parentNode.removeChild(viewCardForm);
 	closeFogBlanket();
+	viewedCardIndex = null;
 }
 
 function closeUserNameForm() {
@@ -1433,6 +1445,7 @@ function addPagination() {
 }
 
 function setCurrentPageClass() {
+	console.log('selectedPage ' + selectedPage);
 	paginationList.childNodes[parseInt(selectedPage) - 1].className += ' current-page';
 }
 
@@ -1461,15 +1474,17 @@ function handleResize() {
 }
 
 // Initialization
+//updateSelectedPage(selectedPage);
 getCollections();
 setSorting();
 displayCards(selectedPage);
 countCards();
 getView();
 getTopics();
+selectCardsByTopic();
 greetUser();
 addPagination();
-selectCardsByTopic();
+
 
 /* Utils */
 
