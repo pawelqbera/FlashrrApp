@@ -75,6 +75,7 @@ All the versions in 'Vanilla' directory can simply be downloaded and run locally
 - checkbox in header "show flashcards only"
 - FIXED: default collection: when searching for specific cards and decreasing the range of displayed cards to less than a page capacity - the pagination doesn't disappear
 - FIXED: app.js:782 Uncaught TypeError: Cannot read property 'parentNode' of nullremoveAddTopicLink @ app.js:782(anonymous function) @ app.js:739
+- FIXED: after closing a detailed card view, all collection cards are displayed even if the recent topic remains selected
 
 ## Currently working on Flashrr 0.4.0, Vanilla, Spaghetti 
 
@@ -88,7 +89,6 @@ All the versions in 'Vanilla' directory can simply be downloaded and run locally
 - presentation view where you can see the list of the cards and preview them at once  
 
 ## Bugs
-- BUG: after closing a detailed card view, all collection cards are displayed even if the recent topic remains selected
 - BUG: if you're on the last page of "list" view and switch the view type to "grid" a following error is thrown: Uncaught TypeError: Cannot read property 'className' of undefined
 - BUG: memory leak on flipCard (event listener has to removed on viewcard close)
 

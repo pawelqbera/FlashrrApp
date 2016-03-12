@@ -94,7 +94,7 @@ function handleCardEvents(event) {
 		existingCards = selectedCollection.cards,
 		selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value,
 		i = null,
-		obj = null; 
+		obj = null;
 
 	if(hasClass(element, 'remove-card')) {
 		if (document.getElementById('viewCardSection')) {
@@ -334,6 +334,7 @@ function countView(viewedCard) {
 	selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
 
 	displayCards(selectedPage);
+	selectCardsByTopic();
 }
 
 /**
@@ -466,6 +467,7 @@ function createCollection(updatedCollectionId, collectionCards) {
 	countCards();
 	addPagination();
 	closeCollectionForm();
+	selectCardsByTopic();
 }
 
 /**
@@ -1272,6 +1274,7 @@ function createCard(updatedCardId, cardAttachments) {
 	countCards();
 	addPagination();
 	closeCardForm();
+	selectCardsByTopic();
 }
 
 function makeid()
