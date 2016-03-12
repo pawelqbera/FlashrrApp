@@ -120,6 +120,7 @@ function handleCardEvents(event) {
 		selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
 		displayCards(selectedPage);
 		countCards();
+		addPagination();
     } else if (hasClass(element, 'delete-collection')) {
  		var confirmDelete = confirm("All your collection data including cards will be deleted. Continue?");
  		if (confirmDelete) {
