@@ -77,11 +77,12 @@ All the versions in 'Vanilla' directory can simply be downloaded and run locally
 - FIXED: app.js:782 Uncaught TypeError: Cannot read property 'parentNode' of nullremoveAddTopicLink @ app.js:782(anonymous function) @ app.js:739
 - FIXED: after closing a detailed card view, all collection cards are displayed even if the recent topic remains selected
 - FIXED: event listener has to be removed (inactive) on viewcard close
+- FIXED: if you're on the last page of "list" view and switch the view type to "grid" a following error is thrown: Uncaught TypeError: Cannot read property 'className' of undefined
+- bugs fixing
 
 ## Currently working on Flashrr 0.4.0, Vanilla, Spaghetti 
 
 ## Features to be added in 0.4.0
-- bugs fixing
 - card drafts (save unfinished cards and mark them as drafts)
 - move card from one collection to another
 - more advanced and user friendly text editor (bold, italic, underline, lists, headlines, urls...)
@@ -90,7 +91,6 @@ All the versions in 'Vanilla' directory can simply be downloaded and run locally
 - presentation view where you can see the list of the cards and preview them at once  
 
 ## Bugs
-- BUG: if you're on the last page of "list" view and switch the view type to "grid" a following error is thrown: Uncaught TypeError: Cannot read property 'className' of undefined
 
 # License
 

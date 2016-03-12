@@ -715,7 +715,7 @@ function getView() {
 function switchGridView() {
 	gridView = true;
 	cardsPerPage = setCardsPerPage();
-	displayCards(selectedPage);	
+	//displayCards(selectedPage);	
 	cardsWrapper.className = 'grid-view';
 	gridViewBtn.className += ' active';
 	listViewBtn.className = listViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
@@ -726,20 +726,12 @@ function switchGridView() {
 function switchListView() {
 	gridView = false;
 	cardsPerPage = setCardsPerPage();	
-	displayCards(selectedPage);
+	//displayCards(selectedPage);
 	cardsWrapper.className = 'list-view';
 	listViewBtn.className += ' active';
 	gridViewBtn.className = gridViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
 	localStorage.setItem("gridView", JSON.stringify(false));
 	addPagination();
-}
-
-function updateSelectedPage(selectedPage) {
-	var pagesCount = Math.ceil(selectedCards.length / cardsPerPage);
-	if(selectedPage > pagesCount) {
-		selectedPage = pagesCount;
-		console.log('new sp: ' + selectedPage);
-	}
 }
 
 function searchCard(event) {
@@ -1446,7 +1438,15 @@ function addPagination() {
 
 function setCurrentPageClass() {
 	console.log('selectedPage ' + selectedPage);
-	paginationList.childNodes[parseInt(selectedPage) - 1].className += ' current-page';
+	if (paginationList.childNodes[parseInt(selectedPage) - 1]) {
+		paginationList.childNodes[parseInt(selectedPage) - 1].className += ' current-page';
+		displayCards(selectedPage);
+	} else {
+		var pagesCount = Math.ceil(selectedCards.length / cardsPerPage);
+		paginationList.childNodes[parseInt(pagesCount) - 1].className += ' current-page';
+		displayCards(pagesCount);
+	}
+
 }
 
 // Set Heights
