@@ -625,7 +625,6 @@ form h2 {
 
 	.create-card-section div,
 	.collection-section div {
-		width: 100%;
 		padding: 6px 0;
 	}
 	
@@ -681,6 +680,24 @@ form h2 {
 		font-size: 13px;
 	}
 
+	.card-type-wrapper,
+	.card-topic-wrapper {
+		float: left;
+		width: auto;
+	}
+
+	.card-topic-wrapper {
+		margin-left: 24px;
+	}
+
+	.card-move-wrapper {
+		float: right;
+		width: auto;
+	}
+
+
+
+
 .view-card-section {
 	position: fixed;
 	box-sizing: border-box;
@@ -691,7 +708,7 @@ form h2 {
 }
 
 	.card-preview .view-card-section {
-		position: static;
+		position: relative;
 		box-sizing: border-box;
 		padding: 25px;
 		box-shadow: none;
@@ -737,7 +754,6 @@ form h2 {
 		left: auto;
 		margin-left: auto;
 		margin-top: auto;
-		position: relative;
 	}
 
 	.flashcard-action-info {

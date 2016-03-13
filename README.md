@@ -78,20 +78,21 @@ All the versions in 'Vanilla' directory can simply be downloaded and run locally
 - FIXED: after closing a detailed card view, all collection cards are displayed even if the recent topic remains selected
 - FIXED: event listener has to be removed (inactive) on viewcard close
 - FIXED: if you're on the last page of "list" view and switch the view type to "grid" a following error is thrown: Uncaught TypeError: Cannot read property 'className' of undefined
-- bugs fixing
 - card drafts (save unfinished cards and mark them as drafts)
 - presentation view where you can see the list of the cards and preview them at once 
+- move card from one collection to another
 
 ## Currently working on Flashrr 0.4.0, Vanilla, Spaghetti 
 
 ## Features to be added in 0.4.0
-- move card from one collection to another
-- more advanced and user friendly text editor (bold, italic, underline, lists, headlines, urls...)
-- update counter every time when number of displayed cards changes
-- add comments on cards 
 
 ## Bugs
 - next/previous card navigation doesnt work properly
+- broken Display flashcards only checkbox
+- selected topic is not correctly saved into database (after page refresh wrong topic is displayed)
+- if I change collection, all topics are still displayed at once 
+- card searching has stopped working correctly
+- move card: moved card wrong behavior (improve create and remove)
 
 # License
 

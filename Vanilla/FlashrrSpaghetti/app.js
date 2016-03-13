@@ -117,30 +117,7 @@ function handleCardClickEvents(event) {
 		obj = null;
 
 	if(hasClass(element, 'remove-card')) {
-		if (document.getElementById('viewCardSection')) {
-			closeCardView();
-		}
-		for(i = 0; i < existingCards.length; i++) {
-			obj = existingCards[i];
-			if(parentId.indexOf(obj.id) !== -1) {
-				existingCards.splice(i, 1);
-				break;
-			}
-		}
-		// DRY: Wstawić to do osobnej funkcji
-		//      updateCardCollections()
-		// Update and load new collections
-		collections[selectedCollectionIndex].cards = existingCards;
-		localStorage.setItem("Collections", JSON.stringify(collections));
-		collections = JSON.parse(localStorage.getItem("Collections")) || [defaultCollection];
-
-		// Update and load new selectedCollection based on updated collections
-		selectedCollection = collections[selectedCollectionIndex];
-		localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
-		selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
-		displayCards(selectedPage);
-		countCards();
-		addPagination();
+		removeCard(event);
     } else if (hasClass(element, 'delete-collection')) {
  		var confirmDelete = confirm("All your collection data including cards will be deleted. Continue?");
  		if (confirmDelete) {
@@ -258,13 +235,45 @@ function handleCardClickEvents(event) {
 	}
 }
 
+function removeCard(event) {
+    var element = event.target,
+		parentId = element.parentNode.id ? element.parentNode.id.slice(-5) : '',
+		existingCards = selectedCollection.cards,
+		selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value,
+		i = null,
+		obj = null;
+
+	if (document.getElementById('viewCardSection')) {
+		closeCardView();
+	}
+	for(i = 0; i < existingCards.length; i++) {
+		obj = existingCards[i];
+		if(parentId.indexOf(obj.id) !== -1) {
+			existingCards.splice(i, 1);
+			break;
+		}
+	}
+	// DRY: Wstawić to do osobnej funkcji
+	//      updateCardCollections()
+	// Update and load new collections
+	collections[selectedCollectionIndex].cards = existingCards;
+	localStorage.setItem("Collections", JSON.stringify(collections));
+	collections = JSON.parse(localStorage.getItem("Collections")) || [defaultCollection];
+
+	// Update and load new selectedCollection based on updated collections
+	selectedCollection = collections[selectedCollectionIndex];
+	localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
+	selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
+	displayCards(selectedPage);
+	countCards();
+	addPagination();	
+}
+
 function toggleTextCards(event) {
 	var element = event.target;
 	if(element.checked === true) {
 		displayCards(selectedCards);
-
 		for (var i=0;i<selectedCollection.cards.length;i++) {
-
 			if(selectedCollection.cards[i].isFlashcard === false) {
 				if(!document.getElementById("cardMiniature" + selectedCollection.cards[i].id)) {
 					return;
@@ -276,11 +285,9 @@ function toggleTextCards(event) {
 				addPagination();
 			}
 		}
-
 	} else {
 		displayCards(selectedCards);
 	}
-	
 }
 
 function selectSortingMethod(event) {
@@ -853,7 +860,9 @@ function viewCard(event, viewedCard) {
 		html += '			<li><a class="previous-card-link">Previous</a></li>';
 		html += '			<li><a class="next-card-link">Next</a></li>';
 		html += '		</ul>';
-		html += '		<span id="closeBtn" class="close-btn">X</span>';
+		if(viewType !== 'details-view') {
+			html += '		<span id="closeBtn" class="close-btn">X</span>';
+		}
 		html += '		<div id="cardContent">';		
 		if(cardTypeClass === 'flashcard') {	
 			html += flashCardHtml;			
@@ -1024,16 +1033,21 @@ function openCardForm(event, editableCard) {
 		html += '	<form id="createCardForm">';
 		html += '		<h2>' + cardFormHeader + '</h2>';
 		html += '		<span id="closeBtn" class="close-btn">X</span>';
-		html += '		<div>';
+		html += '		<div class="card-type-wrapper">';
 		html += '			<label for="cardType">Card Type</label>';
 		html += '			<select id="cardType" name="cardType" required>';
 		html +=	'				<option value="text" selected="selected">default text</option>';
 		html += '			</select>';
-		html += '		</div>';		
-		html += '		<div id="cardTopicWrapper"></div>';
+		html += '		</div>';
+		html += '		<div id="cardTopicWrapper" class="card-topic-wrapper"></div>';
+		if (editableCard) {
+			html += '		<div id="cardMoveWrapper" class="card-move-wrapper">';
+			html += '			<button id="cardMoveAddBtn" class="secondary-btn card-move-add-btn">Move to Collection</button>';
+			html += '		</div>';			
+		}
 		html += '		<div>';
 		html += '			<input type="text" id="cardTitle" name="cardTitle" value="' + cardTitle + '" placeholder="title" required>';
-		html += '		</div>';		
+		html += '		</div>';
 		html += '		<div>';
 		html += '			<input type="text" id="cardUrl" name="cardUrl" value="' + cardUrl + '" placeholder="external link">';
 		html += '		</div>';
@@ -1043,14 +1057,14 @@ function openCardForm(event, editableCard) {
 		html += '		<div>';
 		html += '			<label>Tags [optional]</label>';
 		html += '			<input type="text" id="cardTags" name="cardTags" value="' + cardTags + '" placeholder="eg. books, reading, literature">';
-		html += '		</div>';		
+		html += '		</div>';
 		html += '		<div id="cardDropArea" class="card-drop-area">';
 		html += '			<input type="file" id="cardAttachment" class="card-attachment" multiple>';
 		html += '		</div>';
 		html += '		<div>';
 		html += '			<label>Attachments:</label>';				
 		html += '			<div class="view-thumb-list">' + cardThumbs + '</div>';
-		html += '		</div>';		
+		html += '		</div>';
 		html += '		<div id="thumbList" class="thumb-list"></div>';
 		html += '		<div>';
 		html += '			<input type="checkbox" id="flashcardCheck">';
@@ -1123,7 +1137,12 @@ function openCardForm(event, editableCard) {
 			hasClass(element, 'cancel-form') || 
 			hasClass(element, 'fog-blanket')) {
 			draftAutoSaveStop();
+		} else if (hasClass(element, 'card-move-add-btn')) {
+			event.preventDefault();
+			draftAutoSaveStop();
+			createCardMoveAdder("cardMoveWrapper");
 		}
+	
 	}
 
 	function draftAutoSaveInit() {
@@ -1150,8 +1169,42 @@ function openCardForm(event, editableCard) {
 }
 
 /**
-*  Topic Adder Component
-*/
+ *	Card Movie Component
+ */
+function createCardMoveAdder(parentId) {
+	var parent = document.getElementById(parentId),
+		cardMoveOptions = '<option>select collection</option>';
+
+	for(var i=0; i < collections.length; i++) {
+		if(collections[i].name.indexOf(selectedCollection.name) === -1) {
+			cardMoveOptions += '<option>' + collections[i].name + '</option>';			
+		}
+	}
+
+	var html = '';
+		html += '<select id="cardMove">' + cardMoveOptions + '</select>';
+		html += '<button id="cardMoveConfirmBtn" disabled>Move</button>';
+
+	parent.innerHTML = html;
+
+	var cardMove = document.getElementById('cardMove'),
+		cardMoveConfirmBtn = document.getElementById('cardMoveConfirmBtn');
+
+	cardMove.addEventListener('change', function() {
+		cardMoveConfirmBtn.disabled = false;
+	});	
+
+	cardMoveConfirmBtn.addEventListener('click', function(event) {
+		// muszę przekazywać collection 
+		createCard(updatedCardId, cardAttachments, false);
+		closeCardForm();
+		removeCard(event);
+	});
+}
+
+/**
+ *  Topic Adder Component
+ */
 function createTopicAdder(parentId, isMultiple) {
 
 	var parent = document.getElementById(parentId),
@@ -1366,16 +1419,17 @@ function createCard(updatedCardId, cardAttachments, isDraft) {
 	selectedCollection = collections[selectedCollectionIndex];
 	localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
 	selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
-
-	getTopics();
-	displayCards(selectedPage);
+	
+	getView();
+	getCollections();
 	countCards();
+	getTopics();
+	selectCardsByTopic();
+	greetUser();
 	addPagination();
-	closeCardForm();
 	if(isDraft) {
 		openCardForm(event, selectedCollection.cards[0]);
 	}
-	selectCardsByTopic();
 }
 
 function makeid()
@@ -1553,7 +1607,6 @@ function setCardsWrapperHeight() {
 	//cardsWrapper = wysokość okna - ( header + cardsFilter + pseudoFooter)
 	var cardsWrapperHeight = window.innerHeight - (header.offsetHeight + cardsFilter.offsetHeight + pseudoFooter.offsetHeight);
 	cardsWrapper.style.height = cardsWrapperHeight + 'px';
-
 }
 
 function setCardPreviewHeight() {
@@ -1569,7 +1622,7 @@ function countCardsPerPage() {
 }
 
 function setCardsPerPage() {
-	return (viewType === 'gridView' || viewType === 'detailsView') ? 12 : countCardsPerPage();
+	return (viewType === 'grid-view' || viewType === 'details-view') ? 12 : countCardsPerPage();
 }
 
 function handleResize() {
