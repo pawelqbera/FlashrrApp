@@ -80,6 +80,7 @@ All the versions in 'Vanilla' directory can simply be downloaded and run locally
 - FIXED: if you're on the last page of "list" view and switch the view type to "grid" a following error is thrown: Uncaught TypeError: Cannot read property 'className' of undefined
 - bugs fixing
 - card drafts (save unfinished cards and mark them as drafts)
+- presentation view where you can see the list of the cards and preview them at once 
 
 ## Currently working on Flashrr 0.4.0, Vanilla, Spaghetti 
 
@@ -87,10 +88,10 @@ All the versions in 'Vanilla' directory can simply be downloaded and run locally
 - move card from one collection to another
 - more advanced and user friendly text editor (bold, italic, underline, lists, headlines, urls...)
 - update counter every time when number of displayed cards changes
-- add comments on cards
-- presentation view where you can see the list of the cards and preview them at once  
+- add comments on cards 
 
 ## Bugs
+- next/previous card navigation doesnt work properly
 
 # License
 

@@ -9,7 +9,7 @@
  * Date: 2016-01-24
  */
 
-var gridView = JSON.parse(localStorage.getItem("gridView")),
+var viewType = JSON.parse(localStorage.getItem("viewType")) || 'grid-view',
 	defaultCollection = {
 		id: "xxxxx",
 		name: "default_collection",
@@ -31,10 +31,12 @@ var gridView = JSON.parse(localStorage.getItem("gridView")),
 	header = document.getElementById("header"),
 	cardsFilter = document.getElementById("cardsFilter"),
 	cardCounter = document.getElementById("cardCounter"),
+	sectionWrapper = document.getElementById("sectionWrapper"),
 	cardsWrapper = document.getElementById("cardsWrapper"),
 	searchCards = document.getElementById("searchCards"),
 	listViewBtn = document.getElementById("listViewBtn"),
 	gridViewBtn = document.getElementById("gridViewBtn"),
+	detailsViewBtn = document.getElementById("detailsViewBtn"),
 	topicSelect = document.getElementById("topicSelect"),
 	hiUserName = document.getElementById("hiUserName"),
 	collectionSelect = document.getElementById("collectionSelect"),
@@ -54,6 +56,7 @@ createCardBtn.addEventListener("click", openCardForm);
 searchCards.addEventListener("keyup", searchCard);
 gridViewBtn.addEventListener("click", toggleView);
 listViewBtn.addEventListener("click", toggleView);
+detailsViewBtn.addEventListener("click", toggleView);
 hiUserName.addEventListener("click", openUserNameForm );
 topicSelect.addEventListener("change", selectCardsByTopic);
 collectionSelect.addEventListener("change", selectCollection);
@@ -187,6 +190,9 @@ function handleCardClickEvents(event) {
 		var viewImg = window.open("", "Image Preview", "height=500,width=500");
 		viewImg.document.write('<img src="' + element.src + '" />');
 	} else if (hasClass(element, 'data-details')) {
+		if (document.getElementById('viewCardSection')) {
+			closeCardView();
+		}		
 		var viewedCard = '';
 		for(i = 0; i < existingCards.length; i++) {
 			obj = existingCards[i];
@@ -697,41 +703,82 @@ function closeTopicForm() {
 
 function toggleView(event) {
 	var element = event.target;
-	if (element.id === "gridViewBtn" && !gridView) {
+	if (element.id === "gridViewBtn" && viewType !== 'grid-view') {
 		switchGridView();
-	} else if (element.id === "listViewBtn" && gridView) {
-		switchListView();
+	} else if (element.id === "listViewBtn" && viewType !== 'list-view') {
+		switchListView();	
+	} else if (element.id === "detailsViewBtn" && viewType !== 'details-view') {
+		switchDetailsView();	
 	}
 }
 
 function getView() {
-	if(gridView === true) {
+	if(viewType === 'grid-view') {
 		switchGridView();
-	} else {
+	} else if (viewType === 'list-view') {
 		switchListView();
+	} else {
+		switchDetailsView();
 	}
 }
 
 function switchGridView() {
-	gridView = true;
+	if (viewType === 'details-view') {
+		removeCardPreview();
+	}	
+	viewType = 'grid-view';
 	cardsPerPage = setCardsPerPage();
-	//displayCards(selectedPage);	
 	cardsWrapper.className = 'grid-view';
 	gridViewBtn.className += ' active';
 	listViewBtn.className = listViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
-	localStorage.setItem("gridView", JSON.stringify(true));
+	detailsViewBtn.className = detailsViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
+	localStorage.setItem("viewType", JSON.stringify(viewType));
 	addPagination();
 }
 
 function switchListView() {
-	gridView = false;
-	cardsPerPage = setCardsPerPage();	
-	//displayCards(selectedPage);
+	if (viewType === 'details-view') {
+		removeCardPreview();
+	}	
+	viewType = 'list-view';
+	cardsPerPage = setCardsPerPage();
 	cardsWrapper.className = 'list-view';
 	listViewBtn.className += ' active';
 	gridViewBtn.className = gridViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
-	localStorage.setItem("gridView", JSON.stringify(false));
+	detailsViewBtn.className = detailsViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
+	localStorage.setItem("viewType", JSON.stringify(viewType));
+	addPagination();		
+}
+
+function switchDetailsView() {
+	viewType = 'details-view';
+	cardsPerPage = setCardsPerPage();
+	cardsWrapper.className = 'details-view';
+	detailsViewBtn.className += ' active';
+	listViewBtn.className = listViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
+	gridViewBtn.className = gridViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
+	localStorage.setItem("viewType", JSON.stringify(viewType));
 	addPagination();
+	createCardPreview();
+}
+
+function createCardPreview() {
+
+	var html = '';
+
+	html += '<div id="cardField" class="card-preview-sheet"></div>';
+
+	var cardPreview = document.createElement('SECTION');
+	cardPreview.id = "cardPreview";
+	cardPreview.className = "card-preview";
+	cardPreview.innerHTML = html.trim();
+	sectionWrapper.appendChild(cardPreview);
+	setCardPreviewHeight();	
+}
+
+function removeCardPreview() {
+	var cardPreview = document.getElementById("cardPreview");
+	cardPreview.parentNode.removeChild(cardPreview);	
 }
 
 function searchCard(event) {
@@ -846,12 +893,15 @@ function viewCard(event, viewedCard) {
 	tempCardForm.id = "viewCardSection";
 	tempCardForm.className = "view-card-section " + cardTypeClass;
 	tempCardForm.innerHTML = html.trim();
-	pageWrapper.appendChild(tempCardForm);
-
-	var fogBlanket = document.createElement('div');
-	fogBlanket.className = "fog-blanket";
-	fogBlanket.id = "fogBlanket";
-	pageWrapper.appendChild(fogBlanket);
+	if(viewType !== 'details-view') {
+		pageWrapper.appendChild(tempCardForm);
+		var fogBlanket = document.createElement('div');
+		fogBlanket.className = "fog-blanket";
+		fogBlanket.id = "fogBlanket";
+		pageWrapper.appendChild(fogBlanket);	
+	} else {
+		cardField.appendChild(tempCardForm);	
+	}
 
 	if(viewedCard.isFlashcard) {
 		renderCardSide(event, viewedCard, true);	
@@ -938,8 +988,11 @@ function closeCollectionForm() {
 }
 
 function closeFogBlanket() {
-	var fogBlanket = document.getElementById("fogBlanket");
-	fogBlanket.parentNode.removeChild(fogBlanket);
+	var isFog = !!document.getElementById("fogBlanket");
+	if(isFog) {
+		var fogBlanket = document.getElementById("fogBlanket");
+		fogBlanket.parentNode.removeChild(fogBlanket);		
+	}
 }
 
 function openCardForm(event, editableCard) {
@@ -966,7 +1019,6 @@ function openCardForm(event, editableCard) {
 		for (; i < cardAttachments.length; i++) {
 			cardThumbs += '<img src="' + cardAttachments[i] + '" class="view-card-thumb" />';
 		}
-
 
 	var html = '';
 		html += '	<form id="createCardForm">';
@@ -1383,7 +1435,7 @@ function displayCards(page) {
 		}		
 	}
 
-	setHeights();
+	setCardsWrapperHeight();
 }
 
 function buildCardMiniature(card) {
@@ -1494,35 +1546,39 @@ function setCurrentPageClass() {
 		paginationList.childNodes[parseInt(pagesCount) - 1].className += ' current-page';
 		displayCards(pagesCount);
 	}
-
 }
 
 // Set Heights
-function setHeights() {
+function setCardsWrapperHeight() {
 	//cardsWrapper = wysokość okna - ( header + cardsFilter + pseudoFooter)
-	var cardsWrapperHeight = window.innerHeight - (header.clientHeight + cardsFilter.clientHeight + pseudoFooter.clientHeight);
+	var cardsWrapperHeight = window.innerHeight - (header.offsetHeight + cardsFilter.offsetHeight + pseudoFooter.offsetHeight);
 	cardsWrapper.style.height = cardsWrapperHeight + 'px';
+
+}
+
+function setCardPreviewHeight() {
+	var cardPreviewHeight = window.innerHeight - (header.offsetHeight + cardsFilter.offsetHeight + pseudoFooter.offsetHeight);
+	cardPreview.style.height = cardPreviewHeight + 'px';
 }
 
 //Determine the number of cards to be displayed in the list view on a single page
 function countCardsPerPage() {
-	var cardsWrapperHeight = window.innerHeight - (header.clientHeight + cardsFilter.clientHeight + pseudoFooter.clientHeight),
+	var cardsWrapperHeight = window.innerHeight - (header.offsetHeight + cardsFilter.offsetHeight + pseudoFooter.offsetHeight),
 		cards = Math.floor(cardsWrapperHeight / listViewCardHeight);
 	return cards;
 }
 
 function setCardsPerPage() {
-	return gridView ? 12 : countCardsPerPage();
+	return (viewType === 'gridView' || viewType === 'detailsView') ? 12 : countCardsPerPage();
 }
 
 function handleResize() {
-	setHeights();
+	setCardsWrapperHeight();
 	setCardsPerPage();
 	getView();
 }
 
 // Initialization
-//updateSelectedPage(selectedPage);
 getCollections();
 setSorting();
 displayCards(selectedPage);
@@ -1532,7 +1588,6 @@ getTopics();
 selectCardsByTopic();
 greetUser();
 addPagination();
-
 
 /* Utils */
 

@@ -39,12 +39,13 @@
             <li>
               <a id="gridViewBtn" class="btn btn-secondary switch-view">Grid View</a>
               <a id="listViewBtn" class="btn btn-secondary switch-view">List View</a>
+              <a id="detailsViewBtn" class="btn btn-secondary switch-view">Details View</a>
             </li>
             <li class="greet-user header-label">Hi, <span id="hiUserName"></span>!</li>
           </ul>
         </nav>
       </header>
-      <div class="section-wrapper">
+      <div id="sectionWrapper" class="section-wrapper">
         <div id="cardsFilter" class="cards-filter">
           Sort by
           <select>
@@ -53,7 +54,7 @@
             <option value="title">Title</option>
           </select>
         </div>
-        <section id="cardsWrapper" class="grid-view"></section>
+        <section id="cardsWrapper" class="cards-wrapper grid-view"></section>
       </div>
       <div class="pseudo-footer" id="pseudoFooter"></div>
     </div>
