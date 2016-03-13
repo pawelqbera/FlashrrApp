@@ -957,7 +957,8 @@ function openCardForm(event, editableCard) {
 		cardFormSubmitLabel = editableCard ? editableCard.submitLabel : "Create Card",
 		updatedCardId = editableCard ? editableCard.id : null,
 		cardAttachments = editableCard ? editableCard.attachments : [],
-		isFlashcard = editableCard ? editableCard.isFlashcard : false;
+		isFlashcard = editableCard ? editableCard.isFlashcard : false,
+		isDraft = editableCard ? editableCard.isDraft : false;
 
 	var cardThumbs = '',
 		i = 0;
@@ -1004,8 +1005,8 @@ function openCardForm(event, editableCard) {
 		html += '			<label for="flashcardCheck">Flashcard</label>';
 		html += '		</div>';
 		html += '		<div>';
-		html += '			<button>' + cardFormSubmitLabel + '</button>';
-		html += '			<a class="cancel-form">Cancel</a>';
+		html += '			<button class="submit-card-form">' + cardFormSubmitLabel + '</button>';
+		html += '			<a id="cancelFormBtn" class="cancel-form">Cancel</a>';
 		html += '		</div>';
 		html += '	</form>';
 
@@ -1032,7 +1033,7 @@ function openCardForm(event, editableCard) {
 
 	createCardForm.addEventListener('submit', function(event) {
 		event.preventDefault();
-		createCard(updatedCardId, cardAttachments);
+		createCard(updatedCardId, cardAttachments, false);
 	});
 
 	cardAttachment.addEventListener('change', function(event) {
@@ -1054,6 +1055,46 @@ function openCardForm(event, editableCard) {
 	});
 
 	createTopicAdder("cardTopicWrapper");
+
+	/**
+	*  Handling Drafts
+	*/
+	var draftSave = null;
+	var cancelForm = document.getElementById('closeBtn');
+	createCardForm.addEventListener('change', draftAutoSaveInit);
+	pageWrapper.addEventListener('click', handleFormClick);
+	
+	function handleFormClick(event) {
+		var element = event.target;
+		if(hasClass(element, 'close-btn') ||
+			hasClass(element, 'submit-card-form') ||
+			hasClass(element, 'cancel-form') || 
+			hasClass(element, 'fog-blanket')) {
+			draftAutoSaveStop();
+		}
+	}
+
+	function draftAutoSaveInit() {
+		if (draftSave === null) {
+			draftSave = setInterval(saveDraft, 10000);			
+		}
+	}
+
+	function saveDraft() {
+		console.log('draft saved!');
+		if (updatedCardId === null) {
+			createCard(updatedCardId, cardAttachments, true);
+			draftAutoSaveStop();
+		} else {
+			createCard(updatedCardId, cardAttachments, true);
+		}
+	}
+
+	function draftAutoSaveStop() {
+		if (draftSave !== null) {
+			clearInterval(draftSave);		
+		}
+	}
 }
 
 /**
@@ -1223,7 +1264,7 @@ function countCards() {
 	count.nodeValue = existingCards.length;
 }
 
-function createCard(updatedCardId, cardAttachments) {
+function createCard(updatedCardId, cardAttachments, isDraft) {
 	var tags = cardTags.value.split(","),
 		date = new Date(),
 		form = document.forms[0],
@@ -1238,6 +1279,7 @@ function createCard(updatedCardId, cardAttachments) {
 			author: userName,
 			date: date.getTime(),
 			isFlashcard: flashcardCheck.checked,
+			isDraft: isDraft,
 			views: 0,
 			submitLabel: 'Update Card'
 		},
@@ -1278,6 +1320,9 @@ function createCard(updatedCardId, cardAttachments) {
 	countCards();
 	addPagination();
 	closeCardForm();
+	if(isDraft) {
+		openCardForm(event, selectedCollection.cards[0]);
+	}
 	selectCardsByTopic();
 }
 
@@ -1368,6 +1413,9 @@ function buildCardMiniature(card) {
 
 	var html = '';
 		html += ' <div id="data-container' + card.id + '" class="data-container data-details ' + flashcardClass +'">';
+		if(card.isDraft) {
+			html += '<span>DRAFT</span>';
+		}
 		html += ' 	<h3 class="data-details">' + card.title + '</h3>';
 		html += ' 	<p class="topic data-details">';
 		html += '		<span>' + timeString + '</span>';

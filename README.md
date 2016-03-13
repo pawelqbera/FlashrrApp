@@ -79,11 +79,11 @@ All the versions in 'Vanilla' directory can simply be downloaded and run locally
 - FIXED: event listener has to be removed (inactive) on viewcard close
 - FIXED: if you're on the last page of "list" view and switch the view type to "grid" a following error is thrown: Uncaught TypeError: Cannot read property 'className' of undefined
 - bugs fixing
+- card drafts (save unfinished cards and mark them as drafts)
 
 ## Currently working on Flashrr 0.4.0, Vanilla, Spaghetti 
 
 ## Features to be added in 0.4.0
-- card drafts (save unfinished cards and mark them as drafts)
 - move card from one collection to another
 - more advanced and user friendly text editor (bold, italic, underline, lists, headlines, urls...)
 - update counter every time when number of displayed cards changes
