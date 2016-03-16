@@ -272,17 +272,18 @@ function removeCard(event) {
 function toggleTextCards(event) {
 	var element = event.target;
 	if(element.checked === true) {
-		displayCards(selectedCards);
+		console.log('true, to robimy czystke');
+		//displayCards(selectedCards);
 		for (var i=0;i<selectedCollection.cards.length;i++) {
 			if(selectedCollection.cards[i].isFlashcard === false) {
 				if(!document.getElementById("cardMiniature" + selectedCollection.cards[i].id)) {
 					return;
 				}
 				var card = document.getElementById("cardMiniature" + selectedCollection.cards[i].id);
-				if (card) {
+				if (typeof card !== 'undefined') {
 					card.parentNode.removeChild(card);				
 				}
-				addPagination();
+				addPagination();			
 			}
 		}
 	} else {
@@ -981,7 +982,10 @@ function closeCardView() {
 	var viewCardForm = document.getElementById("viewCardForm").parentNode;
 	viewCardForm.parentNode.removeChild(viewCardForm);
 	closeFogBlanket();
-	viewedCardIndex = null;
+
+	// to musiałem zakomentować, bo nie działał 
+	// przez to card next/previous naviagator
+	//viewedCardIndex = null;
 }
 
 function closeUserNameForm() {
@@ -1594,11 +1598,11 @@ function setCurrentPageClass() {
 	console.log('selectedPage ' + selectedPage);
 	if (paginationList.childNodes[parseInt(selectedPage) - 1]) {
 		paginationList.childNodes[parseInt(selectedPage) - 1].className += ' current-page';
-		displayCards(selectedPage);
+		//displayCards(selectedPage);
 	} else {
 		var pagesCount = Math.ceil(selectedCards.length / cardsPerPage);
 		paginationList.childNodes[parseInt(pagesCount) - 1].className += ' current-page';
-		displayCards(pagesCount);
+		//displayCards(pagesCount);
 	}
 }
 
