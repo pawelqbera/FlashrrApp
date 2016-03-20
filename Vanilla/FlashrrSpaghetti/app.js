@@ -584,6 +584,8 @@ function selectCollection(event) {
 		selectedCollection = collections[element.value];
 		localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
 		selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
+		selectedTopic = -1;
+		localStorage.setItem("selectedTopic", JSON.stringify(selectedTopic));	
 		selectedCards = selectedCollection.cards;
 		displayCards();
 		countCards();
@@ -628,15 +630,16 @@ function getTopics() {
 }
 
 function selectCardsByTopic(event) {
-	var element = event ? event.target.value : selectedTopic;
-	if (element === '-1') {
+	var element = event ? event.target.value : parseInt(selectedTopic);
+	if (element === -1) {
 		selectedTopic = topicSelect.options[topicSelect.selectedIndex].value;
 		localStorage.setItem("selectedTopic", JSON.stringify(selectedTopic));
-		displayCards();
+		displayCards(selectedPage);
 	} else if (element === 'addNewTopic') {
 		openTopicForm();
 	} else {
 		displayCards(selectedPage);
+		console.log('element is : ' + element);
 		for(var i = 0; i < selectedCards.length; i++) {
 			if(selectedCollection.topics[element].indexOf(selectedCards[i].topic) === -1) {
 				var card = document.getElementById("cardMiniature" + selectedCards[i].id);
