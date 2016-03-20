@@ -636,7 +636,7 @@ function selectCardsByTopic(event) {
 	} else if (element === 'addNewTopic') {
 		openTopicForm();
 	} else {
-		displayCards();
+		displayCards(selectedPage);
 		for(var i = 0; i < selectedCards.length; i++) {
 			if(selectedCollection.topics[element].indexOf(selectedCards[i].topic) === -1) {
 				var card = document.getElementById("cardMiniature" + selectedCards[i].id);
