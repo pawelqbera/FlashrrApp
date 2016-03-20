@@ -1,12 +1,12 @@
 /*!
- * Flashrr App v0.4.0
+ * Flashrr App v0.3.0
  * http://flashrr.com/
  *
  * Author Paweł Kubera
  * Released under the MIT license
  * http://flashrr.com/license
  *
- * Date: 2016-03-20
+ * Date: 2016-01-24
  */
 
 var viewType = JSON.parse(localStorage.getItem("viewType")) || 'grid-view',

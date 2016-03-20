@@ -12,7 +12,7 @@ Long way to go!
 
 ## Vanilla versions 
 
-All the versions in 'Vanilla' directory can simply be downloaded and run locally as they are. After creating a local copy, navigate to a single project main folder and run the index.html in the browser. Super-easy.
+All versions of Flashrr can be simply be downloaded and opened in the browser locally as they are. After creating a local copy, navigate to a single project main folder and open index.html in the browser. Super-easy.
 
 # Changelog
 
@@ -87,9 +87,11 @@ All the versions in 'Vanilla' directory can simply be downloaded and run locally
 - FIXED: selected topic is not correctly saved into database (after page refresh wrong topic is displayed)
 - FIXED: if I change collection, all topics are still displayed at once
 
-## Currently working on Flashrr 0.4.0, Vanilla, Spaghetti 
+## Currently working on Flashrr 0.5.0, Vanilla, Object Literal 
 
-## Features to be added in 0.4.0
+## Features to be added in 0.5.0
+
+- code re-factor to Object Literal pattern
 
 ## Bugs
 
