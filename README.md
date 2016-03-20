@@ -91,9 +91,7 @@ All the versions in 'Vanilla' directory can simply be downloaded and run locally
 
 ## Features to be added in 0.4.0
 
-## Bugs 
-- move card: moved card wrong behavior (improve create and remove)
-- problems wit auto-saving drafts
+## Bugs
 
 # License
 
