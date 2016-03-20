@@ -83,13 +83,13 @@ All the versions in 'Vanilla' directory can simply be downloaded and run locally
 - move card from one collection to another
 - FIXED: next/previous card navigation doesnt work properly
 - FIXED: card searching has stopped working correctly
+- FIXED: broken Display flashcards only checkbox
 
 ## Currently working on Flashrr 0.4.0, Vanilla, Spaghetti 
 
 ## Features to be added in 0.4.0
 
 ## Bugs
-- broken Display flashcards only checkbox
 - selected topic is not correctly saved into database (after page refresh wrong topic is displayed)
 - if I change collection, all topics are still displayed at once 
 - move card: moved card wrong behavior (improve create and remove)

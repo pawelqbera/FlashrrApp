@@ -24,6 +24,7 @@ var viewType = JSON.parse(localStorage.getItem("viewType")) || 'grid-view',
 	selectedSorting = JSON.parse(localStorage.getItem("selectedSorting")) || "date",
 	selectedPage = JSON.parse(localStorage.getItem("selectedPage")) || 1,
 	selectedTopic = JSON.parse(localStorage.getItem("selectedTopic")) || -1,
+	selectedFlashcardsOnly = JSON.parse(localStorage.getItem("selectedFlashcardsOnly")) || false,
 	viewedCardIndex = null,
 	listViewCardHeight = 150,
 	createCardBtn = document.getElementById("createCardBtn"),
@@ -270,10 +271,11 @@ function removeCard(event) {
 }
 
 function toggleTextCards(event) {
-	var element = event.target;
+
+	var element = (typeof event !== 'undefined') ? event.target : showFlashcardsOnly;
+
 	if(element.checked === true) {
-		console.log('true, to robimy czystke');
-		//displayCards(selectedCards);
+		localStorage.setItem('selectedFlashcardsOnly', JSON.stringify(true));			
 		for (var i=0;i<selectedCollection.cards.length;i++) {
 			if(selectedCollection.cards[i].isFlashcard === false) {
 				if(!document.getElementById("cardMiniature" + selectedCollection.cards[i].id)) {
@@ -287,7 +289,17 @@ function toggleTextCards(event) {
 			}
 		}
 	} else {
+		localStorage.setItem('selectedFlashcardsOnly', JSON.stringify(false));		
 		displayCards(selectedCards);
+	}
+	
+}
+
+function checkSelectedFlashcardsOnly() {
+	if(selectedFlashcardsOnly === true) {
+		console.log('yes its true');
+		showFlashcardsOnly.checked = true;
+		toggleTextCards();
 	}
 }
 
@@ -1638,13 +1650,14 @@ function handleResize() {
 // Initialization
 getCollections();
 setSorting();
-displayCards(selectedPage);
+//displayCards(selectedPage);
 countCards();
 getView();
 getTopics();
 selectCardsByTopic();
 greetUser();
 addPagination();
+checkSelectedFlashcardsOnly();
 
 /* Utils */
 
