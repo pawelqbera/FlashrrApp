@@ -78,20 +78,23 @@ All versions of Flashrr can be simply be downloaded and opened in the browser lo
 - FIXED: after closing a detailed card view, all collection cards are displayed even if the recent topic remains selected
 - FIXED: event listener has to be removed (inactive) on viewcard close
 - FIXED: if you're on the last page of "list" view and switch the view type to "grid" a following error is thrown: Uncaught TypeError: Cannot read property 'className' of undefined
-- card drafts (save unfinished cards and mark them as drafts)
-- presentation view where you can see the list of the cards and preview them at once 
-- move card from one collection to another
+- presentation view where you can see the list of the cards and preview them at once
 - FIXED: next/previous card navigation doesnt work properly
 - FIXED: card searching has stopped working correctly
 - FIXED: broken Display flashcards only checkbox
 - FIXED: selected topic is not correctly saved into database (after page refresh wrong topic is displayed)
 - FIXED: if I change collection, all topics are still displayed at once
 
+## 0.5.0
+- get rid of global variables by wrapping the whole code in self-executed anonymous function
+- add 'use strict'
+- re-think the modularity by dividing monolithic code into object literal modules
+- separation of concerns: every module contains its own core methods like init, cache the DOM, bind events and render
+
 ## Currently working on Flashrr 0.5.0, Vanilla, Object Literal 
 
 ## Features to be added in 0.5.0
-
-- code re-factor to Object Literal pattern
+- extract and re-factor the rest of the code
 
 ## Bugs
 
