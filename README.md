@@ -90,6 +90,8 @@ All versions of Flashrr can be simply be downloaded and opened in the browser lo
 - add 'use strict'
 - re-think the modularity by dividing monolithic code into object literal modules
 - separation of concerns: every module contains its own core methods like init, cache the DOM, bind events and render
+- expose Flashrr modules to public API and enable communication across module via this API
+- refactor of profile module
 
 ## Currently working on Flashrr 0.5.0, Vanilla, Object Literal 
 
