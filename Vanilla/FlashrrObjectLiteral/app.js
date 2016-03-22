@@ -112,6 +112,9 @@
 		}
 	};
 
+	/**
+	 *	Profile module
+	 */
 	var profile = {
 		userName: JSON.parse(localStorage.getItem("userName")) || "Guest",
 
@@ -121,18 +124,91 @@
 			this.render();
 		},
 		cacheDOM: function() {
-			this.hiUserName = document.getElementById("hiUserName");			
+			this.hiUserName = document.getElementById("hiUserName");
+			this.userNameSection = document.getElementById('userNameSection');
 		},
 		bindEvents: function() {
 			this.hiUserName.addEventListener("click", this.openUserNameForm.bind(this));
 		},
 		render: function() {
+			var data = {
+				userName: this.userName
+			}
+			this.hiUserName.innerHTML = data.userName;
+		},
+		openUserNameForm: function(e) {
+
+			// Rozważmy teraz, czy ta metoda powinna w tym momencie inicjalizować 
+			// nowy czyli osobny moduł o nazwie UserNameForm
+			// czy jednak brniemy dalej i da się to zostawić w tym module?
+
+			// moim zdaniem bez sensu, bo robimy tu render htmla, a DOM powinien 
+			// być dotykany tylko w funkcji render
+
+			// ponadto przyda się ogólny obiekt na tworzenie FORMÓW, bo widać tu 
+			// ewidentnie wspólne elementy takie jak: fogBlanket, metoda close, appendowanie do parenta itp.
+
+
+			if (this.userNameSection) {
+				return false;
+			}
+
+			var html = '';
+				html += '	<form id="userNameForm">';
+				html += '		<h2>Please enter your name</h2>';
+				html += '		<span id="closeBtn" class="close-btn">X</span>';
+				html += '		<div>';
+				html += '			<input type="text" id="formUserName" name="formUserName" value="' + this.userName + '" placeholder="enter your name">';
+				html += '		</div>';
+				html += '		<div>';
+				html += '			<button>Change Name</button>';
+				html += '			<a id="cancelForm" class="cancel-form">Cancel</a>';
+				html += '		</div>';
+				html += '	</form>';
+
+
+			// ewidentny przykład DRY - utworzyć metodę append to
+			var userNameForm = document.createElement('SECTION');
+			userNameForm.id = "userNameSection";
+			userNameForm.className = "user-name-section";
+			userNameForm.innerHTML = html.trim();
+			pageWrapper.appendChild(userNameForm);
+
+			// ewidentny przykład #2 DRY - utworzyć metodę createFogBlanket
+			var fogBlanket = document.createElement('div');
+			fogBlanket.className = "fog-blanket";
+			fogBlanket.id = "fogBlanket";
+			pageWrapper.appendChild(fogBlanket);
+
+			// ewidentnie - to powinno iść do CacheDOM
+			var closeBtn = document.getElementById('closeBtn');
+			var cancelForm = document.getElementById('cancelForm');
+
+			// ewidentnie - to powinno iść z kolei do BindEvents
+			userNameForm.addEventListener('submit', this.userNameSubmit.bind(this));
+			closeBtn.addEventListener('click', this.closeUserNameForm.bind(this));
+			cancelForm.addEventListener('click', this.closeUserNameForm.bind(this));
 
 		},
-
-		openUserNameForm: function(e) {
-			console.log('event');
-
+		userNameSubmit: function(e) {
+			e.preventDefault();
+			this.userName = formUserName.value;
+			localStorage.setItem("userName", JSON.stringify(this.userName));
+			this.closeUserNameForm();
+			this.render();			
+		},
+		closeUserNameForm: function(e) {
+			var userNameForm = document.getElementById("userNameForm").parentNode;			
+			userNameForm.parentNode.removeChild(userNameForm);
+			this.closeUserNameFogBlanket();
+		},
+		closeUserNameFogBlanket: function() {
+			var isFog = !!document.getElementById("fogBlanket");
+			
+			if(isFog) {
+				var fogBlanket = document.getElementById("fogBlanket");
+				fogBlanket.parentNode.removeChild(fogBlanket);		
+			}
 		}
 	};
 
@@ -755,49 +831,7 @@
 	// 	selectCardsByTopic();
 	// }
 
-	// /**
-	// *  UserName Form
-	// */
 
-	// function openUserNameForm() {
-	// 	if (document.getElementById('userNameSection')) {
-	// 		return false;
-	// 	}
-
-	// 	var userNameValue = JSON.parse(localStorage.getItem("userName")) || '';
-
-	// 	var html = '';
-	// 		html += '	<form id="userNameForm">';
-	// 		html += '		<h2>Please enter your name</h2>';
-	// 		html += '		<span id="closeBtn" class="close-btn">X</span>';
-	// 		html += '		<div>';
-	// 		html += '			<input type="text" id="formUserName" name="formUserName" value="' + userNameValue + '" placeholder="enter your name">';
-	// 		html += '		</div>';
-	// 		html += '		<div>';
-	// 		html += '			<button>Change Name</button>';
-	// 		html += '			<a class="cancel-form">Cancel</a>';
-	// 		html += '		</div>';
-	// 		html += '	</form>';
-
-	// 	var userNameForm = document.createElement('SECTION');
-	// 	userNameForm.id = "userNameSection";
-	// 	userNameForm.className = "user-name-section";
-	// 	userNameForm.innerHTML = html.trim();
-	// 	pageWrapper.appendChild(userNameForm);
-
-	// 	var fogBlanket = document.createElement('div');
-	// 	fogBlanket.className = "fog-blanket";
-	// 	fogBlanket.id = "fogBlanket";
-	// 	pageWrapper.appendChild(fogBlanket);
-
-	// 	userNameForm.addEventListener('submit', function(event) {
-	// 		event.preventDefault();
-	// 		localStorage.setItem("userName", JSON.stringify(formUserName.value));
-	// 		userName = JSON.parse(localStorage.getItem("userName")) || 'Guest';
-	// 		closeUserNameForm();
-	// 		greetUser();
-	// 	});
-	// }
 
 	// function getCollections() {
 	// 	var collectionOptions = '';
@@ -851,9 +885,7 @@
 	// 	collectionSelect.parentNode.removeChild(editCollectionBtn);
 	// }
 
-	// function greetUser() {
-	// 	hiUserName.innerHTML = userName;
-	// }
+
 
 	// function getTopics() {
 	// 	var topicOptions = '';
@@ -1244,25 +1276,12 @@
 	// 	//viewedCardIndex = null;
 	// }
 
-	// function closeUserNameForm() {
-	// 	var userNameForm = document.getElementById("userNameForm").parentNode;
-	// 	userNameForm.parentNode.removeChild(userNameForm);
-	// 	closeFogBlanket();
-	// }
-
 	// function closeCollectionForm() {
 	// 	var collectionForm = document.getElementById("collectionForm").parentNode;
 	// 	collectionForm.parentNode.removeChild(collectionForm);
 	// 	closeFogBlanket();
 	// }
 
-	// function closeFogBlanket() {
-	// 	var isFog = !!document.getElementById("fogBlanket");
-	// 	if(isFog) {
-	// 		var fogBlanket = document.getElementById("fogBlanket");
-	// 		fogBlanket.parentNode.removeChild(fogBlanket);		
-	// 	}
-	// }
 
 	// function openCardForm(event, editableCard) {
 	// 	if (document.getElementById('createCardSection')) {
@@ -1813,7 +1832,7 @@
 	// 	getView();
 	// 	getTopics();
 	// 	selectCardsByTopic();
-	// 	greetUser();
+	// 	greetUser(); /* zrobione */
 	// 	addPagination();
 	// 	checkSelectedFlashcardsOnly();		
 	// }
