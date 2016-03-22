@@ -1,4 +1,4 @@
-(function() {
+(function(window) {
 	'use strict'
 
 	/*!
@@ -13,14 +13,19 @@
 	 * Date: 2016-03-21
 	 */
 
-	var Flashrr = {};
+	/**
+	 *	Spotted drawbacks of Object Literal Pattern: 
+	 *  - no private methods: all methods are actually avaiable via Public API
+	 *
+	 */
+
+	// mam tutaj taki globalny DOM cache
+	// powinienem to wstawić do jakiegoś generic modułu
 
 	var pageWrapper = document.getElementById("pageWrapper"),
 		header = document.getElementById("header"),
 		sectionWrapper = document.getElementById("sectionWrapper"),		
 		pseudoFooter = document.getElementById("pseudoFooter");
-
-
 
 	var cardCounter = {
 		init: function() {
@@ -148,7 +153,6 @@
 			// ponadto przyda się ogólny obiekt na tworzenie FORMÓW, bo widać tu 
 			// ewidentnie wspólne elementy takie jak: fogBlanket, metoda close, appendowanie do parenta itp.
 
-
 			if (this.userNameSection) {
 				return false;
 			}
@@ -183,11 +187,13 @@
 			// ewidentnie - to powinno iść do CacheDOM
 			var closeBtn = document.getElementById('closeBtn');
 			var cancelForm = document.getElementById('cancelForm');
+			var fogBlanket = document.getElementById('fogBlanket');
 
 			// ewidentnie - to powinno iść z kolei do BindEvents
 			userNameForm.addEventListener('submit', this.userNameSubmit.bind(this));
 			closeBtn.addEventListener('click', this.closeUserNameForm.bind(this));
 			cancelForm.addEventListener('click', this.closeUserNameForm.bind(this));
+			fogBlanket.addEventListener('click', this.closeUserNameForm.bind(this));
 
 		},
 		userNameSubmit: function(e) {
@@ -1837,4 +1843,21 @@
 	// 	checkSelectedFlashcardsOnly();		
 	// }
 
-})();
+
+	// Expose Flashrr modules to public API
+	var Flashrr = {
+		cardCounter: cardCounter,
+		flashcardsOnly: flashcardsOnly,
+		searchCards: searchCards,
+		views: views,
+		profile: profile,
+		collections: collections,
+		cards: cards,
+		topics: topics,
+		cardsFilter: cardsFilter,
+		pagination: pagination
+	};
+
+	window.Flashrr = Flashrr;	
+
+})(window);
