@@ -18,16 +18,6 @@
 	 *  - no private methods: all methods are actually avaiable via Public API 
 	 */
 
-	// mam tutaj taki globalny DOM cache
-	// powinienem to wstawić do jakiegoś generic modułu
-	// albo...
-	// zrobić z tego 4 moduły po prostu...
-
-	var pageWrapper = document.getElementById("pageWrapper"),
-		
-		sectionWrapper = document.getElementById("sectionWrapper");		
-
-
 	/**
 	 * Model with Default Data Collections
 	 */
@@ -1032,7 +1022,7 @@
 	 */
 	var cardView = {
 		init: function(viewedCard) {
-			this.render(viewedCar);
+			this.render(viewedCard);
 			this.cacheDOM();
 			this.bindEvents();
 		},
@@ -1042,7 +1032,7 @@
 		bindEvents: function() {
 
 		},
-		render: function() {
+		render: function(viewedCard) {
 			
 			if (document.getElementById('viewCardSection')) {
 				return false;
@@ -1348,17 +1338,6 @@
 		}
 	};
 
-	flashcardsOnly.init();
-	searchCards.init();
-	viewTypes.init();
-	profile.init();
-	collectionSelector.init();
-	topicSelector.init();	
-	cardsFilter.init();
-	cards.init();
-	cardCounter.init();
-	pagination.init();
-
 	
 	// 	viewedCardIndex = null,
 	// 	listViewCardHeight = 150,
@@ -1369,36 +1348,7 @@
 
 	// document.addEventListener("click", handleCardClickEvents);
 	// document.addEventListener("keydown", handleCardKeydownEvents);
-	// window.addEventListener("resize", handleResize);
 
-
-	// pageWrapper.addEventListener("dragover", function(event) {
-	// 	event.preventDefault();
-	// 	if(hasClass(pageWrapper, "drag")) {
-	// 		return false;
-	// 	}
-	// 	pageWrapper.className += " drag";
-	// });
-
-	// pageWrapper.addEventListener("dragleave", function(event) {
-	// 	event.preventDefault();
-	// 	pageWrapper.className = pageWrapper.className.replace( /(?:^|\s)drag(?!\S)/g , '' );		
-	// });
-
-
-
-	// function FU(extractedMethodSettings) {
-	//     extractedMethodSettings.pageWrapper.addEventListener("drop", function(event) {
-	//         event.stopPropagation();
-	//         event.preventDefault();
-	//         getCardFromTxt(event);
-	//         extractedMethodSettings.pageWrapper.className = extractedMethodSettings.pageWrapper.className.replace(/(?:^|\s)drag(?!\S)/g, "")
-	//     });
-	// }
-
-	// FU({
-	//     pageWrapper: pageWrapper
-	// });
 
 	// /**
 	// *  Event Delegator
@@ -1502,24 +1452,6 @@
 	// 	} 
 
 
-	// else if ( (hasClass(element, 'fog-blanket')) ||
-	// 				(hasClass(element, 'cancel-form')) ||
-	// 				(hasClass(element, 'close-btn')) ) {
-	// 		if (document.getElementById('createCardSection')) {
-	// 			closeCardForm();
-	// 		} else if (document.getElementById('viewCardSection')) {
-	// 			closeCardView();
-	// 		} else if (document.getElementById('userNameSection')) {
-	// 			closeUserNameForm();
-	// 		} else if (document.getElementById('topicSection')) {
-	// 			closeTopicForm();
-	// 		} else if (document.getElementById('collectionSection')) {
-	// 			closeCollectionForm();
-	// 		}	
-	//	} 	
-
-
-
 	//	else if (hasClass(element, 'previous-card-link')) {
 	// 		if(viewedCardIndex === 1) {
 	// 			return false;
@@ -1527,9 +1459,7 @@
 	// 		closeCardView();
 	// 		viewedCardIndex -= 1;
 	// 		viewCard(event, existingCards[viewedCardIndex - 1]);
-	//	} 
-
-
+	//	}
 
 	// 	else if (hasClass(element, 'next-card-link')) {
 	// 		if(viewedCardIndex === existingCards.length) {
@@ -1630,37 +1560,7 @@
 	// 	selectCardsByTopic();
 	// }
 
-	// /**
-	// *	Handle drag and drop txt files
-	// */
-	// function getCardFromTxt(event) {
 
-	// 	var files = event.target.files || event.dataTransfer.files;
-
-	// 	var f = files[0];
-			
-	// 	if (!f) {
-	// 		alert("Failed to load file");
-	// 	} else if (!f.type.match('text.*')) {
-	// 		alert(f.name + " is not a valid text file.");
-	// 	} else {
-
-	// 		var reader = new FileReader();
-
-	// 		reader.onload = function(e) { 
-	// 			var contents = {
-	// 				title: f.name,
-	// 				url: '',
-	// 				text : e.target.result,
-	// 				tags : '',
-	// 				submitLabel: 'Create Card',
-	// 				attachments: []
-	// 			};
-	// 			openCardForm(event, contents);
-	// 		};
-	// 		reader.readAsText(f);	
-	// 	}
-	// }
 
 
 
@@ -2010,15 +1910,6 @@
 
 
 
-
-
-	// function handleResize() {
-	// 	setCardsWrapperHeight();
-	// 	setCardsPerPage();
-	// 	getView();
-	// }
-
-
 	// /**
 	//  *  Initialize Flashrr app
 	//  */
@@ -2049,9 +1940,89 @@
 		cardCounter: cardCounter,
 		topicSelector: topicSelector,
 		cardsFilter: cardsFilter,
-		pagination: pagination
+		pagination: pagination,
+
+		cacheDOM: function() {
+			this.pageWrapper = document.getElementById("pageWrapper");	
+			this.sectionWrapper = document.getElementById("sectionWrapper");
+		},
+		bindEvents: function() {
+			window.addEventListener("resize", this.handleResize.bind(this));
+			this.pageWrapper.addEventListener("dragover", this.handlePageDragOver.bind(this));
+			this.pageWrapper.addEventListener("dragleave", this.handlePageDragLeave.bind(this));
+			this.pageWrapper.addEventListener("drop", this.handlePageDrop.bind(this));
+		},
+		init: function() {
+			this.cacheDOM();
+			this.bindEvents();
+
+			flashcardsOnly.init();
+			searchCards.init();
+			viewTypes.init();
+			profile.init();
+			collectionSelector.init();
+			topicSelector.init();	
+			cardsFilter.init();
+			cards.init();
+			cardCounter.init();
+			pagination.init();
+		},
+		handlePageDragOver: function(e){
+			e.preventDefault();
+			if(utils.hasClass(this.pageWrapper, "drag")){
+				return false;
+			}
+			this.pageWrapper.className += " drag";
+		},
+		handlePageDragLeave: function(e){
+			event.preventDefault();
+			this.pageWrapper.className = pageWrapper.className.replace( /(?:^|\s)drag(?!\S)/g , '' );		
+		},
+		handlePageDrop: function(e){
+			e.stopPropagation();
+			e.preventDefault();
+			this.getCardFromTxt(e);
+			this.pageWrapper.className = this.pageWrapper.className.replace(/(?:^|\s)drag(?!\S)/g, "");
+		},
+		/**
+		 *	Handle drag and drop txt files
+		 */
+		getCardFromTxt: function(e) {
+			var files = e.target.files || e.dataTransfer.files,
+				f = files[0];
+				
+			if (!f) {
+				alert("Failed to load file");
+			} else if (!f.type.match('text.*')) {
+				alert(f.name + " is not a valid text file.");
+			} else {
+				var reader = new FileReader();
+
+				reader.onload = function(e) { 
+					var contents = {
+						title: f.name,
+						url: '',
+						text : e.target.result,
+						tags : '',
+						submitLabel: 'Create Card',
+						attachments: []
+					};
+					cardForm.init(contents);
+				};
+				reader.readAsText(f);	
+			}
+		},
+		handleResize: function() {
+			cards.setCardsWrapperHeight();
+			
+			//na razie to zakomentuje nie wiem czy potrzebne
+			// ale pewnie jakiś re-render sie przyda
+			//setCardsPerPage();
+			//getView();
+		}		
 	};
 
-	window.Flashrr = Flashrr;	
+	window.Flashrr = Flashrr;
+	Flashrr.init();	
 
 })(window);
