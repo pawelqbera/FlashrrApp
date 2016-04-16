@@ -62,6 +62,57 @@
 
 		hasClass: function(element, cls) {
 		    return (' ' + element.className + ' ').indexOf(' ' + cls + ' ') > -1;
+		},
+		urlify: function(text) {
+			/**
+			* Store the base text string for further comparison
+			*/
+			var baseStr = text;
+			/**
+			* Match all URLs except image and YouTube video links
+			*/ 
+			var ordinaryUrlRegexp = /(?!(https?:\/\/.*\.(?:png|jpg|gif|jpeg)))(?!(http(?:s)?:\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?[\w\?​=]*)?))(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;	
+			/**
+			* Match all YouTube video links
+			*/
+			var ytUrlRegexp = /http(?:s)?:\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?[\w\?​=]*)?/ig;	
+			/**
+			* Match all image links
+			*/   
+			var imgUrlRegexp = /(https?:\/\/.*\.(?:png|jpg|gif|jpeg))/ig;
+			text = text.replace(ordinaryUrlRegexp, '');
+			text = text.replace(ytUrlRegexp, '<iframe width="100%" height="100%" src="https://www.youtube.com/embed/$1" frameborder="0" allowfullscreen></iframe>');
+			text = text.replace(imgUrlRegexp, '<img src="$1" alt />');	
+
+			baseStr === text ? text = '' : text;			
+
+			return text;
+		},
+		extractDomain: function(url) {
+			var domain = null;
+			
+			/**
+			 *  Find & remove protocol (http, ftp, etc.) and get domain
+			 */
+			if (url.indexOf("://") > -1) {
+				domain = url.split('/')[2];
+			} else {
+				domain = url.split('/')[0];
+			}
+
+			/**
+			 *  Find & remove port number
+			 */	
+			domain = domain.split(':')[0];
+
+			return domain;
+		},
+		makeid: function() {
+		    var text = "",
+		    	possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+		    for( var i=0; i < 5; i++ )
+		        text += possible.charAt(Math.floor(Math.random() * possible.length));
+		    return text;
 		}
 	};
 
@@ -71,29 +122,21 @@
 	var cardCounter = {
 		init: function() {
 			this.cacheDOM();
-			this.bindEvents();
 			this.render();
 		},
 		cacheDOM: function() {
 			this.cardCounter = document.getElementById("cardCounter");
 		},
-		bindEvents: function() {
-
-		},
 		render: function() {
-
-		},
-
-		countCards: function() {
-			var selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value,
+			var selectedCollectionIndex = collectionSelector.collectionSelect.options[collectionSelector.collectionSelect.selectedIndex].value,
 				index = selectedCollectionIndex !== "-1" ? selectedCollectionIndex : 0,
-				existingCards = collections[index].cards,
+				existingCards = collectionSelector.collections[index].cards,			
 				count = document.createTextNode(existingCards.length);
-			cardCounter.innerHTML = '';
-			cardCounter.appendChild(count);
-			count.nodeValue = existingCards.length;
-		}
-		
+			
+			this.cardCounter.innerHTML = '';
+			this.cardCounter.appendChild(count);
+			count.nodeValue = existingCards.length
+		}		
 	};
 
 	/**	
@@ -101,7 +144,8 @@
 	 */
 	var flashcardsOnly = {
 		selectedFlashcardsOnly: JSON.parse(localStorage.getItem("selectedFlashcardsOnly")) || false,
-		
+		selectedCollection: JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
+
 		init: function() {
 			this.cacheDOM();
 			this.bindEvents();
@@ -114,13 +158,33 @@
 			this.showFlashcardsOnly.addEventListener("click", this.toggleTextCards.bind(this));
 		},
 		render: function() {
-
+			// bring here html from index.html 
 		},
-
 		toggleTextCards: function(e) {
-			console.log('event');
 
+			var element = (typeof e !== 'undefined') ? e.target : showFlashcardsOnly;
+
+			if(element.checked === true) {
+				localStorage.setItem('selectedFlashcardsOnly', JSON.stringify(true));			
+				
+				for (var i=0;i < this.selectedCollection.cards.length;i++) {
+					if(this.selectedCollection.cards[i].isFlashcard === false) {
+						if(!document.getElementById("cardMiniature" + this.selectedCollection.cards[i].id)) {
+							return;
+						}
+						var card = document.getElementById("cardMiniature" + this.selectedCollection.cards[i].id);
+						if (typeof card !== 'undefined') {
+							card.parentNode.removeChild(card);				
+						}
+						pagination.render();
+					}
+				}
+			} else {
+				localStorage.setItem('selectedFlashcardsOnly', JSON.stringify(false));		
+				cards.render(this.selectedCollection.cards);
+			}
 		}
+		
 	};
 
 	/**	
@@ -141,11 +205,29 @@
 			this.searchCards.addEventListener("keyup", this.searchCard.bind(this));
 		},
 		render: function() {
-
+			//wstawić tutaj render modułu szukacza
 		},
 
 		searchCard: function(e) {
-			console.log('event');
+			var searchValue = searchCards.value,
+				selectedCategorySearch = categorySearchSelect.options[categorySearchSelect.selectedIndex].value;
+			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
+			selectedCards = selectedCollection.cards;
+			displayCards(selectedPage);
+
+			for(var i = 0; i < selectedCards.length; i++) {
+				var obj = selectedCards[i];
+				if(obj[selectedCategorySearch].indexOf(searchValue) === -1) {
+					if(!document.getElementById("cardMiniature" + obj.id)) {
+						return;
+					}
+					var card = document.getElementById("cardMiniature" + obj.id);
+					if (card) {
+						card.parentNode.removeChild(card);				
+					}
+					addPagination();
+				}
+			}
 
 		}		
 	};
@@ -306,13 +388,58 @@
 		},
 		render: function() {
 			this.selectedCards = this.selectedCollection.cards;
-		},
-
-		selectCollection: function(e) {
-			console.log('event');
+			var collectionOptions = '';
+			for (var i = 0; i < this.collections.length; i++) {
+				var isSelected = (this.selectedCollection.name.indexOf(this.collections[i].name) !== -1) ? 'selected="selected"' : '';
+				collectionOptions += '<option value="' + i + '"'+ isSelected +'>' + this.collections[i].name + '</option>';
+			}
+			var html = '';
+				html += '	<option value="-1">Collections</option>';
+				html += collectionOptions;
+				html += '	<option value="addNewCollection">ADD NEW COLLECTION</option>';
 			
+			this.collectionSelect.innerHTML = html;
+			
+			if(this.collectionSelect.value !== '-1' && this.collectionSelect.value !== 'addNewCollection'){
+				this.addEditCollectionBtn();
+			}
 		},
-
+		selectCollection: function(e) {
+			var element = e.target;
+			this.removeEditCollectionBtn();
+			if (element.value === '-1') {
+				return false;
+			} else if (element.value === 'addNewCollection') {
+				collectionForm.init();
+			} else {
+				this.selectedCollection = collections[element.value];
+				localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
+				this.selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
+				selectedTopic = -1;
+				localStorage.setItem("selectedTopic", JSON.stringify(selectedTopic));	
+				selectedCards = this.selectedCollection.cards;
+				
+				cards.render();
+				cardCounter.render();
+				
+				getTopics();
+				addPagination();
+				
+				this.addEditCollectionBtn();
+			}
+		},
+		addEditCollectionBtn: function() {
+			var editCollectionBtn = document.createElement("i");
+			editCollectionBtn.className = "edit-collection fa fa-cog";
+			editCollectionBtn.id = "editCollectionBtn";
+			this.collectionSelect.parentNode.appendChild(editCollectionBtn);
+		},
+		removeEditCollectionBtn: function() {
+			if(!document.getElementById("editCollectionBtn")) {
+				return false;
+			}
+			this.collectionSelect.parentNode.removeChild(editCollectionBtn);
+		},
 		editCollection: function() {
 
 		},
@@ -321,6 +448,120 @@
 		}	
 	};
 
+	/**
+	*  Collection Form
+	*/
+	var collectionForm = {
+		selectedCollection: JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
+
+		init: function(editableCollection) {
+			editableCollection = editableCollection || false;
+
+			this.render(editableCollection);
+			this.cacheDOM();
+			this.bindEvents();
+		},
+		cacheDOM: function() {
+			this.collectionForm = document.getElementById('collectionForm');
+		},
+		bindEvents: function() {
+			this.collectionForm.addEventListener('submit', function(event) {
+				event.preventDefault();
+				this.createCollection(updatedCollectionId, collectionCards);
+			});
+		},
+		render: function(editableCollection) {
+			if (document.getElementById('collectionSection')) {
+				return false;
+			}
+
+			var editMode = editableCollection ? true : false,
+				collectionFormHeader = editableCollection ? "Edit Collection" : "New Collection",	
+				collectionName = editableCollection ? editableCollection.name : "",
+				collectionDescription = editableCollection ? editableCollection.description : "",
+				collectionTopics = editableCollection ? editableCollection.topics : [],
+				collectionFormSubmitLabel = editableCollection ? "Update Collection" : "Add New Collection",
+				updatedCollectionId = editableCollection ? editableCollection.id : null,
+				collectionCards = editableCollection ? editableCollection.cards : [];
+
+			this.selectedCollection.topics = editableCollection ? this.selectedCollection.topics : [];
+
+			var html = '';
+				html += '	<form id="collectionForm">';
+				html += '		<h2>' + collectionFormHeader + '</h2>';
+				html += '		<span id="closeBtn" class="close-btn">X</span>';
+				html += '		<div>';
+				html += '			<input type="text" id="collectionName" name="collectionName" value="' + collectionName + '" placeholder="name">';
+				html += '		</div>';
+				html += '		<div>';
+				html += '			<input type="text" id="collectionDescription" name="collectionDescription" value="' + collectionDescription + '" placeholder="description">';
+				html += '		</div>';
+				html += '		<div id="cardTopicWrapper"></div>';
+				html += '		<div>';
+				html += '			<button>' + collectionFormSubmitLabel + '</button>';
+				html += '			<a class="cancel-form">Cancel</a>';
+				html += '			<a class="delete-collection">Delete Collection</a>';		
+				html += '		</div>';
+				html += '	</form>';
+
+			var collectionForm = document.createElement('SECTION');
+			collectionForm.id = "collectionSection";
+			collectionForm.className = "collection-section";
+			collectionForm.innerHTML = html.trim();
+			pageWrapper.appendChild(collectionForm);
+
+			var fogBlanket = document.createElement('div');
+			fogBlanket.className = "fog-blanket";
+			fogBlanket.id = "fogBlanket";
+			pageWrapper.appendChild(fogBlanket);
+
+			topicAdder.init("cardTopicWrapper", true);
+		},
+		createCollection: function(updatedCollectionId, collectionCards) {
+			var date = new Date(),
+				form = document.forms[0],
+				collection = {
+					id: updatedCollectionId || utils.makeid(),
+					name: collectionName.value,
+					description: collectionDescription.value,
+					author: userName,
+					date: date.getTime(),
+					topics: selectedCollection.topics,
+					cards: collectionCards
+				},
+				existingCollections = JSON.parse(localStorage.getItem("Collections"));
+
+			if(existingCollections === null) {
+				existingCollections = [];
+			}
+			if (updatedCollectionId) {
+				for(var i = 0; i < existingCollections.length; i++) {
+					var obj = existingCollections[i];
+					if(updatedCollectionId.indexOf(obj.id) !== -1) {
+						existingCollections[i] = collection;
+						break;
+					}
+				}
+			}
+			else {
+				existingCollections.push(collection);
+			}
+			collections = existingCollections;
+			localStorage.setItem("Collections", JSON.stringify(existingCollections));
+			collections = JSON.parse(localStorage.getItem("Collections"));
+			selectedCollection = collection;
+			localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
+			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];	
+			removeEditCollectionBtn();
+			getCollections();
+			getTopics();
+			displayCards(selectedPage);
+			countCards();
+			addPagination();
+			closeCollectionForm();
+			selectCardsByTopic();
+		}
+	};
 
 	/**	
 	 *  Cards module
@@ -427,6 +668,42 @@
 		setCardsWrapperHeight: function() {
 	 		var cardsWrapperHeight = window.innerHeight - (this.header.offsetHeight + cardsFilter.cardsFilterWrapper.offsetHeight + this.pseudoFooter.offsetHeight);
 	 		cardsWrapper.style.height = cardsWrapperHeight + 'px';
+		},
+		removeCard: function(cardId) {
+		    var selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value,
+				i = 0,
+				obj = null;
+
+			if (document.getElementById('viewCardSection')) {
+				cardView.closeCardView();
+			}
+			for(; i < this.selectedCollection.cards.length; i++) {
+				obj = this.selectedCollection.cards[i];
+				if(parentId.indexOf(obj.id) !== -1) {
+					this.selectedCollection.cards.splice(i, 1);
+					break;
+				}
+			}
+
+
+			// DRY: Wstawić to do osobnej funkcji
+			//      updateCardCollections()
+			// Update and load new collections
+			collections[selectedCollectionIndex].cards = existingCards;
+			localStorage.setItem("Collections", JSON.stringify(collections));
+			collections = JSON.parse(localStorage.getItem("Collections")) || [defaultCollection];
+
+			// Update and load new selectedCollection based on updated collections
+			selectedCollection = collections[selectedCollectionIndex];
+			localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
+			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
+		
+			this.render(selectedPage);
+			
+			//displayCards(selectedPage);
+			//countCards();
+			//addPagination();	
+
 		}
 	};
 
@@ -435,17 +712,42 @@
 	 *
 	 */
 	var cardMiniature = {
+		selectedCollection: JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
 
 		init: function(card) {
 			this.render(card);
-			this.cacheDOM();
+			this.cacheDOM(card);
 			this.bindEvents();
 		},
-		cacheDOM: function() {
-
+		cacheDOM: function(card) {
+			this.cardId = card.id;			
+			this.tempCardMiniature = document.getElementById("cardMiniature" + this.cardId);
 		},
 		bindEvents: function() {
+			this.tempCardMiniature.addEventListener('click', function(e) {
+				var element = e.target;
 
+				if (utils.hasClass(element, 'edit-card')) {
+					if (document.getElementById('viewCardSection')) {
+						cardView.closeCardView();
+					}
+					var editableCard = '',
+						i = 0,
+						obj;
+					for(; i < this.selectedCollection.cards.length; i++) {
+						obj = this.selectedCollection.cards[i];
+
+						if(this.cardId.indexOf(obj.id) !== -1) {
+							editableCard = this.selectedCollection.cards[i];
+							break;
+						}
+					}
+					cardForm.init(editableCard);	
+			    } else if (utils.hasClass(element, 'remove-card')) {
+					cards.removeCard(event); 
+			    }
+
+			}.bind(this));
 		},
 		render: function(card) {
 			var thumbs = '',
@@ -469,8 +771,8 @@
 			}
 
 			var flashcardClass = card.isFlashcard ? 'flashcard' : 'note',
-				urlifiedText = this.miniatureUrlify(card.url),
-				domain = this.extractDomain(card.url);
+				urlifiedText = utils.urlify(card.url),
+				domain = utils.extractDomain(card.url);
 
 			var html = '';
 				html += ' <div id="data-container' + card.id + '" class="data-container data-details ' + flashcardClass +'">';
@@ -504,53 +806,6 @@
 			tempCardMiniature.className = "card-miniature";
 			tempCardMiniature.innerHTML = html.trim();
 			cardsWrapper.appendChild(tempCardMiniature);
-		},
-		miniatureUrlify: function(text) {
-			/**
-			* Store the base text string for further comparison
-			*/
-			var baseStr = text;
-			
-			/**
-			* Match all URLs except image and YouTube video links
-			*/ 
-			var ordinaryUrlRegexp = /(?!(https?:\/\/.*\.(?:png|jpg|gif|jpeg)))(?!(http(?:s)?:\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?[\w\?​=]*)?))(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;	
-			
-			/**
-			* Match all YouTube video links
-			*/
-			var ytUrlRegexp = /http(?:s)?:\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?[\w\?​=]*)?/ig;	
-			
-			/**
-			* Match all image links
-			*/
-			var imgUrlRegexp = /(https?:\/\/.*\.(?:png|jpg|gif|jpeg))/ig;
-			text = text.replace(ordinaryUrlRegexp, '');
-			text = text.replace(ytUrlRegexp, '<iframe width="100%" height="100%" src="https://www.youtube.com/embed/$1" frameborder="0" allowfullscreen></iframe>');
-			text = text.replace(imgUrlRegexp, '<img src="$1" alt />');	
-
-			baseStr === text ? text = '' : text;			
-
-			return text;
-		},
-		extractDomain: function(url) {
-			var domain = null;
-			
-			/**
-			 *  Find & remove protocol (http, ftp, etc.) and get domain
-			 */
-			if (url.indexOf("://") > -1) {
-				domain = url.split('/')[2];
-			} else {
-				domain = url.split('/')[0];
-			}
-
-			/**
-			 *  Find & remove port number
-			 */	
-			domain = domain.split(':')[0];
-
-			return domain;
 		}
 	};
 
@@ -715,7 +970,7 @@
 				date = new Date(),
 				form = document.forms[0],
 				card = {
-					id: updatedCardId || makeid(),
+					id: updatedCardId || utils.makeid(),
 					topic: cardTopic.options[cardTopic.selectedIndex].text,
 					title: cardTitle.value,
 					url: cardUrl.value || '',
@@ -772,15 +1027,14 @@
 	};
 
 	/**
-	 *  Topic Adder module
+	 * Card View module
 	 *
 	 */
-	var topicAdder = {
-
-		init: function() {
+	var cardView = {
+		init: function(viewedCard) {
+			this.render(viewedCar);
 			this.cacheDOM();
 			this.bindEvents();
-			this.render();
 		},
 		cacheDOM: function() {
 
@@ -789,10 +1043,123 @@
 
 		},
 		render: function() {
+			
+			if (document.getElementById('viewCardSection')) {
+				return false;
+			}
+
+			var thumbs = '',
+				tags = '',
+				i,
+				cardTypeClass = viewedCard.isFlashcard ? 'flashcard' : 'textcard';
+			
+			for (i = 0; i < viewedCard.attachments.length; i++) {
+				thumbs += '<img src="' + viewedCard.attachments[i] + '" class="view-card-thumb" />';
+			}
+
+			for (i = 0; i < viewedCard.tags.length; i++) {
+				tags += '<span class="tag">' + viewedCard.tags[i] + '</span>';
+			}
+
+			var flashCardHtml = '';
+				
+			var urlifiedText = utils.urlify(viewedCard.text);
+			var domain = utils.extractDomain(viewedCard.url);
+
+			var html = '';
+				html += '	<div id="viewCardForm">';
+				html += '		<ul id="viewCardNavigation" class="view-card-navigation">';
+				html += '			<li><span>' + viewedCardIndex + ' of ' + selectedCollection.cards.length + '</span></li>';
+				html += '			<li><a class="previous-card-link">Previous</a></li>';
+				html += '			<li><a class="next-card-link">Next</a></li>';
+				html += '		</ul>';
+				if(viewType !== 'details-view') {
+					html += '		<span id="closeBtn" class="close-btn">X</span>';
+				}
+				html += '		<div id="cardContent">';		
+				if(cardTypeClass === 'flashcard') {	
+					html += flashCardHtml;			
+				} 
+				else {			
+					html += '		<div>';
+					html += '			<h3>' + viewedCard.title + '</h3>';
+					html += '			<p class="topic">in: ' + viewedCard.topic + ' by ' + viewedCard.author + '</p>';
+					html += '		</div>';
+					html += '		<div>';
+					html += '			<p class="card-text">' + urlifiedText + '</p>';
+					html += '		</div>';
+					html += '		<div>';
+					html += '			<label>Tags:</label>';
+					html += '			<p class="tags">' + tags + '</p>';
+					html += '		</div>';
+					html += '		<div>';
+					html += '			<label>Attachments:</label>';				
+					html += '			<div class="view-thumb-list">' + thumbs + '</div>';
+					html += '		</div>';			
+					if(viewedCard.url) {
+						html += '		<div class="card-url">';
+						html += '			<label>External link:</label>';
+						html += '			<a rel="nofollow" href="' + viewedCard.url + '" target="_blank">' + domain + '</a>';
+						html += '		</div>';
+					}
+					html += '		<div class="view-card-actions" id="actions' + viewedCard.id + '">';
+					html += '			<a class="edit-card">Edit</a>';
+					html += '			<a class="remove-card">Remove</a>';
+					html += '		</div>';
+				}
+				html += '		</div>';		
+				html += '	</div>';
+
+
+			var tempCardForm = document.createElement('SECTION');
+			tempCardForm.id = "viewCardSection";
+			tempCardForm.className = "view-card-section " + cardTypeClass;
+			tempCardForm.innerHTML = html.trim();
+			if(viewType !== 'details-view') {
+				pageWrapper.appendChild(tempCardForm);
+				var fogBlanket = document.createElement('div');
+				fogBlanket.className = "fog-blanket";
+				fogBlanket.id = "fogBlanket";
+				pageWrapper.appendChild(fogBlanket);	
+			} else {
+				cardField.appendChild(tempCardForm);	
+			}
+
+			if(viewedCard.isFlashcard) {
+				renderCardSide(event, viewedCard, true);	
+			}
 
 		},
+		closeCardView: function() {
+			var viewCardForm = document.getElementById("viewCardForm").parentNode;
+			viewCardForm.parentNode.removeChild(viewCardForm);
+			closeFogBlanket();
+		}
+	};
 
-		createTopicAdder: function(parentId, isMultiple) {
+	/**
+	 *  Topic Adder module
+	 *
+	 */
+	var topicAdder = {
+		init: function(parentId, isMultiple) {
+			isMultiple = isMultiple || false; 
+
+			this.render(parentId, isMultiple);
+			this.cacheDOM();
+			this.bindEvents();			
+		},
+		cacheDOM: function() {
+
+		},
+		bindEvents: function() {
+			cardTopic.addEventListener('change', function(event) {
+				//spr czy nie trzeba tutaj dać warunku isMultiple?
+				this.setSelectedTopics();
+			});
+		},
+		render: function(parentId, isMultiple) {
+
 			var parent = document.getElementById(parentId),
 				cardTopics = '';
 
@@ -807,10 +1174,6 @@
 			
 			if(isMultiple) {
 				cardTopic.multiple = "multiple";
-			
-				cardTopic.addEventListener('change', function(event) {
-					this.setSelectedTopics();
-				});
 			}
 		},
 		setSelectedTopics: function() {
@@ -968,6 +1331,7 @@
 	 */	
 	var pagination = {
 		selectedPage: JSON.parse(localStorage.getItem("selectedPage")) || 1,
+		
 		init: function() {
 			this.cacheDOM();
 			this.bindEvents();
@@ -984,8 +1348,6 @@
 		}
 	};
 
-
-	cardCounter.init();
 	flashcardsOnly.init();
 	searchCards.init();
 	viewTypes.init();
@@ -993,7 +1355,8 @@
 	collectionSelector.init();
 	topicSelector.init();	
 	cardsFilter.init();
-	cards.init();	
+	cards.init();
+	cardCounter.init();
 	pagination.init();
 
 	
@@ -1056,6 +1419,12 @@
 			
 	// }
 
+
+
+
+
+
+
 	// function handleCardClickEvents(event) {
 	//     var element = event.target,
 	// 		parentId = (element.parentNode && element.parentNode.id) ? element.parentNode.id.slice(-5) : '',
@@ -1064,9 +1433,10 @@
 	// 		i = null,
 	// 		obj = null;
 
-	// 	if(hasClass(element, 'remove-card')) {
-	// 		removeCard(event);
-	//     } else if (hasClass(element, 'delete-collection')) {
+
+
+
+	//  else if (hasClass(element, 'delete-collection')) {
 	//  		var confirmDelete = confirm("All your collection data including cards will be deleted. Continue?");
 	//  		if (confirmDelete) {
 	// 			if (document.getElementById('collectionForm')) {
@@ -1085,20 +1455,12 @@
 	//  		} else {
 	//  			return false;
 	//  		}
-	//     } else if (hasClass(element, 'edit-card')) {
-	// 		if (document.getElementById('viewCardSection')) {
-	// 			closeCardView();
-	// 		}
-	// 		var editableCard = '';
-	// 		for(i = 0; i < existingCards.length; i++) {
-	// 			obj = existingCards[i];
-	// 			if(parentId.indexOf(obj.id) !== -1) {
-	// 				editableCard = existingCards[i];
-	// 				break;
-	// 			}
-	// 		}
-	// 		openCardForm(event, editableCard);
-	//     } else if (hasClass(element, 'edit-collection')) {
+	//     } 
+
+
+
+
+	//  else if (hasClass(element, 'edit-collection')) {
 	// 		if (document.getElementById('viewCollectionSection')) {
 	// 			closeCollectionView();
 	// 		}
@@ -1111,10 +1473,15 @@
 	// 			}
 	// 		}
 	// 		openCollectionForm(event, editableCollection);
-	// 	} else if (hasClass(element, 'card-thumb')) {
+	// 	} 
+
+	// else if (hasClass(element, 'card-thumb')) {
 	// 		var viewImg = window.open("", "Image Preview", "height=500,width=500");
 	// 		viewImg.document.write('<img src="' + element.src + '" />');
-	// 	} else if (hasClass(element, 'data-details')) {
+	// 	} 
+
+
+	// else if (hasClass(element, 'data-details')) {
 	// 		if (document.getElementById('viewCardSection')) {
 	// 			closeCardView();
 	// 		}		
@@ -1132,7 +1499,10 @@
 	// 		countView(viewedCard);
 	// 		// view card
 	// 		viewCard(event, viewedCard);
-	// 	} else if ( (hasClass(element, 'fog-blanket')) ||
+	// 	} 
+
+
+	// else if ( (hasClass(element, 'fog-blanket')) ||
 	// 				(hasClass(element, 'cancel-form')) ||
 	// 				(hasClass(element, 'close-btn')) ) {
 	// 		if (document.getElementById('createCardSection')) {
@@ -1145,22 +1515,34 @@
 	// 			closeTopicForm();
 	// 		} else if (document.getElementById('collectionSection')) {
 	// 			closeCollectionForm();
-	// 		}
-	// 	} else if (hasClass(element, 'previous-card-link')) {
+	// 		}	
+	//	} 	
+
+
+
+	//	else if (hasClass(element, 'previous-card-link')) {
 	// 		if(viewedCardIndex === 1) {
 	// 			return false;
 	// 		}
 	// 		closeCardView();
 	// 		viewedCardIndex -= 1;
 	// 		viewCard(event, existingCards[viewedCardIndex - 1]);
-	// 	} else if (hasClass(element, 'next-card-link')) {
+	//	} 
+
+
+
+	// 	else if (hasClass(element, 'next-card-link')) {
 	// 		if(viewedCardIndex === existingCards.length) {
 	// 			return false;
 	// 		}
 	// 		closeCardView();
 	// 		viewedCardIndex += 1;
 	// 		viewCard(event, existingCards[viewedCardIndex - 1]);
-	// 	} else if (hasClass(element, 'card-author-anchor')) {
+	// }
+
+
+
+	// else if (hasClass(element, 'card-author-anchor')) {
 	// 		searchCards.value = element.text;
 	// 		categorySearchSelect.getElementsByTagName('option')[3].selected = 'selected';
 	// 		topicSelect.getElementsByTagName('option')[0].selected = 'selected';
@@ -1169,7 +1551,10 @@
 	// 		selectCardsByTopic();		
 	// 		searchCard();
 	// 		// ustawiam search category
-	// 	} else if (hasClass(element, 'card-topic-anchor')) {
+	// }
+
+
+	// else if (hasClass(element, 'card-topic-anchor')) {
 	// 		searchCards.value = '';
 	// 		categorySearchSelect.getElementsByTagName('option')[0].selected = 'selected';				
 	// 		for (i = 0;i < selectedCollection.topics.length;i++) {
@@ -1183,64 +1568,15 @@
 	// 	}
 	// }
 
-	// function removeCard(event) {
-	//     var element = event.target,
-	// 		parentId = element.parentNode.id ? element.parentNode.id.slice(-5) : '',
-	// 		existingCards = selectedCollection.cards,
-	// 		selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value,
-	// 		i = null,
-	// 		obj = null;
 
-	// 	if (document.getElementById('viewCardSection')) {
-	// 		closeCardView();
-	// 	}
-	// 	for(i = 0; i < existingCards.length; i++) {
-	// 		obj = existingCards[i];
-	// 		if(parentId.indexOf(obj.id) !== -1) {
-	// 			existingCards.splice(i, 1);
-	// 			break;
-	// 		}
-	// 	}
-	// 	// DRY: Wstawić to do osobnej funkcji
-	// 	//      updateCardCollections()
-	// 	// Update and load new collections
-	// 	collections[selectedCollectionIndex].cards = existingCards;
-	// 	localStorage.setItem("Collections", JSON.stringify(collections));
-	// 	collections = JSON.parse(localStorage.getItem("Collections")) || [defaultCollection];
 
-	// 	// Update and load new selectedCollection based on updated collections
-	// 	selectedCollection = collections[selectedCollectionIndex];
-	// 	localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
-	// 	selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
-	// 	displayCards(selectedPage);
-	// 	countCards();
-	// 	addPagination();	
-	// }
 
-	// function toggleTextCards(event) {
 
-	// 	var element = (typeof event !== 'undefined') ? event.target : showFlashcardsOnly;
 
-	// 	if(element.checked === true) {
-	// 		localStorage.setItem('selectedFlashcardsOnly', JSON.stringify(true));			
-	// 		for (var i=0;i<selectedCollection.cards.length;i++) {
-	// 			if(selectedCollection.cards[i].isFlashcard === false) {
-	// 				if(!document.getElementById("cardMiniature" + selectedCollection.cards[i].id)) {
-	// 					return;
-	// 				}
-	// 				var card = document.getElementById("cardMiniature" + selectedCollection.cards[i].id);
-	// 				if (typeof card !== 'undefined') {
-	// 					card.parentNode.removeChild(card);				
-	// 				}
-	// 				addPagination();			
-	// 			}
-	// 		}
-	// 	} else {
-	// 		localStorage.setItem('selectedFlashcardsOnly', JSON.stringify(false));		
-	// 		displayCards(selectedCards);
-	// 	}
-		
-	// }
+
+
+
+
 
 	// function checkSelectedFlashcardsOnly() {
 	// 	if(selectedFlashcardsOnly === true) {
@@ -1326,160 +1662,9 @@
 	// 	}
 	// }
 
-	// /**
-	// *  Collection Form
-	// */
-
-	// function openCollectionForm(event, editableCollection) {
-	// 	if (document.getElementById('collectionSection')) {
-	// 		return false;
-	// 	}
-	// 	var editMode = editableCollection ? true : false,
-	// 		collectionFormHeader = editableCollection ? "Edit Collection" : "New Collection",	
-	// 		collectionName = editableCollection ? editableCollection.name : "",
-	// 		collectionDescription = editableCollection ? editableCollection.description : "",
-	// 		collectionTopics = editableCollection ? editableCollection.topics : [],
-	// 		collectionFormSubmitLabel = editableCollection ? "Update Collection" : "Add New Collection",
-	// 		updatedCollectionId = editableCollection ? editableCollection.id : null,
-	// 		collectionCards = editableCollection ? editableCollection.cards : [];
-
-	// 	selectedCollection.topics = editableCollection ? selectedCollection.topics : [];
-
-	// 	var html = '';
-	// 		html += '	<form id="collectionForm">';
-	// 		html += '		<h2>' + collectionFormHeader + '</h2>';
-	// 		html += '		<span id="closeBtn" class="close-btn">X</span>';
-	// 		html += '		<div>';
-	// 		html += '			<input type="text" id="collectionName" name="collectionName" value="' + collectionName + '" placeholder="name">';
-	// 		html += '		</div>';
-	// 		html += '		<div>';
-	// 		html += '			<input type="text" id="collectionDescription" name="collectionDescription" value="' + collectionDescription + '" placeholder="description">';
-	// 		html += '		</div>';
-	// 		html += '		<div id="cardTopicWrapper"></div>';
-	// 		html += '		<div>';
-	// 		html += '			<button>' + collectionFormSubmitLabel + '</button>';
-	// 		html += '			<a class="cancel-form">Cancel</a>';
-	// 		html += '			<a class="delete-collection">Delete Collection</a>';		
-	// 		html += '		</div>';
-	// 		html += '	</form>';
-
-	// 	var collectionForm = document.createElement('SECTION');
-	// 	collectionForm.id = "collectionSection";
-	// 	collectionForm.className = "collection-section";
-	// 	collectionForm.innerHTML = html.trim();
-	// 	pageWrapper.appendChild(collectionForm);
-
-	// 	var fogBlanket = document.createElement('div');
-	// 	fogBlanket.className = "fog-blanket";
-	// 	fogBlanket.id = "fogBlanket";
-	// 	pageWrapper.appendChild(fogBlanket);
-
-	// 	collectionForm.addEventListener('submit', function(event) {
-	// 		event.preventDefault();
-	// 		createCollection(updatedCollectionId, collectionCards);
-	// 	});
-
-	// 	createTopicAdder("cardTopicWrapper", true);
-	// }
-
-	// function createCollection(updatedCollectionId, collectionCards) {
-	// 	var date = new Date(),
-	// 		form = document.forms[0],
-	// 		collection = {
-	// 			id: updatedCollectionId || makeid(),
-	// 			name: collectionName.value,
-	// 			description: collectionDescription.value,
-	// 			author: userName,
-	// 			date: date.getTime(),
-	// 			topics: selectedCollection.topics,
-	// 			cards: collectionCards
-	// 		},
-	// 		existingCollections = JSON.parse(localStorage.getItem("Collections"));
-
-	// 	if(existingCollections === null) {
-	// 		existingCollections = [];
-	// 	}
-	// 	if (updatedCollectionId) {
-	// 		for(var i = 0; i < existingCollections.length; i++) {
-	// 			var obj = existingCollections[i];
-	// 			if(updatedCollectionId.indexOf(obj.id) !== -1) {
-	// 				existingCollections[i] = collection;
-	// 				break;
-	// 			}
-	// 		}
-	// 	}
-	// 	else {
-	// 		existingCollections.push(collection);
-	// 	}
-	// 	collections = existingCollections;
-	// 	localStorage.setItem("Collections", JSON.stringify(existingCollections));
-	// 	collections = JSON.parse(localStorage.getItem("Collections"));
-	// 	selectedCollection = collection;
-	// 	localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
-	// 	selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];	
-	// 	removeEditCollectionBtn();
-	// 	getCollections();
-	// 	getTopics();
-	// 	displayCards(selectedPage);
-	// 	countCards();
-	// 	addPagination();
-	// 	closeCollectionForm();
-	// 	selectCardsByTopic();
-	// }
 
 
 
-	// function getCollections() {
-	// 	var collectionOptions = '';
-	// 	for (var i = 0; i < collections.length; i++) {
-	// 		var isSelected = (selectedCollection.name.indexOf(collections[i].name) !== -1) ? 'selected="selected"' : '';
-	// 		collectionOptions += '<option value="' + i + '"'+ isSelected +'>' + collections[i].name + '</option>';
-	// 	}
-	// 	var html = '';
-	// 		html += '	<option value="-1">Collections</option>';
-	// 		html += collectionOptions;
-	// 		html += '	<option value="addNewCollection">ADD NEW COLLECTION</option>';
-	// 	collectionSelect.innerHTML = html;
-	// 	if(collectionSelect.value !== '-1' && collectionSelect.value !== 'addNewCollection'){
-	// 		addEditCollectionBtn();
-	// 	}
-	// }
-
-	// function selectCollection(event) {
-	// 	var element = event.target;
-	// 	removeEditCollectionBtn();
-	// 	if (element.value === '-1') {
-	// 		return false;
-	// 	} else if (element.value === 'addNewCollection') {
-	// 		openCollectionForm();
-	// 	} else {
-	// 		selectedCollection = collections[element.value];
-	// 		localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
-	// 		selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
-	// 		selectedTopic = -1;
-	// 		localStorage.setItem("selectedTopic", JSON.stringify(selectedTopic));	
-	// 		selectedCards = selectedCollection.cards;
-	// 		displayCards();
-	// 		countCards();
-	// 		getTopics();
-	// 		addPagination();
-	// 		addEditCollectionBtn();
-	// 	}
-	// }
-
-	// function addEditCollectionBtn() {
-	// 	var editCollectionBtn = document.createElement("i");
-	// 	editCollectionBtn.className = "edit-collection fa fa-cog";
-	// 	editCollectionBtn.id = "editCollectionBtn";
-	// 	collectionSelect.parentNode.appendChild(editCollectionBtn);
-	// }
-
-	// function removeEditCollectionBtn() {
-	// 	if(!document.getElementById("editCollectionBtn")) {
-	// 		return false;
-	// 	}
-	// 	collectionSelect.parentNode.removeChild(editCollectionBtn);
-	// }
 
 
 
@@ -1673,27 +1858,9 @@
 	// 	cardPreview.parentNode.removeChild(cardPreview);	
 	// }
 
-	// function searchCard(event) {
-	// 	var searchValue = searchCards.value,
-	// 		selectedCategorySearch = categorySearchSelect.options[categorySearchSelect.selectedIndex].value;
-	// 	selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
-	// 	selectedCards = selectedCollection.cards;
-	// 	displayCards(selectedPage);
 
-	// 	for(var i = 0; i < selectedCards.length; i++) {
-	// 		var obj = selectedCards[i];
-	// 		if(obj[selectedCategorySearch].indexOf(searchValue) === -1) {
-	// 			if(!document.getElementById("cardMiniature" + obj.id)) {
-	// 				return;
-	// 			}
-	// 			var card = document.getElementById("cardMiniature" + obj.id);
-	// 			if (card) {
-	// 				card.parentNode.removeChild(card);				
-	// 			}
-	// 			addPagination();
-	// 		}
-	// 	}
-	// }
+
+
 
 	// function renderCardSide(event, viewedCard, frontSide) {
 	// 	var flashCardText = document.getElementById('flashCardText') ? document.getElementById('flashCardText') : null;	
@@ -1707,7 +1874,7 @@
 	// 		flashCardHtml += '	<p id="flashCardText" class="front-side">' + viewedCard.title + '</h3>';
 	// 		frontSide = false;
 	// 	} else {
-	// 		flashCardHtml += '	<p id="flashCardText" class="back-side">' + urlify(viewedCard.text) + '</p>';
+	// 		flashCardHtml += '	<p id="flashCardText" class="back-side">' + utils.urlify(viewedCard.text) + '</p>';
 	// 		frontSide = true;
 	// 	}
 	// 	flashCardHtml += '		<p class="flashcard-action-info">Hit SPACE to flip the card</p>';
@@ -1715,129 +1882,8 @@
 	// 	document.getElementById('cardContent').innerHTML = flashCardHtml;
 	// }
 
-	// function viewCard(event, viewedCard) {
-	// 	if (document.getElementById('viewCardSection')) {
-	// 		return false;
-	// 	}
-
-	// 	var thumbs = '',
-	// 		tags = '',
-	// 		i,
-	// 		cardTypeClass = viewedCard.isFlashcard ? 'flashcard' : 'textcard';
-		
-	// 	for (i = 0; i < viewedCard.attachments.length; i++) {
-	// 		thumbs += '<img src="' + viewedCard.attachments[i] + '" class="view-card-thumb" />';
-	// 	}
-
-	// 	for (i = 0; i < viewedCard.tags.length; i++) {
-	// 		tags += '<span class="tag">' + viewedCard.tags[i] + '</span>';
-	// 	}
-
-	// 	var flashCardHtml = '';
-			
-	// 	var urlifiedText = urlify(viewedCard.text);
-	// 	var domain = extractDomain(viewedCard.url);
-
-	// 	var html = '';
-	// 		html += '	<div id="viewCardForm">';
-	// 		html += '		<ul id="viewCardNavigation" class="view-card-navigation">';
-	// 		html += '			<li><span>' + viewedCardIndex + ' of ' + selectedCollection.cards.length + '</span></li>';
-	// 		html += '			<li><a class="previous-card-link">Previous</a></li>';
-	// 		html += '			<li><a class="next-card-link">Next</a></li>';
-	// 		html += '		</ul>';
-	// 		if(viewType !== 'details-view') {
-	// 			html += '		<span id="closeBtn" class="close-btn">X</span>';
-	// 		}
-	// 		html += '		<div id="cardContent">';		
-	// 		if(cardTypeClass === 'flashcard') {	
-	// 			html += flashCardHtml;			
-	// 		} 
-	// 		else {			
-	// 			html += '		<div>';
-	// 			html += '			<h3>' + viewedCard.title + '</h3>';
-	// 			html += '			<p class="topic">in: ' + viewedCard.topic + ' by ' + viewedCard.author + '</p>';
-	// 			html += '		</div>';
-	// 			html += '		<div>';
-	// 			html += '			<p class="card-text">' + urlifiedText + '</p>';
-	// 			html += '		</div>';
-	// 			html += '		<div>';
-	// 			html += '			<label>Tags:</label>';
-	// 			html += '			<p class="tags">' + tags + '</p>';
-	// 			html += '		</div>';
-	// 			html += '		<div>';
-	// 			html += '			<label>Attachments:</label>';				
-	// 			html += '			<div class="view-thumb-list">' + thumbs + '</div>';
-	// 			html += '		</div>';			
-	// 			if(viewedCard.url) {
-	// 				html += '		<div class="card-url">';
-	// 				html += '			<label>External link:</label>';
-	// 				html += '			<a rel="nofollow" href="' + viewedCard.url + '" target="_blank">' + domain + '</a>';
-	// 				html += '		</div>';
-	// 			}
-	// 			html += '		<div class="view-card-actions" id="actions' + viewedCard.id + '">';
-	// 			html += '			<a class="edit-card">Edit</a>';
-	// 			html += '			<a class="remove-card">Remove</a>';
-	// 			html += '		</div>';
-	// 		}
-	// 		html += '		</div>';		
-	// 		html += '	</div>';
 
 
-	// 	var tempCardForm = document.createElement('SECTION');
-	// 	tempCardForm.id = "viewCardSection";
-	// 	tempCardForm.className = "view-card-section " + cardTypeClass;
-	// 	tempCardForm.innerHTML = html.trim();
-	// 	if(viewType !== 'details-view') {
-	// 		pageWrapper.appendChild(tempCardForm);
-	// 		var fogBlanket = document.createElement('div');
-	// 		fogBlanket.className = "fog-blanket";
-	// 		fogBlanket.id = "fogBlanket";
-	// 		pageWrapper.appendChild(fogBlanket);	
-	// 	} else {
-	// 		cardField.appendChild(tempCardForm);	
-	// 	}
-
-	// 	if(viewedCard.isFlashcard) {
-	// 		renderCardSide(event, viewedCard, true);	
-	// 	}
-	// }
-
-
-
-
-
-	// function urlify(text) {
-	// 	/**
-	// 	* Match all URLs except image and YouTube video links
-	// 	*/ 
-	// 	var ordinaryUrlRegexp = /(?!(https?:\/\/.*\.(?:png|jpg|gif|jpeg)))(?!(http(?:s)?:\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?[\w\?​=]*)?))(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;	
-	// 	/**
-	// 	* Match all YouTube video links
-	// 	*/
-	// 	var ytUrlRegexp = /http(?:s)?:\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?[\w\?​=]*)?/ig;	
-	// 	/**
-	// 	* Match all image links
-	// 	*/   
-	// 	var imgUrlRegexp = /(https?:\/\/.*\.(?:png|jpg|gif|jpeg))/ig;
-	// 	text = text.replace(ordinaryUrlRegexp, '<a href="$6" target="_blank">$6</a>');
-	// 	text = text.replace(ytUrlRegexp, '<iframe width="100%" height="100%" src="https://www.youtube.com/embed/$1" frameborder="0" allowfullscreen></iframe>');
-	// 	text = text.replace(imgUrlRegexp, '<img src="$1" alt />');	
-	// 	return text;
-	// }
-
-
-
-
-
-	// function closeCardView() {
-	// 	var viewCardForm = document.getElementById("viewCardForm").parentNode;
-	// 	viewCardForm.parentNode.removeChild(viewCardForm);
-	// 	closeFogBlanket();
-
-	// 	// to musiałem zakomentować, bo nie działał 
-	// 	// przez to card next/previous naviagator
-	// 	//viewedCardIndex = null;
-	// }
 
 	// function closeCollectionForm() {
 	// 	var collectionForm = document.getElementById("collectionForm").parentNode;
@@ -1904,67 +1950,6 @@
 
 
 
-
-
-	// function makeid()
-	// {
-	//     var text = "",
-	//     	possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-	//     for( var i=0; i < 5; i++ )
-	//         text += possible.charAt(Math.floor(Math.random() * possible.length));
-	//     return text;
-	// }
-
-	// function displayCards(page) {
-
-	// 	collections = JSON.parse(localStorage.getItem("Collections")) || [defaultCollection];
-
-	// 	var pageIndex = parseInt(page) || 1,
-	// 		i = 0; // wybrana strona do pokazania: 1 lub 2
-
-	// 	// bug: outdated number of cards in selectedCollection
-	// 	selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
-	// 	selectedCards = selectedCollection.cards;
-
-	// 	sortCards(selectedCards);
-
-	// 	cardsWrapper.innerHTML = '';
-
-	// 	var cardsCount = selectedCards.length; // 19 - number of cards
-	// 	var lastPageCardsCount = cardsCount % cardsPerPage; // 7 - liczba kart na ostatniej stronie
-
-	// 	if(lastPageCardsCount === 0) {
-	// 		lastPageCardsCount = cardsPerPage;
-	// 	}
-
-	// 	var pagesCount = Math.ceil(selectedCards.length / cardsPerPage); // 2 - liczba podstron
-
-	// 	// jezeli pagesCount === 1 to 
-	// 			//rob normalna petle [bedzie tylko jedna podstrona, nie ma paginacji]
-
-	// 	// jezeli pagesCount jest > 1 to
-	// 			// to jezeli wolana strona czyli pageIndex jest mniejsze od (pagesCount -1) [petla #1 do przedostatniej strony wlacznie]
-	// 					//to pokazuj 12 kart: i = 12 * pageIndex; i < 12 * pageIndex + 12; i++ [petla do przedostatniej karty ]
-
-	// 			// jezeli wolana strona jest pagesCount (ostatnia strona)
-	// 					// iteracja z ostatniej karty: i = cardsCount - lastPageCardsCount (12) a i < cardsCount;
-
-	// 	if (pagesCount === 1) {
-	// 		for (i = 0; i < cardsCount; i++) {
-	// 			buildCardMiniature(selectedCards[i]);
-	// 		}
-	// 	} else if (pageIndex < pagesCount) { // wiem, że będzie 12 kart
-	// 		for (i = cardsPerPage * (pageIndex - 1);i < cardsPerPage * (pageIndex - 1) + cardsPerPage;i++) {
-	// 			buildCardMiniature(selectedCards[i]);
-	// 		}
-	// 	} else if (pageIndex === pagesCount) {
-	// 		for (i = (cardsCount - lastPageCardsCount);i < cardsCount;i++) {
-	// 			buildCardMiniature(selectedCards[i]);
-	// 		}		
-	// 	}
-
-	// 	setCardsWrapperHeight();
-	// }
 
 
 
@@ -2055,13 +2040,13 @@
 	 */
 	var Flashrr = {
 		utils: utils,
-		cardCounter: cardCounter,
 		flashcardsOnly: flashcardsOnly,
 		searchCards: searchCards,
 		viewTypes: viewTypes,
 		profile: profile,
 		collectionSelector: collectionSelector,
 		cards: cards,
+		cardCounter: cardCounter,
 		topicSelector: topicSelector,
 		cardsFilter: cardsFilter,
 		pagination: pagination
