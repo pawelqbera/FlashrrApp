@@ -16,16 +16,27 @@
 	/**
 	 *	Spotted drawbacks of Object Literal Pattern: 
 	 *  - no private methods: all methods are actually avaiable via Public API
-	 *
+	 *  
 	 */
 
 	// mam tutaj taki globalny DOM cache
 	// powinienem to wstawić do jakiegoś generic modułu
 
+	// albo...
+
+	// zrobić z tego 4 moduły po prostu...
+
 	var pageWrapper = document.getElementById("pageWrapper"),
 		header = document.getElementById("header"),
 		sectionWrapper = document.getElementById("sectionWrapper"),		
 		pseudoFooter = document.getElementById("pseudoFooter");
+
+	var utils = {
+
+		hasClass: function(element, cls) {
+		    return (' ' + element.className + ' ').indexOf(' ' + cls + ' ') > -1;
+		}
+	};
 
 	var cardCounter = {
 		init: function() {
@@ -41,7 +52,18 @@
 		},
 		render: function() {
 
+		},
+
+		countCards: function() {
+			var selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value,
+				index = selectedCollectionIndex !== "-1" ? selectedCollectionIndex : 0,
+				existingCards = collections[index].cards,
+				count = document.createTextNode(existingCards.length);
+			cardCounter.innerHTML = '';
+			cardCounter.appendChild(count);
+			count.nodeValue = existingCards.length;
 		}
+		
 	};
 
 	var flashcardsOnly = {
@@ -218,19 +240,25 @@
 		}
 	};
 
-	var collections = {
-		defaultCollection: {
-			id: "xxxxx",
-			name: "default_collection",
-			description: "initial collection to start off",
-			topics: [],
-			cards: []
-		},
-		collections: JSON.parse(localStorage.getItem("Collections")) || [defaultCollection],
-		selectedCollection: JSON.parse(localStorage.getItem("selectedCollection")) || collections[0],
-		//selectedCards: selectedCollection.cards,
+	profile.userNameForm = {
 
+	};
+
+	var collections = {
+		model: function() {
+			this.defaultCollection = {
+				id: "xxxxx",
+				name: "default_collection",
+				description: "initial collection to start off",
+				topics: [],
+				cards: []
+			};
+			this.collections = JSON.parse(localStorage.getItem("Collections")) || [this.defaultCollection];
+			this.selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || this.collections[0];
+			this.selectedCards = this.selectedCollection.cards;
+		},
 		init: function() {
+			this.model();
 			this.cacheDOM();
 			this.bindEvents();
 			this.render();
@@ -1558,15 +1586,7 @@
 	// 	closeFogBlanket();
 	// }
 
-	// function countCards() {
-	// 	var selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value,
-	// 		index = selectedCollectionIndex !== "-1" ? selectedCollectionIndex : 0,
-	// 		existingCards = collections[index].cards,
-	// 		count = document.createTextNode(existingCards.length);
-	// 	cardCounter.innerHTML = '';
-	// 	cardCounter.appendChild(count);
-	// 	count.nodeValue = existingCards.length;
-	// }
+
 
 	// function createCard(updatedCardId, cardAttachments) {
 	// 	var tags = cardTags.value.split(","),
@@ -1822,11 +1842,6 @@
 	// 	getView();
 	// }
 
-	
-	// /* Utils */
-	// function hasClass(element, cls) {
-	//     return (' ' + element.className + ' ').indexOf(' ' + cls + ' ') > -1;
-	// }
 
 	// /**
 	//  *  Initialize Flashrr app
@@ -1844,8 +1859,11 @@
 	// }
 
 
-	// Expose Flashrr modules to public API
+	/**
+	 * Expose Flashrr modules via public API
+	 */
 	var Flashrr = {
+		utils: utils,
 		cardCounter: cardCounter,
 		flashcardsOnly: flashcardsOnly,
 		searchCards: searchCards,
