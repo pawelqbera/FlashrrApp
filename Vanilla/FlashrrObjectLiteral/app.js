@@ -31,6 +31,12 @@
 		sectionWrapper = document.getElementById("sectionWrapper"),		
 		pseudoFooter = document.getElementById("pseudoFooter");
 
+
+	/**	
+	 *  Utils module contains shims, DOM manipulation 
+	 *  function helpers and stuff for other purposes 
+	 *
+	 */
 	var utils = {
 
 		hasClass: function(element, cls) {
@@ -38,6 +44,10 @@
 		}
 	};
 
+	/**	
+	 *  Card counter module 
+	 *
+	 */
 	var cardCounter = {
 		init: function() {
 			this.cacheDOM();
@@ -66,6 +76,10 @@
 		
 	};
 
+	/**	
+	 *  Flashcards only checkbox option module 
+	 *
+	 */
 	var flashcardsOnly = {
 		selectedFlashcardsOnly: JSON.parse(localStorage.getItem("selectedFlashcardsOnly")) || false,
 		init: function() {
@@ -89,6 +103,10 @@
 		}
 	};
 
+	/**	
+	 *  Search cards module 
+	 *
+	 */
 	var searchCards = {
 		init: function() {
 			this.cacheDOM();
@@ -112,8 +130,14 @@
 		}		
 	};
 
+	/**	
+	 *  Views module for manipulating displaying 
+	 *  cards options and types
+	 *
+	 */
 	var views = {
 		viewType: JSON.parse(localStorage.getItem("viewType")) || 'grid-view',
+		
 		init: function() {
 			this.cacheDOM();
 			this.bindEvents();
@@ -155,23 +179,25 @@
 			this.userNameSection = document.getElementById('userNameSection');
 		},
 		bindEvents: function() {
-			this.hiUserName.addEventListener("click", this.openUserNameForm.bind(this));
+			this.hiUserName.addEventListener("click", function() { userNameForm.init(); });
 		},
 		render: function() {
 			var data = {
 				userName: this.userName
 			}
 			this.hiUserName.innerHTML = data.userName;
+		}
+	};
+
+	var userNameForm = {
+		userName: JSON.parse(localStorage.getItem("userName")) || "Guest",
+
+		init: function() {
+			this.render();
+			this.cacheDOM();
+			this.bindEvents();
 		},
-		openUserNameForm: function(e) {
-
-			// Rozważmy teraz, czy ta metoda powinna w tym momencie inicjalizować 
-			// nowy czyli osobny moduł o nazwie UserNameForm
-			// czy jednak brniemy dalej i da się to zostawić w tym module?
-
-			// moim zdaniem bez sensu, bo robimy tu render htmla, a DOM powinien 
-			// być dotykany tylko w funkcji render
-
+		render: function() {
 			// ponadto przyda się ogólny obiekt na tworzenie FORMÓW, bo widać tu 
 			// ewidentnie wspólne elementy takie jak: fogBlanket, metoda close, appendowanie do parenta itp.
 
@@ -205,29 +231,22 @@
 			fogBlanket.className = "fog-blanket";
 			fogBlanket.id = "fogBlanket";
 			pageWrapper.appendChild(fogBlanket);
-
-			// ewidentnie - to powinno iść do CacheDOM
-			var closeBtn = document.getElementById('closeBtn');
-			var cancelForm = document.getElementById('cancelForm');
-			var fogBlanket = document.getElementById('fogBlanket');
-
-			// ewidentnie - to powinno iść z kolei do BindEvents
-			userNameForm.addEventListener('submit', this.userNameSubmit.bind(this));
-			closeBtn.addEventListener('click', this.closeUserNameForm.bind(this));
-			cancelForm.addEventListener('click', this.closeUserNameForm.bind(this));
-			fogBlanket.addEventListener('click', this.closeUserNameForm.bind(this));
-
 		},
-		userNameSubmit: function(e) {
-			e.preventDefault();
-			this.userName = formUserName.value;
-			localStorage.setItem("userName", JSON.stringify(this.userName));
-			this.closeUserNameForm();
-			this.render();			
+		cacheDOM: function() {
+			this.userNameForm = document.getElementById("userNameForm");
+			this.closeBtn = document.getElementById('closeBtn');
+			this.cancelForm = document.getElementById('cancelForm');
+			this.fogBlanket = document.getElementById('fogBlanket');
 		},
-		closeUserNameForm: function(e) {
-			var userNameForm = document.getElementById("userNameForm").parentNode;			
-			userNameForm.parentNode.removeChild(userNameForm);
+		bindEvents: function() {
+			this.closeBtn.addEventListener('click', this.closeUserNameForm.bind(this));
+			this.cancelForm.addEventListener('click', this.closeUserNameForm.bind(this));
+			this.fogBlanket.addEventListener('click', this.closeUserNameForm.bind(this));
+			this.userNameForm.addEventListener('submit', this.userNameSubmit.bind(this));			
+		},
+		closeUserNameForm: function() {
+			var userNameFormWrapper = this.userNameForm.parentNode;
+			userNameFormWrapper.parentNode.removeChild(userNameFormWrapper);
 			this.closeUserNameFogBlanket();
 		},
 		closeUserNameFogBlanket: function() {
@@ -237,13 +256,19 @@
 				var fogBlanket = document.getElementById("fogBlanket");
 				fogBlanket.parentNode.removeChild(fogBlanket);		
 			}
+		},
+		userNameSubmit: function() {
+			this.userName = formUserName.value;
+			localStorage.setItem("userName", JSON.stringify(this.userName));
+			this.closeUserNameForm();
+			profile.render();
 		}
 	};
 
-	profile.userNameForm = {
-
-	};
-
+	/**	
+	 *  Card Collections module
+	 *
+	 */
 	var collections = {
 		model: function() {
 			this.defaultCollection = {
@@ -285,7 +310,12 @@
 
 		}	
 	};
-			
+
+
+	/**	
+	 *  Cards module
+	 *
+	 */			
 	var cards = {
 		init: function() {
 			this.cacheDOM();
@@ -297,18 +327,356 @@
 			this.cardsWrapper = document.getElementById("cardsWrapper");
 		},
 		bindEvents: function() {
-			this.createCardBtn.addEventListener("click", this.openCardForm.bind(this));
+			this.createCardBtn.addEventListener("click", function() { cardForm.init(); });
 		},
 		render: function() {
 
 		},
 
-		openCardForm: function(e) {
-			console.log('event');
-
-		}
 	};
 
+	/**
+	 * Card Form module
+	 *
+	 */
+	var cardForm = {
+		//@param 
+		init: function(editableCard) {
+			editableCard = editableCard || false;
+			this.render(editableCard);
+			this.cacheDOM();			
+			this.bindEvents();			
+		},
+		cacheDOM: function() {
+			this.closeBtn = document.getElementById('closeBtn');
+			this.cancelForm = document.getElementById('cancelFormBtn');
+			this.fogBlanket = document.getElementById('fogBlanket');
+		},
+		bindEvents: function() {
+			var _this = this;
+			this.closeBtn.addEventListener('click', this.closeCreateCardForm.bind(this));
+			this.cancelForm.addEventListener('click', this.closeCreateCardForm.bind(this));
+			this.fogBlanket.addEventListener('click', this.closeCreateCardForm.bind(this));	
+
+
+			createCardForm.addEventListener('submit', function(event) {
+				event.preventDefault();
+				//createCard(updatedCardId, cardAttachments);
+			});
+
+			cardAttachment.addEventListener('change', function(event) {
+				//getAttachments(event, cardAttachments);
+			});
+
+			cardDropArea.addEventListener("dragover", function(event) {
+				event.stopPropagation();
+				event.preventDefault();
+			});
+
+			cardDropArea.addEventListener("dragleave", function(event) {
+				event.stopPropagation();
+				event.preventDefault();
+			});
+
+			cardDropArea.addEventListener("drop", function(event) {
+				//getAttachments(event, cardAttachments);
+			});
+		},
+		render: function(editableCard) {
+			if (document.getElementById('createCardSection')) {
+				return false;
+			}
+
+			var editMode = editableCard ? true : false,
+				cardFormHeader = editableCard ? "Edit Card" : "Create Card",
+				cardTitle = editableCard ? editableCard.title : "",
+				cardUrl = editableCard ? editableCard.url : "",
+				cardText = editableCard ? editableCard.text : "",
+				cardTags = editableCard ? editableCard.tags : "",
+				cardThumbs = editableCard ? editableCard.thumbs : "",
+				cardFormSubmitLabel = editableCard ? editableCard.submitLabel : "Create Card",
+				updatedCardId = editableCard ? editableCard.id : null,
+				cardAttachments = editableCard ? editableCard.attachments : [],
+				isFlashcard = editableCard ? editableCard.isFlashcard : false;
+
+			var cardThumbs = '',
+				i = 0;
+
+				for (; i < cardAttachments.length; i++) {
+					cardThumbs += '<img src="' + cardAttachments[i] + '" class="view-card-thumb" />';
+				}
+
+			var html = '';
+				html += '	<form id="createCardForm">';
+				html += '		<h2>' + cardFormHeader + '</h2>';
+				html += '		<span id="closeBtn" class="close-btn">X</span>';
+				html += '		<div class="card-type-wrapper">';
+				html += '			<label for="cardType">Card Type</label>';
+				html += '			<select id="cardType" name="cardType" required>';
+				html +=	'				<option value="text" selected="selected">default text</option>';
+				html += '			</select>';
+				html += '		</div>';
+				html += '		<div id="cardTopicWrapper" class="card-topic-wrapper"></div>';
+				html += '		<div>';
+				html += '			<input type="text" id="cardTitle" name="cardTitle" value="' + cardTitle + '" placeholder="title" required>';
+				html += '		</div>';
+				html += '		<div>';
+				html += '			<input type="text" id="cardUrl" name="cardUrl" value="' + cardUrl + '" placeholder="external link">';
+				html += '		</div>';
+				html += '		<div>';
+				html += '			<textarea id="cardText" name="cardText" placeholder="enter some content here..." required>' + cardText + '</textarea>';
+				html += '		</div>';
+				html += '		<div>';
+				html += '			<label>Tags [optional]</label>';
+				html += '			<input type="text" id="cardTags" name="cardTags" value="' + cardTags + '" placeholder="eg. books, reading, literature">';
+				html += '		</div>';
+				html += '		<div id="cardDropArea" class="card-drop-area">';
+				html += '			<input type="file" id="cardAttachment" class="card-attachment" multiple>';
+				html += '		</div>';
+				html += '		<div>';
+				html += '			<label>Attachments:</label>';				
+				html += '			<div class="view-thumb-list">' + cardThumbs + '</div>';
+				html += '		</div>';
+				html += '		<div id="thumbList" class="thumb-list"></div>';
+				html += '		<div>';
+				html += '			<input type="checkbox" id="flashcardCheck">';
+				html += '			<label for="flashcardCheck">Flashcard</label>';
+				html += '		</div>';
+				html += '		<div>';
+				html += '			<button class="submit-card-form">' + cardFormSubmitLabel + '</button>';
+				html += '			<a id="cancelFormBtn" class="cancel-form">Cancel</a>';
+				html += '		</div>';
+				html += '	</form>';
+
+			var tempCardForm = document.createElement('SECTION');
+			tempCardForm.id = "createCardSection";
+			tempCardForm.className = "create-card-section";
+			tempCardForm.innerHTML = html.trim();
+			pageWrapper.appendChild(tempCardForm);
+
+			var fogBlanket = document.createElement('div');
+			fogBlanket.className = "fog-blanket";
+			fogBlanket.id = "fogBlanket";
+			pageWrapper.appendChild(fogBlanket);
+
+			var cardAttachment = document.getElementById("cardAttachment"),
+				flashcardCheck = document.getElementById("flashcardCheck"),
+				cardDropArea = document.getElementById("cardDropArea");
+
+			if(isFlashcard) {
+				flashcardCheck.checked = true;
+			} else {
+				flashcardCheck.checked = false;
+			}
+
+			//this.createTopicAdder("cardTopicWrapper");
+
+			//this.createAddTopicLink();
+
+			var addTopicLink = document.getElementById("addTopicLink");
+
+			//this.getCollectionTopics();
+
+		},
+		closeCreateCardForm: function() {
+			var createCardForm = document.getElementById("createCardForm").parentNode;			
+			createCardForm.parentNode.removeChild(createCardForm);
+			this.closeCreateCardFogBlanket();
+		},
+		closeCreateCardFogBlanket: function() {
+			var isFog = !!document.getElementById("fogBlanket");
+			
+			if(isFog) {
+				var fogBlanket = document.getElementById("fogBlanket");
+				fogBlanket.parentNode.removeChild(fogBlanket);		
+			}
+		},		
+		createCard: function(updatedCardId, cardAttachments) {
+			var tags = cardTags.value.split(","),
+				date = new Date(),
+				form = document.forms[0],
+				card = {
+					id: updatedCardId || makeid(),
+					topic: cardTopic.options[cardTopic.selectedIndex].text,
+					title: cardTitle.value,
+					url: cardUrl.value || '',
+					text: cardText.value,
+					tags: tags || [],
+					attachments: cardAttachments,
+					author: userName,
+					date: date.getTime(),
+					isFlashcard: flashcardCheck.checked,
+					views: 0,
+					submitLabel: 'Update Card'
+				},
+			existingCards = collections[collectionIndex].cards;
+
+		    if(!existingCards) {
+		    	existingCards = [];
+		    }
+
+			if (updatedCardId) {
+				for(var i = 0; i < existingCards.length; i++) {
+					var obj = existingCards[i];
+					if(updatedCardId.indexOf(obj.id) !== -1) {
+						existingCards[i] = card;
+						break;
+					}
+				}
+			}
+			else {
+				existingCards.push(card);
+			}
+
+			var selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value;
+			
+			// Update and load new collections
+			collections[selectedCollectionIndex].cards = existingCards;
+			localStorage.setItem("Collections", JSON.stringify(collections));
+			collections = JSON.parse(localStorage.getItem("Collections")) || [defaultCollection];
+
+			// Update and load new selectedCollection based on updated collections
+			collections[selectedCollectionIndex].topics = selectedCollection.topics;
+			selectedCollection = collections[selectedCollectionIndex];
+			localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
+			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
+			
+			//getView();
+			//getCollections();
+			//countCards();
+			//getTopics();
+			//selectCardsByTopic();
+			//greetUser();
+			//addPagination();
+		}
+
+	};
+
+	/**
+	 *  Topic Adder module
+	 *
+	 */
+	var topicAdder = {
+
+		init: function() {
+			this.cacheDOM();
+			this.bindEvents();
+			this.render();
+		},
+		cacheDOM: function() {
+
+		},
+		bindEvents: function() {
+
+		},
+		render: function() {
+
+		},
+
+		createTopicAdder: function(parentId, isMultiple) {
+			var parent = document.getElementById(parentId),
+				cardTopics = '';
+
+			var html = '';
+				html += '	<label for="cardTopic">Select Topic</label>';
+				html += '	<select id="cardTopic" required>' + cardTopics + '</select>';
+				html += '	<div id="createTopicValidationBox" class="validation-box"></div>';
+
+			parent.innerHTML = html;
+
+			var cardTopic = document.getElementById("cardTopic");
+			
+			if(isMultiple) {
+				cardTopic.multiple = "multiple";
+			
+				cardTopic.addEventListener('change', function(event) {
+					this.setSelectedTopics();
+				});
+			}
+		},
+		setSelectedTopics: function() {
+			var selectedTopics = [],
+				options = cardTopic && cardTopic.options;
+
+			for (var i=0, iLen=options.length; i<iLen; i++) {
+				if (options[i].selected) {
+					selectedTopics.push(options[i].text);
+				}
+			}
+			selectedCollection.topics = selectedTopics;
+		},
+		createAddTopicLink: function() {
+			
+			var addTopicLink = document.createElement('a');
+			addTopicLink.id = "addTopicLink";
+			addTopicLink.className = "add-topic-link";
+			
+			var addTopicLinkLabel = document.createTextNode("+ Add new topic");
+			addTopicLink.appendChild(addTopicLinkLabel);
+			parent.appendChild(addTopicLink);
+
+			addTopicLink.addEventListener('click', function(event) {
+				event.stopPropagation();
+				this.createAddTopicInput(event);
+			});
+		},
+		createAddTopicInput: function(event) {
+			var element = event.target;
+			var createTopicInput = document.createElement('input');
+			createTopicInput.id = "createTopicInput";
+			createTopicInput.className = "create-topic-input";
+			createTopicInput.placeholder = "enter topic name";
+			createTopicInput.required = "required";
+			element.parentNode.appendChild(createTopicInput);
+			createTopicInput.focus();
+			element.parentNode.removeChild(element);
+
+			createTopicInput.addEventListener('blur', function(event) {
+				createNewTopic(event);
+				createAddTopicLink();
+				removeAddTopicInput();
+			});
+		},
+		createNewTopic: function(event) {
+			var createTopicValidationBox = document.getElementById('createTopicValidationBox'),
+				newTopic = event.target.value;
+
+			for(var i = 0; i < selectedCollection.topics.length; i++) {
+				if(selectedCollection.topics[i].indexOf(newTopic) !== -1) {
+					createTopicValidationBox.innerHTML = '<p class="validation-message">Specified topic already exists!</p>';
+					return false;
+				}
+			}
+			selectedCollection.topics.push(newTopic);
+			localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
+			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];		
+			
+
+			cardTopic.innerHTML = '';
+			getCollectionTopics();
+		},
+		removeAddTopicLink: function() {
+			var addTopicLink = document.getElementById("addTopicLink");
+			addTopicLink.parentNode.removeChild(addTopicLink);
+		},
+		removeAddTopicInput: function() {
+			createTopicInput.parentNode.removeChild(createTopicInput);
+		},
+		getCollectionTopics: function() {
+			// Get Collection Topics
+			cardTopics = '';
+			for (var i = 0; i < selectedCollection.topics.length; i++) {
+				cardTopics += '<option>' + selectedCollection.topics[i] + '</option>';
+			}
+			cardTopic.innerHTML = cardTopics;
+		}
+
+	};
+
+	/**	
+	 *  Cards Filter module
+	 *
+	 */	
 	var cardsFilter = {
 		selectedSorting: JSON.parse(localStorage.getItem("selectedSorting")) || "date",
 
@@ -343,6 +711,10 @@
 		}
 	}
 
+	/**	
+	 *  Card Topics module
+	 *
+	 */	
 	var topics = {
 		selectedTopic: JSON.parse(localStorage.getItem("selectedTopic")) || -1,
 		init: function() {
@@ -370,6 +742,10 @@
 		}
 	};
 
+	/**	
+	 *  Pagination module
+	 *
+	 */	
 	var pagination = {
 		selectedPage: JSON.parse(localStorage.getItem("selectedPage")) || 1,
 		init: function() {
@@ -400,11 +776,12 @@
 	pagination.init();
 
 	
+
+
+
 	// 	viewedCardIndex = null,
 	// 	listViewCardHeight = 150,
 	// 	cardsPerPage = setCardsPerPage();
-
-
 
 	// /**
 	// *  Event Listeners
@@ -1317,231 +1694,18 @@
 	// }
 
 
-	// function openCardForm(event, editableCard) {
-	// 	if (document.getElementById('createCardSection')) {
-	// 		return false;
-	// 	}
 
-	// 	var editMode = editableCard ? true : false,
-	// 		cardFormHeader = editableCard ? "Edit Card" : "Create Card",
-	// 		cardTitle = editableCard ? editableCard.title : "",
-	// 		cardUrl = editableCard ? editableCard.url : "",
-	// 		cardText = editableCard ? editableCard.text : "",
-	// 		cardTags = editableCard ? editableCard.tags : "",
-	// 		cardThumbs = editableCard ? editableCard.thumbs : "",
-	// 		cardFormSubmitLabel = editableCard ? editableCard.submitLabel : "Create Card",
-	// 		updatedCardId = editableCard ? editableCard.id : null,
-	// 		cardAttachments = editableCard ? editableCard.attachments : [],
-	// 		isFlashcard = editableCard ? editableCard.isFlashcard : false;
 
-	// 	var cardThumbs = '',
-	// 		i = 0;
 
-	// 		for (; i < cardAttachments.length; i++) {
-	// 			cardThumbs += '<img src="' + cardAttachments[i] + '" class="view-card-thumb" />';
-	// 		}
 
-	// 	var html = '';
-	// 		html += '	<form id="createCardForm">';
-	// 		html += '		<h2>' + cardFormHeader + '</h2>';
-	// 		html += '		<span id="closeBtn" class="close-btn">X</span>';
-	// 		html += '		<div class="card-type-wrapper">';
-	// 		html += '			<label for="cardType">Card Type</label>';
-	// 		html += '			<select id="cardType" name="cardType" required>';
-	// 		html +=	'				<option value="text" selected="selected">default text</option>';
-	// 		html += '			</select>';
-	// 		html += '		</div>';
-	// 		html += '		<div id="cardTopicWrapper" class="card-topic-wrapper"></div>';
-	// 		html += '		<div>';
-	// 		html += '			<input type="text" id="cardTitle" name="cardTitle" value="' + cardTitle + '" placeholder="title" required>';
-	// 		html += '		</div>';
-	// 		html += '		<div>';
-	// 		html += '			<input type="text" id="cardUrl" name="cardUrl" value="' + cardUrl + '" placeholder="external link">';
-	// 		html += '		</div>';
-	// 		html += '		<div>';
-	// 		html += '			<textarea id="cardText" name="cardText" placeholder="enter some content here..." required>' + cardText + '</textarea>';
-	// 		html += '		</div>';
-	// 		html += '		<div>';
-	// 		html += '			<label>Tags [optional]</label>';
-	// 		html += '			<input type="text" id="cardTags" name="cardTags" value="' + cardTags + '" placeholder="eg. books, reading, literature">';
-	// 		html += '		</div>';
-	// 		html += '		<div id="cardDropArea" class="card-drop-area">';
-	// 		html += '			<input type="file" id="cardAttachment" class="card-attachment" multiple>';
-	// 		html += '		</div>';
-	// 		html += '		<div>';
-	// 		html += '			<label>Attachments:</label>';				
-	// 		html += '			<div class="view-thumb-list">' + cardThumbs + '</div>';
-	// 		html += '		</div>';
-	// 		html += '		<div id="thumbList" class="thumb-list"></div>';
-	// 		html += '		<div>';
-	// 		html += '			<input type="checkbox" id="flashcardCheck">';
-	// 		html += '			<label for="flashcardCheck">Flashcard</label>';
-	// 		html += '		</div>';
-	// 		html += '		<div>';
-	// 		html += '			<button class="submit-card-form">' + cardFormSubmitLabel + '</button>';
-	// 		html += '			<a id="cancelFormBtn" class="cancel-form">Cancel</a>';
-	// 		html += '		</div>';
-	// 		html += '	</form>';
 
-	// 	var tempCardForm = document.createElement('SECTION');
-	// 	tempCardForm.id = "createCardSection";
-	// 	tempCardForm.className = "create-card-section";
-	// 	tempCardForm.innerHTML = html.trim();
-	// 	pageWrapper.appendChild(tempCardForm);
 
-	// 	var fogBlanket = document.createElement('div');
-	// 	fogBlanket.className = "fog-blanket";
-	// 	fogBlanket.id = "fogBlanket";
-	// 	pageWrapper.appendChild(fogBlanket);
 
-	// 	var cardAttachment = document.getElementById("cardAttachment"),
-	// 		flashcardCheck = document.getElementById("flashcardCheck"),
-	// 		cardDropArea = document.getElementById("cardDropArea");
 
-	// 	if(isFlashcard) {
-	// 		flashcardCheck.checked = true;
-	// 	} else {
-	// 		flashcardCheck.checked = false;
-	// 	}
 
-	// 	createCardForm.addEventListener('submit', function(event) {
-	// 		event.preventDefault();
-	// 		createCard(updatedCardId, cardAttachments);
-	// 	});
 
-	// 	cardAttachment.addEventListener('change', function(event) {
-	// 		getAttachments(event, cardAttachments);
-	// 	});
 
-	// 	cardDropArea.addEventListener("dragover", function(event) {
-	// 		event.stopPropagation();
-	// 		event.preventDefault();
-	// 	});
 
-	// 	cardDropArea.addEventListener("dragleave", function(event) {
-	// 		event.stopPropagation();
-	// 		event.preventDefault();
-	// 	});
-
-	// 	cardDropArea.addEventListener("drop", function(event) {
-	// 		getAttachments(event, cardAttachments);
-	// 	});
-
-	// 	createTopicAdder("cardTopicWrapper");
-
-	// }
-
-	// /**
-	//  *  Topic Adder Component
-	//  */
-	// function createTopicAdder(parentId, isMultiple) {
-
-	// 	var parent = document.getElementById(parentId),
-	// 		cardTopics = '';
-
-	// 	var html = '';
-	// 		html += '	<label for="cardTopic">Select Topic</label>';
-	// 		html += '	<select id="cardTopic" required>' + cardTopics + '</select>';
-	// 		html += '	<div id="createTopicValidationBox" class="validation-box"></div>';
-
-	// 	parent.innerHTML = html;
-
-	// 	var cardTopic = document.getElementById("cardTopic");
-	// 	if(isMultiple) {
-	// 		cardTopic.multiple = "multiple";
-		
-	// 		cardTopic.addEventListener('change', function(event) {
-	// 			setSelectedTopics();
-	// 		});
-	// 	}
-
-	// 	function setSelectedTopics() {
-	// 		var selectedTopics = [],
-	// 			options = cardTopic && cardTopic.options;
-
-	// 		for (var i=0, iLen=options.length; i<iLen; i++) {
-	// 			if (options[i].selected) {
-	// 				selectedTopics.push(options[i].text);
-	// 			}
-	// 		}
-	// 		selectedCollection.topics = selectedTopics;
-	// 	}
-
-	// 	function createAddTopicLink() {
-	// 		var addTopicLink = document.createElement('a');
-	// 		addTopicLink.id = "addTopicLink";
-	// 		addTopicLink.className = "add-topic-link";
-	// 		var addTopicLinkLabel = document.createTextNode("+ Add new topic");
-	// 		addTopicLink.appendChild(addTopicLinkLabel);
-	// 		parent.appendChild(addTopicLink);
-
-	// 		addTopicLink.addEventListener('click', function(event) {
-	// 			event.stopPropagation();
-	// 			createAddTopicInput(event);
-	// 		});
-	// 	}
-
-	// 	function createAddTopicInput(event) {
-	// 		var element = event.target;
-	// 		var createTopicInput = document.createElement('input');
-	// 		createTopicInput.id = "createTopicInput";
-	// 		createTopicInput.className = "create-topic-input";
-	// 		createTopicInput.placeholder = "enter topic name";
-	// 		createTopicInput.required = "required";
-	// 		element.parentNode.appendChild(createTopicInput);
-	// 		createTopicInput.focus();
-	// 		element.parentNode.removeChild(element);
-
-	// 		createTopicInput.addEventListener('blur', function(event) {
-	// 			createNewTopic(event);
-	// 			createAddTopicLink();
-	// 			removeAddTopicInput();
-	// 		});
-	// 	}
-
-	// 	function createNewTopic(event) {
-	// 		var createTopicValidationBox = document.getElementById('createTopicValidationBox'),
-	// 			newTopic = event.target.value;
-
-	// 		for(var i = 0; i < selectedCollection.topics.length; i++) {
-	// 			if(selectedCollection.topics[i].indexOf(newTopic) !== -1) {
-	// 				createTopicValidationBox.innerHTML = '<p class="validation-message">Specified topic already exists!</p>';
-	// 				return false;
-	// 			}
-	// 		}
-	// 		selectedCollection.topics.push(newTopic);
-	// 		localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
-	// 		selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];		
-			
-
-	// 		cardTopic.innerHTML = '';
-	// 		getCollectionTopics();
-	// 	}
-
-	// 	function removeAddTopicLink() {
-	// 		var addTopicLink = document.getElementById("addTopicLink");
-	// 		addTopicLink.parentNode.removeChild(addTopicLink);
-	// 	}
-
-	// 	function removeAddTopicInput() {
-	// 		createTopicInput.parentNode.removeChild(createTopicInput);
-	// 	}
-
-	// 	function getCollectionTopics() {
-	// 		// Get Collection Topics
-	// 		cardTopics = '';
-	// 		for (var i = 0; i < selectedCollection.topics.length; i++) {
-	// 			cardTopics += '<option>' + selectedCollection.topics[i] + '</option>';
-	// 		}
-	// 		cardTopic.innerHTML = cardTopics;
-	// 	}
-
-	// 	createAddTopicLink();
-
-	// 	var addTopicLink = document.getElementById("addTopicLink");
-
-	// 	getCollectionTopics();	
-	// }
 
 	// /**
 	// *  Handles File Selection
@@ -1588,64 +1752,7 @@
 
 
 
-	// function createCard(updatedCardId, cardAttachments) {
-	// 	var tags = cardTags.value.split(","),
-	// 		date = new Date(),
-	// 		form = document.forms[0],
-	// 		card = {
-	// 			id: updatedCardId || makeid(),
-	// 			topic: cardTopic.options[cardTopic.selectedIndex].text,
-	// 			title: cardTitle.value,
-	// 			url: cardUrl.value || '',
-	// 			text: cardText.value,
-	// 			tags: tags || [],
-	// 			attachments: cardAttachments,
-	// 			author: userName,
-	// 			date: date.getTime(),
-	// 			isFlashcard: flashcardCheck.checked,
-	// 			views: 0,
-	// 			submitLabel: 'Update Card'
-	// 		},
-	// 	existingCards = collections[collectionIndex].cards;
 
-	//     if(!existingCards) {
-	//     	existingCards = [];
-	//     }
-
-	// 	if (updatedCardId) {
-	// 		for(var i = 0; i < existingCards.length; i++) {
-	// 			var obj = existingCards[i];
-	// 			if(updatedCardId.indexOf(obj.id) !== -1) {
-	// 				existingCards[i] = card;
-	// 				break;
-	// 			}
-	// 		}
-	// 	}
-	// 	else {
-	// 		existingCards.push(card);
-	// 	}
-
-	// 	var selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value;
-		
-	// 	// Update and load new collections
-	// 	collections[selectedCollectionIndex].cards = existingCards;
-	// 	localStorage.setItem("Collections", JSON.stringify(collections));
-	// 	collections = JSON.parse(localStorage.getItem("Collections")) || [defaultCollection];
-
-	// 	// Update and load new selectedCollection based on updated collections
-	// 	collections[selectedCollectionIndex].topics = selectedCollection.topics;
-	// 	selectedCollection = collections[selectedCollectionIndex];
-	// 	localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
-	// 	selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
-		
-	// 	getView();
-	// 	getCollections();
-	// 	countCards();
-	// 	getTopics();
-	// 	selectCardsByTopic();
-	// 	greetUser();
-	// 	addPagination();
-	// }
 
 	// function makeid()
 	// {
