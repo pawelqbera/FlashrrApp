@@ -15,27 +15,48 @@
 
 	/**
 	 *	Spotted drawbacks of Object Literal Pattern: 
-	 *  - no private methods: all methods are actually avaiable via Public API
-	 *  
+	 *  - no private methods: all methods are actually avaiable via Public API 
 	 */
 
 	// mam tutaj taki globalny DOM cache
 	// powinienem to wstawić do jakiegoś generic modułu
-
 	// albo...
-
 	// zrobić z tego 4 moduły po prostu...
 
 	var pageWrapper = document.getElementById("pageWrapper"),
-		header = document.getElementById("header"),
-		sectionWrapper = document.getElementById("sectionWrapper"),		
-		pseudoFooter = document.getElementById("pseudoFooter");
+		
+		sectionWrapper = document.getElementById("sectionWrapper");		
 
+
+	/**
+	 * Model with Default Data Collections
+	 */
+	var data = {
+		defaultCollection: {
+			id: "xxxxx",
+			name: "default_collection",
+			description: "initial collection to start off",
+			topics: ['js patterns', 'css patterns', 'jquery patterns'],
+			cards: [{
+				attachments: [],
+				author: "Johnny Ola",
+				date: 1460809197759,
+				id: "ZOgOd",
+				isFlashcard: false,
+				submitLabel:"Update Card",
+				tags: ['jack', 'johnny'],
+				text: "object literal pattern",
+				title: "OLP in action ",
+				topic: "js patterns",
+				url: "olp.com",
+				views: 20				
+			}]
+		}
+	};
 
 	/**	
 	 *  Utils module contains shims, DOM manipulation 
 	 *  function helpers and stuff for other purposes 
-	 *
 	 */
 	var utils = {
 
@@ -46,7 +67,6 @@
 
 	/**	
 	 *  Card counter module 
-	 *
 	 */
 	var cardCounter = {
 		init: function() {
@@ -77,11 +97,11 @@
 	};
 
 	/**	
-	 *  Flashcards only checkbox option module 
-	 *
+	 *  Flashcards only checkbox option module
 	 */
 	var flashcardsOnly = {
 		selectedFlashcardsOnly: JSON.parse(localStorage.getItem("selectedFlashcardsOnly")) || false,
+		
 		init: function() {
 			this.cacheDOM();
 			this.bindEvents();
@@ -135,9 +155,9 @@
 	 *  cards options and types
 	 *
 	 */
-	var views = {
+	var viewTypes = {
 		viewType: JSON.parse(localStorage.getItem("viewType")) || 'grid-view',
-		
+
 		init: function() {
 			this.cacheDOM();
 			this.bindEvents();
@@ -269,21 +289,11 @@
 	 *  Card Collections module
 	 *
 	 */
-	var collections = {
-		model: function() {
-			this.defaultCollection = {
-				id: "xxxxx",
-				name: "default_collection",
-				description: "initial collection to start off",
-				topics: [],
-				cards: []
-			};
-			this.collections = JSON.parse(localStorage.getItem("Collections")) || [this.defaultCollection];
-			this.selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || this.collections[0];
-			this.selectedCards = this.selectedCollection.cards;
-		},
+	var collectionSelector = {
+		collections: JSON.parse(localStorage.getItem("Collections")) || [data.defaultCollection],
+		selectedCollection: JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
+
 		init: function() {
-			this.model();
 			this.cacheDOM();
 			this.bindEvents();
 			this.render();
@@ -295,7 +305,7 @@
 			this.collectionSelect.addEventListener("change", this.selectCollection.bind(this));
 		},
 		render: function() {
-
+			this.selectedCards = this.selectedCollection.cards;
 		},
 
 		selectCollection: function(e) {
@@ -317,22 +327,231 @@
 	 *
 	 */			
 	var cards = {
-		init: function() {
+		collections: JSON.parse(localStorage.getItem("Collections")) || [data.defaultCollection],
+		selectedCollection: JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
+		
+		init: function(page) {
+			page = page || false;
+
 			this.cacheDOM();
 			this.bindEvents();
-			this.render();
+			this.render(page);
 		},
 		cacheDOM: function() {
 			this.createCardBtn = document.getElementById("createCardBtn");
 			this.cardsWrapper = document.getElementById("cardsWrapper");
+			this.header = document.getElementById("header");
+			this.pseudoFooter = document.getElementById("pseudoFooter");
 		},
 		bindEvents: function() {
 			this.createCardBtn.addEventListener("click", function() { cardForm.init(); });
 		},
-		render: function() {
+		render: function(page) {
+
+			var pageIndex = parseInt(page) || 1,
+				i = 0,
+				selectedCards = this.selectedCollection.cards,
+				cardsPerPage = this.setCardsPerPage();
+
+			this.sortCards(selectedCards);
+
+			cardsWrapper.innerHTML = '';
+
+			var cardsCount = selectedCards.length; // 19 - number of cards
+			var lastPageCardsCount = cardsCount % cardsPerPage; // 7 - liczba kart na ostatniej stronie
+
+			if(lastPageCardsCount === 0) {
+				lastPageCardsCount = cardsPerPage;
+			}
+
+			var pagesCount = Math.ceil(selectedCards.length / cardsPerPage); // 2 - liczba podstron
+
+			if (pagesCount === 1) {
+				for (i = 0; i < cardsCount; i++) {
+					cardMiniature.init(selectedCards[i]);
+				}
+			} else if (pageIndex < pagesCount) { // wiem, że będzie 12 kart
+				for (i = cardsPerPage * (pageIndex - 1);i < cardsPerPage * (pageIndex - 1) + cardsPerPage;i++) {
+					cardMiniature.init(selectedCards[i]);
+				}
+			} else if (pageIndex === pagesCount) {
+				for (i = (cardsCount - lastPageCardsCount);i < cardsCount;i++) {
+					cardMiniature.init(selectedCards[i]);
+				}		
+			}
+
+			this.setCardsWrapperHeight();
 
 		},
+		sortCards: function(cards) {
+			if(cardsFilter.selectedSorting === 'date') {
+				this.sortCardsByDate(cards);
+			} else if(cardsFilter.selectedSorting === 'popularity') {
+				this.sortCardsByPopularity(cards);
+			} else if(cardsFilter.selectedSorting === 'title') {
+				this.sortCardsByTitle(cards);
+			}		
+		},
+		sortCardsByDate: function(cards) {
+			cards.sort(function(a, b){
+				return b.date - a.date;
+			});
+		},
+		sortCardsByPopularity: function(cards) {
+			cards.sort(function(a, b){
+				return b.views - a.views;
+			});
+		},
+		sortCardsByTitle: function(cards) {
+			cards.sort(function(a, b){
+				if (a.title < b.title) {
+					return -1;
+				} else if (a.title > b.title) {
+					return 1;
+				} else {
+					return 0;
+				}
+			});
+		},
+		setCardsPerPage: function() {
+	 		return (viewTypes.viewType === 'grid-view' || viewTypes.viewType === 'details-view') ? 12 : this.countCardsPerPage();
+		},
+		/**
+	     *  Determine the number of cards to be displayed in the list view on a single page
+	     */
+		countCardsPerPage: function() {
+			var cardsWrapperHeight = window.innerHeight - (this.header.offsetHeight + cardsFilter.cardsFilterWrapper.offsetHeight + this.pseudoFooter.offsetHeight),
+				cards = Math.floor(cardsWrapperHeight / listViewCardHeight);
+			return cards;
+		},
+		setCardsWrapperHeight: function() {
+	 		var cardsWrapperHeight = window.innerHeight - (this.header.offsetHeight + cardsFilter.cardsFilterWrapper.offsetHeight + this.pseudoFooter.offsetHeight);
+	 		cardsWrapper.style.height = cardsWrapperHeight + 'px';
+		}
+	};
 
+	/**
+	 * Card Miniature module
+	 *
+	 */
+	var cardMiniature = {
+
+		init: function(card) {
+			this.render(card);
+			this.cacheDOM();
+			this.bindEvents();
+		},
+		cacheDOM: function() {
+
+		},
+		bindEvents: function() {
+
+		},
+		render: function(card) {
+			var thumbs = '',
+				timeString = '';
+
+			for (var i = 0; i < card.attachments.length; i++) {
+				thumbs += '<img src="' + card.attachments[i] + '" class="card-thumb" />';
+			}
+
+			var now = new Date(),
+				relativeDate = now.getTime() - card.date;
+
+			if(relativeDate < 60000) {
+				timeString = 'just';
+			} else if (relativeDate < 3600000) {
+				timeString = (Math.floor(relativeDate / 60000)) + ' minutes ago';
+			} else if (relativeDate < 86400000) {
+				timeString = (Math.floor(relativeDate / 3600000)) + ' hours ago';
+			} else if (relativeDate > 86400000) {
+				timeString = (Math.floor(relativeDate / 86400000)) + ' days ago';
+			}
+
+			var flashcardClass = card.isFlashcard ? 'flashcard' : 'note',
+				urlifiedText = this.miniatureUrlify(card.url),
+				domain = this.extractDomain(card.url);
+
+			var html = '';
+				html += ' <div id="data-container' + card.id + '" class="data-container data-details ' + flashcardClass +'">';
+				html += ' 	<h3 class="data-details">' + card.title + '</h3>';
+				html += ' 	<p class="topic data-details">';
+				html += '		<span>' + timeString + '</span>';
+				html += '		<span>, in: <a class="card-topic-anchor">' + card.topic + '</a></span>';
+				html += '		<span> by <a class="card-author-anchor">' + card.author + '</a></span>';
+				html += '	</p>';
+				html += ' 	<p class="topic data-details"><b>' + card.views + '</b> views</p>';
+				if(!card.isFlashcard) {
+					html += ' 	<p class="data-details">' + card.text + '</p>';		
+					html += ' 	<div class="thumbs-container data-details">';
+					html += ' 		<p>Attachments: ' + card.attachments.length + '</p>';
+					html += ' 		<div>' + thumbs + '</div>';
+					html += ' 	</div>';
+					html += '		<div class="card-url">';
+					html += '			<label>External link:</label>';
+					html += '			<a rel="nofollow" href="' + card.url + '" target="_blank">' + domain + '</a>';
+					html += ' 			<div class="preview">' + urlifiedText + '</div>';
+					html += '		</div>';		
+					html += ' </div>';
+				}
+				html += ' <div class="card-actions" id="actions' + card.id + '">';
+				html += ' 	<a class="edit-card">Edit</a>';
+				html += ' 	<a class="remove-card">Remove</a>';
+				html += ' </div>';
+
+			var tempCardMiniature = document.createElement('DIV');
+			tempCardMiniature.id = "cardMiniature" + card.id;
+			tempCardMiniature.className = "card-miniature";
+			tempCardMiniature.innerHTML = html.trim();
+			cardsWrapper.appendChild(tempCardMiniature);
+		},
+		miniatureUrlify: function(text) {
+			/**
+			* Store the base text string for further comparison
+			*/
+			var baseStr = text;
+			
+			/**
+			* Match all URLs except image and YouTube video links
+			*/ 
+			var ordinaryUrlRegexp = /(?!(https?:\/\/.*\.(?:png|jpg|gif|jpeg)))(?!(http(?:s)?:\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?[\w\?​=]*)?))(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;	
+			
+			/**
+			* Match all YouTube video links
+			*/
+			var ytUrlRegexp = /http(?:s)?:\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?[\w\?​=]*)?/ig;	
+			
+			/**
+			* Match all image links
+			*/
+			var imgUrlRegexp = /(https?:\/\/.*\.(?:png|jpg|gif|jpeg))/ig;
+			text = text.replace(ordinaryUrlRegexp, '');
+			text = text.replace(ytUrlRegexp, '<iframe width="100%" height="100%" src="https://www.youtube.com/embed/$1" frameborder="0" allowfullscreen></iframe>');
+			text = text.replace(imgUrlRegexp, '<img src="$1" alt />');	
+
+			baseStr === text ? text = '' : text;			
+
+			return text;
+		},
+		extractDomain: function(url) {
+			var domain = null;
+			
+			/**
+			 *  Find & remove protocol (http, ftp, etc.) and get domain
+			 */
+			if (url.indexOf("://") > -1) {
+				domain = url.split('/')[2];
+			} else {
+				domain = url.split('/')[0];
+			}
+
+			/**
+			 *  Find & remove port number
+			 */	
+			domain = domain.split(':')[0];
+
+			return domain;
+		}
 	};
 
 	/**
@@ -686,10 +905,10 @@
 			this.render();
 		},
 		cacheDOM: function() {
-			this.cardsFilter = document.getElementById("cardsFilter");
+			this.cardsFilterWrapper = document.getElementById("cardsFilter");
 		},
 		bindEvents: function() {
-			this.cardsFilter.addEventListener("change", this.selectSortingMethod.bind(this));
+			this.cardsFilterWrapper.addEventListener("change", this.selectSortingMethod.bind(this));
 		},
 		render: function() {
 
@@ -715,8 +934,9 @@
 	 *  Card Topics module
 	 *
 	 */	
-	var topics = {
+	var topicSelector = {
 		selectedTopic: JSON.parse(localStorage.getItem("selectedTopic")) || -1,
+		
 		init: function() {
 			this.cacheDOM();
 			this.bindEvents();
@@ -764,24 +984,21 @@
 		}
 	};
 
+
 	cardCounter.init();
 	flashcardsOnly.init();
 	searchCards.init();
-	views.init();
+	viewTypes.init();
 	profile.init();
-	collections.init();
-	cards.init();
-	topics.init();	
+	collectionSelector.init();
+	topicSelector.init();	
 	cardsFilter.init();
+	cards.init();	
 	pagination.init();
 
 	
-
-
-
 	// 	viewedCardIndex = null,
 	// 	listViewCardHeight = 150,
-	// 	cardsPerPage = setCardsPerPage();
 
 	// /**
 	// *  Event Listeners
@@ -1043,39 +1260,7 @@
 	// 	}
 	// }
 
-	// function sortCards(cards) {
-	// 	if(selectedSorting === 'date') {
-	// 		sortCardsByDate(cards);
-	// 	} else if(selectedSorting === 'popularity') {
-	// 		sortCardsByPopularity(cards);
-	// 	} else if(selectedSorting === 'title') {
-	// 		sortCardsByTitle(cards);
-	// 	}
-	// }
 
-	// function sortCardsByDate(cards) {
-	// 	cards.sort(function(a, b){
-	// 		return b.date - a.date;
-	// 	});
-	// }
-
-	// function sortCardsByPopularity(cards) {
-	// 	cards.sort(function(a, b){
-	// 		return b.views - a.views;
-	// 	});
-	// }
-
-	// function sortCardsByTitle(cards) {
-	// 	cards.sort(function(a, b){
-	// 		if (a.title < b.title) {
-	// 			return -1;
-	// 		} else if (a.title > b.title) {
-	// 			return 1;
-	// 		} else {
-	// 			return 0;
-	// 		}
-	// 	});
-	// }
 
 	// function setSorting() {
 	// 	// Zamienić to na pętlę
@@ -1617,20 +1802,9 @@
 	// 	}
 	// }
 
-	// function extractDomain(url) {
-	// 	var domain;
-	// 	//find & remove protocol (http, ftp, etc.) and get domain
-	// 	if (url.indexOf("://") > -1) {
-	// 		domain = url.split('/')[2];
-	// 	} else {
-	// 		domain = url.split('/')[0];
-	// 	}
 
-	// 	//find & remove port number
-	// 	domain = domain.split(':')[0];
 
-	// 	return domain;
-	// }
+
 
 	// function urlify(text) {
 	// 	/**
@@ -1651,31 +1825,9 @@
 	// 	return text;
 	// }
 
-	// function miniatureUrlify(text) {
-	// 	/**
-	// 	* Store the base text string for further comparison
-	// 	*/
-	// 	var baseStr = text;
-	// 	/**
-	// 	* Match all URLs except image and YouTube video links
-	// 	*/ 
-	// 	var ordinaryUrlRegexp = /(?!(https?:\/\/.*\.(?:png|jpg|gif|jpeg)))(?!(http(?:s)?:\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?[\w\?​=]*)?))(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;	
-	// 	/**
-	// 	* Match all YouTube video links
-	// 	*/
-	// 	var ytUrlRegexp = /http(?:s)?:\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?[\w\?​=]*)?/ig;	
-	// 	/**
-	// 	* Match all image links
-	// 	*/   
-	// 	var imgUrlRegexp = /(https?:\/\/.*\.(?:png|jpg|gif|jpeg))/ig;
-	// 	text = text.replace(ordinaryUrlRegexp, '');
-	// 	text = text.replace(ytUrlRegexp, '<iframe width="100%" height="100%" src="https://www.youtube.com/embed/$1" frameborder="0" allowfullscreen></iframe>');
-	// 	text = text.replace(imgUrlRegexp, '<img src="$1" alt />');	
 
-	// 	baseStr === text ? text = '' : text;			
 
-	// 	return text;
-	// }
+
 
 	// function closeCardView() {
 	// 	var viewCardForm = document.getElementById("viewCardForm").parentNode;
@@ -1814,64 +1966,7 @@
 	// 	setCardsWrapperHeight();
 	// }
 
-	// function buildCardMiniature(card) {
-	// 	var thumbs = '',
-	// 		timeString = '';
 
-	// 	for (var i = 0; i < card.attachments.length; i++) {
-	// 		thumbs += '<img src="' + card.attachments[i] + '" class="card-thumb" />';
-	// 	}
-
-	// 	var now = new Date(),
-	// 		relativeDate = now.getTime() - card.date;
-
-	// 	if(relativeDate < 60000) {
-	// 		timeString = 'just';
-	// 	} else if (relativeDate < 3600000) {
-	// 		timeString = (Math.floor(relativeDate / 60000)) + ' minutes ago';
-	// 	} else if (relativeDate < 86400000) {
-	// 		timeString = (Math.floor(relativeDate / 3600000)) + ' hours ago';
-	// 	} else if (relativeDate > 86400000) {
-	// 		timeString = (Math.floor(relativeDate / 86400000)) + ' days ago';
-	// 	}
-
-	// 	var flashcardClass = card.isFlashcard ? 'flashcard' : 'note',
-	// 		urlifiedText = miniatureUrlify(card.url),
-	// 		domain = extractDomain(card.url);
-
-	// 	var html = '';
-	// 		html += ' <div id="data-container' + card.id + '" class="data-container data-details ' + flashcardClass +'">';
-	// 		html += ' 	<h3 class="data-details">' + card.title + '</h3>';
-	// 		html += ' 	<p class="topic data-details">';
-	// 		html += '		<span>' + timeString + '</span>';
-	// 		html += '		<span>, in: <a class="card-topic-anchor">' + card.topic + '</a></span>';
-	// 		html += '		<span> by <a class="card-author-anchor">' + card.author + '</a></span>';
-	// 		html += '	</p>';
-	// 		html += ' 	<p class="topic data-details"><b>' + card.views + '</b> views</p>';
-	// 		if(!card.isFlashcard) {
-	// 			html += ' 	<p class="data-details">' + card.text + '</p>';		
-	// 			html += ' 	<div class="thumbs-container data-details">';
-	// 			html += ' 		<p>Attachments: ' + card.attachments.length + '</p>';
-	// 			html += ' 		<div>' + thumbs + '</div>';
-	// 			html += ' 	</div>';
-	// 			html += '		<div class="card-url">';
-	// 			html += '			<label>External link:</label>';
-	// 			html += '			<a rel="nofollow" href="' + card.url + '" target="_blank">' + domain + '</a>';
-	// 			html += ' 			<div class="preview">' + urlifiedText + '</div>';
-	// 			html += '		</div>';		
-	// 			html += ' </div>';
-	// 		}
-	// 		html += ' <div class="card-actions" id="actions' + card.id + '">';
-	// 		html += ' 	<a class="edit-card">Edit</a>';
-	// 		html += ' 	<a class="remove-card">Remove</a>';
-	// 		html += ' </div>';
-
-	// 	var tempCardMiniature = document.createElement('DIV');
-	// 	tempCardMiniature.id = "cardMiniature" + card.id;
-	// 	tempCardMiniature.className = "card-miniature";
-	// 	tempCardMiniature.innerHTML = html.trim();
-	// 	cardsWrapper.appendChild(tempCardMiniature);
-	// }
 
 	// function addPagination() {
 	// 	if(selectedCards.length <= cardsPerPage) {
@@ -1920,28 +2015,17 @@
 	// 	}
 	// }
 
-	// // Set Heights
-	// function setCardsWrapperHeight() {
-	// 	//cardsWrapper = wysokość okna - ( header + cardsFilter + pseudoFooter)
-	// 	var cardsWrapperHeight = window.innerHeight - (header.offsetHeight + cardsFilter.offsetHeight + pseudoFooter.offsetHeight);
-	// 	cardsWrapper.style.height = cardsWrapperHeight + 'px';
-	// }
+
+
 
 	// function setCardPreviewHeight() {
 	// 	var cardPreviewHeight = window.innerHeight - (header.offsetHeight + cardsFilter.offsetHeight + pseudoFooter.offsetHeight);
 	// 	cardPreview.style.height = cardPreviewHeight + 'px';
 	// }
 
-	// //Determine the number of cards to be displayed in the list view on a single page
-	// function countCardsPerPage() {
-	// 	var cardsWrapperHeight = window.innerHeight - (header.offsetHeight + cardsFilter.offsetHeight + pseudoFooter.offsetHeight),
-	// 		cards = Math.floor(cardsWrapperHeight / listViewCardHeight);
-	// 	return cards;
-	// }
 
-	// function setCardsPerPage() {
-	// 	return (viewType === 'grid-view' || viewType === 'details-view') ? 12 : countCardsPerPage();
-	// }
+
+
 
 	// function handleResize() {
 	// 	setCardsWrapperHeight();
@@ -1974,11 +2058,11 @@
 		cardCounter: cardCounter,
 		flashcardsOnly: flashcardsOnly,
 		searchCards: searchCards,
-		views: views,
+		viewTypes: viewTypes,
 		profile: profile,
-		collections: collections,
+		collectionSelector: collectionSelector,
 		cards: cards,
-		topics: topics,
+		topicSelector: topicSelector,
 		cardsFilter: cardsFilter,
 		pagination: pagination
 	};

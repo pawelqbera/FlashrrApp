@@ -18,6 +18,7 @@ var viewType = JSON.parse(localStorage.getItem("viewType")) || 'grid-view',
 		cards: []
 	},
 	collections = JSON.parse(localStorage.getItem("Collections")) || [defaultCollection],
+	collectionIndex = collectionIndex || 0;
 	userName = JSON.parse(localStorage.getItem("userName")) || "Guest",
 	selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0],
 	selectedCards = selectedCollection.cards,
