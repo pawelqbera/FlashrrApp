@@ -18,6 +18,15 @@
 	 *  - no private methods: all methods are actually avaiable via Public API 
 	 */
 
+	/** TODOOS:
+	 *	1. this.selectedCollection -> definiować i odwoływać się do tylko w jednym module
+	 *		bo jest problem z updejtem, jak się coś w kolekcji zmieni
+	 *  2. Ustawić w każdym module poprawną kolejność: cacheDOM, render, bindEvents
+	 *  	- w cacheDOM nie powinny być odwołania do dynamicznych elementów z render
+	 *	3. Przenieść wszystkie inicjacyjne komponenty z index.html do pustych funkcji render()
+	 */
+
+
 	/**
 	 * Model with Default Data Collections
 	 */
@@ -632,9 +641,9 @@
 					id: updatedCollectionId || utils.makeid(),
 					name: collectionName.value,
 					description: collectionDescription.value,
-					author: userName,
+					author: profile.userName,
 					date: date.getTime(),
-					topics: selectedCollection.topics,
+					topics: this.selectedCollection.topics,
 					cards: collectionCards
 				},
 				existingCollections = JSON.parse(localStorage.getItem("Collections"));
@@ -657,9 +666,9 @@
 			cards.collections = existingCollections;
 			localStorage.setItem("Collections", JSON.stringify(existingCollections));
 			cards.collections = JSON.parse(localStorage.getItem("Collections"));
-			selectedCollection = collection;
+			this.selectedCollection = collection;
 			localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
-			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || cards.ollections[0];	
+			this.selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || cards.collections[0];	
 			
 			removeEditCollectionBtn();
 			getCollections();
@@ -668,7 +677,9 @@
 			cards.init(pagination.selectedPage);
 			
 			countCards();
-			addPagination();
+			
+			pagination.init();
+			
 			closeCollectionForm();
 			
 			topicSelector.selectCardsByTopic();
@@ -688,7 +699,7 @@
 				localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
 				selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
 				getCollections();
-				displayCards(selectedPage);
+				cards.init(this.selectedPage);
 				countCards();
 	 		} else {
 	 			return false;
@@ -1039,7 +1050,8 @@
 	 *
 	 */
 	var cardForm = {
-		//@param 
+		selectedCollection: JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
+
 		init: function(editableCard) {
 			editableCard = editableCard || false;
 			this.render(editableCard);
@@ -1058,26 +1070,26 @@
 
 			createCardForm.addEventListener('submit', function(event) {
 				event.preventDefault();
-				this.createCard(updatedCardId, cardAttachments);
-			});
+				this.createCard(this.updatedCardId, this.cardAttachments);
+			}.bind(this));
 
 			cardAttachment.addEventListener('change', function(event) {
-				this.getAttachments(event, cardAttachments);
-			});
+				this.getAttachments(event, this.cardAttachments);
+			}.bind(this));
 
 			cardDropArea.addEventListener("dragover", function(event) {
 				event.stopPropagation();
 				event.preventDefault();
-			});
+			}.bind(this));
 
 			cardDropArea.addEventListener("dragleave", function(event) {
 				event.stopPropagation();
 				event.preventDefault();
-			});
+			}.bind(this));
 
 			cardDropArea.addEventListener("drop", function(event) {
-				this.getAttachments(event, cardAttachments);
-			});
+				this.getAttachments(event, this.cardAttachments);
+			}.bind(this));
 		},
 		render: function(editableCard) {
 			if (document.getElementById('createCardSection')) {
@@ -1092,15 +1104,16 @@
 				cardTags = editableCard ? editableCard.tags : "",
 				cardThumbs = editableCard ? editableCard.thumbs : "",
 				cardFormSubmitLabel = editableCard ? editableCard.submitLabel : "Create Card",
-				updatedCardId = editableCard ? editableCard.id : null,
-				cardAttachments = editableCard ? editableCard.attachments : [],
 				isFlashcard = editableCard ? editableCard.isFlashcard : false;
+
+			this.updatedCardId = editableCard ? editableCard.id : null;
+			this.cardAttachments = editableCard ? editableCard.attachments : [];
 
 			var cardThumbs = '',
 				i = 0;
 
-				for (; i < cardAttachments.length; i++) {
-					cardThumbs += '<img src="' + cardAttachments[i] + '" class="view-card-thumb" />';
+				for (; i < this.cardAttachments.length; i++) {
+					cardThumbs += '<img src="' + this.cardAttachments[i] + '" class="view-card-thumb" />';
 				}
 
 			var html = '';
@@ -1172,7 +1185,7 @@
 
 			var addTopicLink = document.getElementById("addTopicLink");
 
-			//this.getCollectionTopics();
+			topicAdder.getCollectionTopics();
 
 		},
 		getAttachments: function(e, cardAttachments) {
@@ -1222,7 +1235,8 @@
 			}
 		},		
 		createCard: function(updatedCardId, cardAttachments) {
-			var tags = cardTags.value.split(","),
+			var selectedCollectionIndex = collectionSelector.collectionSelect.options[collectionSelector.collectionSelect.selectedIndex].value,
+				tags = cardTags.value.split(","),
 				date = new Date(),
 				form = document.forms[0],
 				card = {
@@ -1233,13 +1247,13 @@
 					text: cardText.value,
 					tags: tags || [],
 					attachments: cardAttachments,
-					author: userName,
+					author: profile.userName,
 					date: date.getTime(),
 					isFlashcard: flashcardCheck.checked,
 					views: 0,
 					submitLabel: 'Update Card'
 				},
-			existingCards = cards.collections[collectionIndex].cards;
+			existingCards = cards.collections[selectedCollectionIndex].cards;
 
 		    if(!existingCards) {
 		    	existingCards = [];
@@ -1262,14 +1276,15 @@
 			
 			// Update and load new collections
 			cards.collections[selectedCollectionIndex].cards = existingCards;
-			localStorage.setItem("Collections", JSON.stringify(collections));
+			localStorage.setItem("Collections", JSON.stringify(cards.collections));
 			cards.collections = JSON.parse(localStorage.getItem("Collections")) || [defaultCollection];
 
 			// Update and load new selectedCollection based on updated collections
-			cards.collections[selectedCollectionIndex].topics = selectedCollection.topics;
-			selectedCollection = cards.collections[selectedCollectionIndex];
-			localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
-			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || cards.collections[0];
+			cards.collections[selectedCollectionIndex].topics = this.selectedCollection.topics;
+			this.selectedCollection = cards.collections[selectedCollectionIndex];
+			localStorage.setItem("selectedCollection", JSON.stringify(this.selectedCollection));
+			
+			cards.selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || cards.collections[0];
 			
 			//getView();
 			//getCollections();
@@ -1414,8 +1429,16 @@
 		closeCardView: function() {
 			var viewCardForm = document.getElementById("viewCardForm").parentNode;
 			viewCardForm.parentNode.removeChild(viewCardForm);
-			closeFogBlanket();
+			this.closeCardViewFogBlanket();
 		},
+		closeCardViewFogBlanket: function() {
+			var isFog = !!document.getElementById("fogBlanket");
+			
+			if(isFog) {
+				var fogBlanket = document.getElementById("fogBlanket");
+				fogBlanket.parentNode.removeChild(fogBlanket);		
+			}
+		},		
 		countView: function(viewedCard) {
 			var selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value;
 			
@@ -1462,6 +1485,8 @@
 	 *
 	 */
 	var topicAdder = {
+		selectedCollection: JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
+
 		init: function(parentId, isMultiple) {
 			isMultiple = isMultiple || false; 
 
@@ -1476,7 +1501,7 @@
 			cardTopic.addEventListener('change', function(event) {
 				//spr czy nie trzeba tutaj dać warunku isMultiple?
 				this.setSelectedTopics();
-			});
+			}.bind(this));
 		},
 		render: function(parentId, isMultiple) {
 
@@ -1505,7 +1530,7 @@
 					selectedTopics.push(options[i].text);
 				}
 			}
-			selectedCollection.topics = selectedTopics;
+			this.selectedCollection.topics = selectedTopics;
 		},
 		createAddTopicLink: function() {
 			
@@ -1555,7 +1580,7 @@
 			
 
 			cardTopic.innerHTML = '';
-			getCollectionTopics();
+			this.getCollectionTopics();
 		},
 		removeAddTopicLink: function() {
 			var addTopicLink = document.getElementById("addTopicLink");
@@ -1566,9 +1591,11 @@
 		},
 		getCollectionTopics: function() {
 			// Get Collection Topics
-			cardTopics = '';
-			for (var i = 0; i < selectedCollection.topics.length; i++) {
-				cardTopics += '<option>' + selectedCollection.topics[i] + '</option>';
+			var cardTopics = '',
+				i = 0;
+
+			for (; i < this.selectedCollection.topics.length; i++) {
+				cardTopics += '<option>' + this.selectedCollection.topics[i] + '</option>';
 			}
 			cardTopic.innerHTML = cardTopics;
 		}
@@ -1650,12 +1677,20 @@
 		selectedCollection: JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
 
 		init: function() {
-			this.cacheDOM();
 			this.render();
+			this.cacheDOM();			
 			this.bindEvents();
 		},
 		cacheDOM: function() {
 
+		},
+		bindEvents: function() {
+			this.closeBtn.addEventListener('click', this.closeTopicForm.bind(this));
+			this.cancelFormBtn.addEventListener('click', this.closeTopicForm.bind(this));
+			this.fogBlanket.addEventListener('click', this.closeTopicForm.bind(this));
+			this.topicForm.addEventListener('submit', function(event) {
+				this.createTopic(event);
+			}.bind(this));
 		},
 		render: function() {
 			if (document.getElementById('topicSection')) {
@@ -1672,59 +1707,68 @@
 				html += '		<div id="topicValidationBox"></div>';
 				html += '		<div>';
 				html += '			<button>Add Topic</button>';
-				html += '			<a class="cancel-form">Cancel</a>';
+				html += '			<a class="cancel-form" id="cancelFormBtn">Cancel</a>';
 				html += '		</div>';
 				html += '	</form>';
 
-			var topicForm = document.createElement('SECTION');
-			topicForm.id = "topicSection";
-			topicForm.className = "topic-section";
-			topicForm.innerHTML = html.trim();
-			pageWrapper.appendChild(topicForm);
+			this.topicForm = document.createElement('SECTION');
+			this.topicForm.id = "topicSection";
+			this.topicForm.className = "topic-section";
+			this.topicForm.innerHTML = html.trim();
+			pageWrapper.appendChild(this.topicForm);
 
-			var fogBlanket = document.createElement('div');
-			fogBlanket.className = "fog-blanket";
-			fogBlanket.id = "fogBlanket";
-			pageWrapper.appendChild(fogBlanket);
+			this.fogBlanket = document.createElement('div');
+			this.fogBlanket.className = "fog-blanket";
+			this.fogBlanket.id = "fogBlanket";
+			pageWrapper.appendChild(this.fogBlanket);
 
-			closeBtn.addEventListener('click', function(event) {
-				closeTopicForm();
-			});
+			this.closeBtn = document.getElementById('closeBtn');
+			this.cancelFormBtn = document.getElementById('cancelFormBtn');
 
-			topicForm.addEventListener('submit', function(event) {
-				event.preventDefault();
-				var topicValidationBox = document.getElementById('topicValidationBox'),
-					newTopicForm = document.getElementById('topicForm'),
-					newTopic = topicName.value;
-				for(var i=0; i < selectedCollection.topics.length;i++) {
-					if(newTopic.indexOf(selectedCollection.topics[i]) !== -1) {
-						topicValidationBox.innerHTML = '<p class="validation-message">Specified topic already exists!</p>';
-						newTopicForm.reset();
-						return false;
-					}
-				}
-				this.selectedCollection.topics.push(newTopic);
-				
-				// wstawić nową selectedCollection do collections
-				var selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value;	
-				// Update and load new collections
-				collections[selectedCollectionIndex] = selectedCollection;
-				localStorage.setItem("Collections", JSON.stringify(collections));
-				collections = JSON.parse(localStorage.getItem("Collections")) || [defaultCollection];
-
-				// Update and load new selectedCollection based on updated collections
-				selectedCollection = collections[selectedCollectionIndex];
-				localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
-				selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];		
-				getTopics();		
-				closeTopicForm();
-			});
 		},
 		closeTopicForm: function() {
 			var topicForm = document.getElementById("topicForm").parentNode;
 			topicForm.parentNode.removeChild(topicForm);
 			topicSelect.getElementsByTagName('option')[0].selected = 'selected';
-			closeFogBlanket();
+			this.closeTopicFormFogBlanket();
+		},
+		closeTopicFormFogBlanket: function() {
+			var isFog = !!document.getElementById("fogBlanket");
+			
+			if(isFog) {
+				var fogBlanket = document.getElementById("fogBlanket");
+				fogBlanket.parentNode.removeChild(fogBlanket);		
+			}
+		},
+		createTopic: function(e) {
+			e.preventDefault();
+			var topicValidationBox = document.getElementById('topicValidationBox'),
+				newTopicForm = document.getElementById('topicForm'),
+				topicName = document.getElementById('topicName'),
+				newTopic = topicName.value;
+			for(var i=0; i < this.selectedCollection.topics.length;i++) {
+				if(newTopic.indexOf(this.selectedCollection.topics[i]) !== -1) {
+					topicValidationBox.innerHTML = '<p class="validation-message">Specified topic already exists!</p>';
+					newTopicForm.reset();
+					return false;
+				}
+			}
+			this.selectedCollection.topics.push(newTopic);
+			
+			// wstawić nową selectedCollection do collections
+			var selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value;	
+			// Update and load new collections
+			cards.collections[selectedCollectionIndex] = this.selectedCollection;
+			localStorage.setItem("Collections", JSON.stringify(cards.collections));
+			cards.collections = JSON.parse(localStorage.getItem("Collections")) || [defaultCollection];
+
+			// Update and load new selectedCollection based on updated collections
+			this.selectedCollection = cards.collections[selectedCollectionIndex];
+			localStorage.setItem("selectedCollection", JSON.stringify(this.selectedCollection));
+			
+			topicSelector.selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || cards.collections[0];			
+			topicSelector.init();		
+			this.closeTopicForm();			
 		}
 	};
 
