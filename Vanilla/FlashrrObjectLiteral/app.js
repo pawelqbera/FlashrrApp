@@ -148,11 +148,13 @@
 			this.showFlashcardsOnly.addEventListener("click", this.toggleTextCards.bind(this));
 		},
 		render: function() {
-			// bring here html from index.html 
+			// bring here html from index.html
+
+			this.checkSelectedFlashcardsOnly();
 		},
 		toggleTextCards: function(e) {
 
-			var element = (typeof e !== 'undefined') ? e.target : showFlashcardsOnly;
+			var element = (typeof e !== 'undefined') ? e.target : this.showFlashcardsOnly;
 
 			if(element.checked === true) {
 				localStorage.setItem('selectedFlashcardsOnly', JSON.stringify(true));			
@@ -172,6 +174,12 @@
 			} else {
 				localStorage.setItem('selectedFlashcardsOnly', JSON.stringify(false));		
 				cards.render(this.selectedCollection.cards);
+			}
+		},
+		checkSelectedFlashcardsOnly: function() {
+			if(this.selectedFlashcardsOnly === true) {
+				this.showFlashcardsOnly.checked = true;
+				this.toggleTextCards();
 			}
 		}
 		
@@ -197,11 +205,10 @@
 		render: function() {
 			//wstawić tutaj render modułu szukacza
 		},
-
 		searchCard: function(e) {
 			var searchValue = searchCards.value,
 				selectedCategorySearch = categorySearchSelect.options[categorySearchSelect.selectedIndex].value;
-			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
+			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || cards.collections[0];
 			selectedCards = selectedCollection.cards;
 			displayCards(selectedPage);
 
@@ -246,12 +253,67 @@
 			this.detailsViewBtn.addEventListener("click", this.toggleView.bind(this));
 		},
 		render: function() {
-
+			//tu wstawić render buttonów do wyboru view type
 		},
-
 		toggleView: function(e) {
-			console.log('event');
-
+			var element = e.target;
+			
+			if (element.id === "gridViewBtn" && this.viewType !== 'grid-view') {
+				this.switchGridView();
+			} else if (element.id === "listViewBtn" && this.viewType !== 'list-view') {
+				this.switchListView();	
+			} else if (element.id === "detailsViewBtn" && this.viewType !== 'details-view') {
+				this.switchDetailsView();	
+			}
+		},
+		getView: function() {
+			if(this.viewType === 'grid-view') {
+				switchGridView();
+			} else if (this.viewType === 'list-view') {
+				this.switchListView();
+			} else {
+				this.switchDetailsView();
+			}
+		},
+		switchGridView: function() {
+			if (this.viewType === 'details-view') {
+				removeCardPreview();
+			}	
+			this.viewType = 'grid-view';
+			var cardsPerPage = cards.setCardsPerPage();
+			cards.cardsWrapper.className = 'grid-view';
+			this.gridViewBtn.className += ' active';
+			this.listViewBtn.className = this.listViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
+			this.detailsViewBtn.className = this.detailsViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
+			localStorage.setItem("viewType", JSON.stringify(this.viewType));
+			
+			addPagination();
+		},
+		switchListView: function() {
+			if (this.viewType === 'details-view') {
+				removeCardPreview();
+			}	
+			this.viewType = 'list-view';
+			var cardsPerPage = cards.setCardsPerPage();
+			cards.cardsWrapper.className = 'list-view';
+			this.cacheDOM.listViewBtn.className += ' active';
+			this.gridViewBtn.className = this.gridViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
+			this.detailsViewBtn.className = this.detailsViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
+			localStorage.setItem("viewType", JSON.stringify(this.viewType));
+			
+			addPagination();		
+		},
+		switchDetailsView: function() {
+			this.viewType = 'details-view';
+			var cardsPerPage = cards.setCardsPerPage();
+			cards.cardsWrapper.className = 'details-view';
+			this.detailsViewBtn.className += ' active';
+			this.listViewBtn.className = this.listViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
+			this.gridViewBtn.className = this.gridViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
+			localStorage.setItem("viewType", JSON.stringify(this.viewType));
+			
+			addPagination();
+			createCardPreview();
 		}
 	};
 
@@ -402,9 +464,9 @@
 			} else if (element.value === 'addNewCollection') {
 				collectionForm.init();
 			} else {
-				this.selectedCollection = collections[element.value];
+				this.selectedCollection = cards.collections[element.value];
 				localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
-				this.selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
+				this.selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || cards.collections[0];
 				selectedTopic = -1;
 				localStorage.setItem("selectedTopic", JSON.stringify(selectedTopic));	
 				selectedCards = this.selectedCollection.cards;
@@ -536,12 +598,13 @@
 			else {
 				existingCollections.push(collection);
 			}
-			collections = existingCollections;
+			cards.collections = existingCollections;
 			localStorage.setItem("Collections", JSON.stringify(existingCollections));
-			collections = JSON.parse(localStorage.getItem("Collections"));
+			cards.collections = JSON.parse(localStorage.getItem("Collections"));
 			selectedCollection = collection;
 			localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
-			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];	
+			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || cards.ollections[0];	
+			
 			removeEditCollectionBtn();
 			getCollections();
 			getTopics();
@@ -572,7 +635,7 @@
 			this.createCardBtn = document.getElementById("createCardBtn");
 			this.cardsWrapper = document.getElementById("cardsWrapper");
 			this.header = document.getElementById("header");
-			this.pseudoFooter = document.getElementById("pseudoFooter");
+			this.pseudoFooter = document.getElementById("pseudoFooter");			
 		},
 		bindEvents: function() {
 			this.createCardBtn.addEventListener("click", function() { cardForm.init(); });
@@ -586,7 +649,7 @@
 
 			this.sortCards(selectedCards);
 
-			cardsWrapper.innerHTML = '';
+			this.cardsWrapper.innerHTML = '';
 
 			var cardsCount = selectedCards.length; // 19 - number of cards
 			var lastPageCardsCount = cardsCount % cardsPerPage; // 7 - liczba kart na ostatniej stronie
@@ -652,12 +715,13 @@
 	     */
 		countCardsPerPage: function() {
 			var cardsWrapperHeight = window.innerHeight - (this.header.offsetHeight + cardsFilter.cardsFilterWrapper.offsetHeight + this.pseudoFooter.offsetHeight),
+				listViewCardHeight = 150; // ugly, should be avoided
 				cards = Math.floor(cardsWrapperHeight / listViewCardHeight);
 			return cards;
 		},
 		setCardsWrapperHeight: function() {
 	 		var cardsWrapperHeight = window.innerHeight - (this.header.offsetHeight + cardsFilter.cardsFilterWrapper.offsetHeight + this.pseudoFooter.offsetHeight);
-	 		cardsWrapper.style.height = cardsWrapperHeight + 'px';
+	 		cards.cardsWrapper.style.height = cardsWrapperHeight + 'px';
 		},
 		removeCard: function(cardId) {
 		    var selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value,
@@ -667,9 +731,9 @@
 			if (document.getElementById('viewCardSection')) {
 				cardView.closeCardView();
 			}
-			for(; i < this.selectedCollection.cards.length; i++) {
+			for(;i < this.selectedCollection.cards.length; i++) {
 				obj = this.selectedCollection.cards[i];
-				if(parentId.indexOf(obj.id) !== -1) {
+				if(cardId.indexOf(obj.id) !== -1) {
 					this.selectedCollection.cards.splice(i, 1);
 					break;
 				}
@@ -679,14 +743,14 @@
 			// DRY: Wstawić to do osobnej funkcji
 			//      updateCardCollections()
 			// Update and load new collections
-			collections[selectedCollectionIndex].cards = existingCards;
-			localStorage.setItem("Collections", JSON.stringify(collections));
-			collections = JSON.parse(localStorage.getItem("Collections")) || [defaultCollection];
+			cards.collections[selectedCollectionIndex].cards = existingCards;
+			localStorage.setItem("Collections", JSON.stringify(cards.collections));
+			cards.collections = JSON.parse(localStorage.getItem("Collections")) || [defaultCollection];
 
 			// Update and load new selectedCollection based on updated collections
-			selectedCollection = collections[selectedCollectionIndex];
+			selectedCollection = cards.collections[selectedCollectionIndex];
 			localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
-			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
+			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || cards.collections[0];
 		
 			this.render(selectedPage);
 			
@@ -734,9 +798,26 @@
 					}
 					cardForm.init(editableCard);	
 			    } else if (utils.hasClass(element, 'remove-card')) {
-					cards.removeCard(event); 
-			    }
+					cards.removeCard(this.cardId); 
+			    } else if (utils.hasClass(element, 'data-details')) {
+					if (document.getElementById('viewCardSection')) {
+						cardView.closeCardView();
+					}		
+					
+					var viewedCard = '',
+						i = 0;
+					
+					for(; i < this.selectedCollection.cards.length; i++) {
+						obj = this.selectedCollection.cards[i];
+						if(this.cardId.indexOf(obj.id) !== -1) {
+							viewedCard = this.selectedCollection.cards[i];
+							break;
+						}
+					}
 
+					cardView.viewedCardIndex = i + 1;
+					cardView.init(viewedCard);
+				}
 			}.bind(this));
 		},
 		render: function(card) {
@@ -795,8 +876,8 @@
 			tempCardMiniature.id = "cardMiniature" + card.id;
 			tempCardMiniature.className = "card-miniature";
 			tempCardMiniature.innerHTML = html.trim();
-			cardsWrapper.appendChild(tempCardMiniature);
-		}
+			cards.cardsWrapper.appendChild(tempCardMiniature);
+		}		
 	};
 
 	/**
@@ -973,7 +1054,7 @@
 					views: 0,
 					submitLabel: 'Update Card'
 				},
-			existingCards = collections[collectionIndex].cards;
+			existingCards = cards.collections[collectionIndex].cards;
 
 		    if(!existingCards) {
 		    	existingCards = [];
@@ -995,15 +1076,15 @@
 			var selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value;
 			
 			// Update and load new collections
-			collections[selectedCollectionIndex].cards = existingCards;
+			cards.collections[selectedCollectionIndex].cards = existingCards;
 			localStorage.setItem("Collections", JSON.stringify(collections));
-			collections = JSON.parse(localStorage.getItem("Collections")) || [defaultCollection];
+			cards.collections = JSON.parse(localStorage.getItem("Collections")) || [defaultCollection];
 
 			// Update and load new selectedCollection based on updated collections
-			collections[selectedCollectionIndex].topics = selectedCollection.topics;
-			selectedCollection = collections[selectedCollectionIndex];
+			cards.collections[selectedCollectionIndex].topics = selectedCollection.topics;
+			selectedCollection = cards.collections[selectedCollectionIndex];
 			localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
-			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
+			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || cards.collections[0];
 			
 			//getView();
 			//getCollections();
@@ -1021,6 +1102,9 @@
 	 *
 	 */
 	var cardView = {
+		selectedCollection: JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
+		viewedCardIndex: null,
+
 		init: function(viewedCard) {
 			this.render(viewedCard);
 			this.cacheDOM();
@@ -1059,11 +1143,11 @@
 			var html = '';
 				html += '	<div id="viewCardForm">';
 				html += '		<ul id="viewCardNavigation" class="view-card-navigation">';
-				html += '			<li><span>' + viewedCardIndex + ' of ' + selectedCollection.cards.length + '</span></li>';
+				html += '			<li><span>' + this.viewedCardIndex + ' of ' + this.selectedCollection.cards.length + '</span></li>';
 				html += '			<li><a class="previous-card-link">Previous</a></li>';
 				html += '			<li><a class="next-card-link">Next</a></li>';
 				html += '		</ul>';
-				if(viewType !== 'details-view') {
+				if(viewTypes.viewType !== 'details-view') {
 					html += '		<span id="closeBtn" class="close-btn">X</span>';
 				}
 				html += '		<div id="cardContent">';		
@@ -1105,7 +1189,7 @@
 			tempCardForm.id = "viewCardSection";
 			tempCardForm.className = "view-card-section " + cardTypeClass;
 			tempCardForm.innerHTML = html.trim();
-			if(viewType !== 'details-view') {
+			if(viewTypes.viewType !== 'details-view') {
 				pageWrapper.appendChild(tempCardForm);
 				var fogBlanket = document.createElement('div');
 				fogBlanket.className = "fog-blanket";
@@ -1119,12 +1203,32 @@
 				renderCardSide(event, viewedCard, true);	
 			}
 
+			this.countView(viewedCard);
+
 		},
 		closeCardView: function() {
 			var viewCardForm = document.getElementById("viewCardForm").parentNode;
 			viewCardForm.parentNode.removeChild(viewCardForm);
 			closeFogBlanket();
-		}
+		},
+		countView: function(viewedCard) {
+			var selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value;
+			
+			viewedCard.views += 1;
+
+			// Update and load new collections
+			cards.collections[selectedCollectionIndex].cards = existingCards;
+			localStorage.setItem("Collections", JSON.stringify(cards.collections));
+			cards.collections = JSON.parse(localStorage.getItem("Collections")) || [defaultCollection];
+
+			// Update and load new selectedCollection based on updated collections
+			this.selectedCollection = cards.collections[selectedCollectionIndex];
+			localStorage.setItem("selectedCollection", JSON.stringify(this.selectedCollection));
+			this.selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || cards.collections[0];
+
+			cards.init(selectedPage);
+			selectCardsByTopic();
+		}		
 	};
 
 	/**
@@ -1219,9 +1323,9 @@
 					return false;
 				}
 			}
-			selectedCollection.topics.push(newTopic);
-			localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
-			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];		
+			this.selectedCollection.topics.push(newTopic);
+			localStorage.setItem("selectedCollection", JSON.stringify(this.selectedCollection));
+			this.selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || cards.collections[0];		
 			
 
 			cardTopic.innerHTML = '';
@@ -1266,20 +1370,27 @@
 		render: function() {
 
 		},
-
 		selectSortingMethod: function(e) {
-			console.log('event');
-
+			var element = e.target;
+			if (element.value === this.selectedSorting) {
+				return false;
+			} else {
+				this.selectedSorting = element.value;
+				localStorage.setItem("selectedSorting", JSON.stringify(this.selectedSorting));
+				
+				cards.init();
+			}
 		},
+		setSorting: function() {
+			// Zamienić to na pętlę???
 
-		cardMiniature: function() {
-
-		},
-		viewCard: function() {
-
-		},
-		editCard: function() {
-
+			if (this.selectedSorting === 'date') {
+				this.cardsFilterWrapper.getElementsByTagName('option')[0].selected = 'selected';
+			} else if (this.selectedSorting === 'popularity') {
+				this.cardsFilterWrapper.getElementsByTagName('option')[1].selected = 'selected';
+			} else if (this.selectedSorting === 'title') {
+				this.cardsFilterWrapper.getElementsByTagName('option')[2].selected = 'selected';
+			}
 		}
 	}
 
@@ -1320,35 +1431,66 @@
 	 *
 	 */	
 	var pagination = {
+		selectedCollection: JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
 		selectedPage: JSON.parse(localStorage.getItem("selectedPage")) || 1,
+		cardsPerPage: cards.setCardsPerPage(),
 		
 		init: function() {
+			this.render();			
 			this.cacheDOM();
 			this.bindEvents();
-			this.render();
 		},
 		cacheDOM: function() {
-
+			this.paginationList = document.getElementById('paginationList');
 		},
 		bindEvents: function() {
-
+			document.addEventListener("click", function(e) {
+				var element = e.target;
+				
+				if(utils.hasClass(element, "pagination-page")) {
+					for(var i=0; i < this.paginationList.childNodes.length;i++) {
+						this.paginationList.childNodes[i].className = "pagination-page";
+					}		
+					element.className += ' current-page';
+					var page = element.firstChild.nodeValue;
+					this.selectedPage = page;
+					localStorage.setItem("selectedPage", JSON.stringify(page));
+					
+					cards.init(page);
+				}
+			});
 		},
 		render: function() {
+			if(this.selectedCollection.cards.length <= this.cardsPerPage) {
+				cards.pseudoFooter.innerHTML = '';
+				return false;
+			}	
 
+			var pagesCount = Math.ceil(this.selectedCollection.cards.length / this.cardsPerPage),
+				buttons = '';
+
+			for (var i=0; i < pagesCount; i++) {
+				buttons += '<li class="pagination-page">' + (i+1) + '</li>';
+			}
+
+			var html = '';
+				html += '	<ul id="paginationList" class="pagination-list">' + buttons + '</ul>';
+
+			cards.pseudoFooter.innerHTML = html;
+
+			this.setCurrentPageClass();
+		},
+		setCurrentPageClass: function() {
+			if (this.paginationList.childNodes[parseInt(this.selectedPage) - 1]) {
+				this.paginationList.childNodes[parseInt(this.selectedPage) - 1].className += ' current-page';
+			} else {
+				var pagesCount = Math.ceil(this.selectedCollection.cards.length / this.cardsPerPage);
+				this.paginationList.childNodes[parseInt(pagesCount) - 1].className += ' current-page';
+			}
 		}
 	};
 
-	
-	// 	viewedCardIndex = null,
-	// 	listViewCardHeight = 150,
-
-	// /**
-	// *  Event Listeners
-	// */
-
-	// document.addEventListener("click", handleCardClickEvents);
 	// document.addEventListener("keydown", handleCardKeydownEvents);
-
 
 	// /**
 	// *  Event Delegator
@@ -1369,12 +1511,6 @@
 			
 	// }
 
-
-
-
-
-
-
 	// function handleCardClickEvents(event) {
 	//     var element = event.target,
 	// 		parentId = (element.parentNode && element.parentNode.id) ? element.parentNode.id.slice(-5) : '',
@@ -1382,9 +1518,6 @@
 	// 		selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value,
 	// 		i = null,
 	// 		obj = null;
-
-
-
 
 	//  else if (hasClass(element, 'delete-collection')) {
 	//  		var confirmDelete = confirm("All your collection data including cards will be deleted. Continue?");
@@ -1407,9 +1540,6 @@
 	//  		}
 	//     } 
 
-
-
-
 	//  else if (hasClass(element, 'edit-collection')) {
 	// 		if (document.getElementById('viewCollectionSection')) {
 	// 			closeCollectionView();
@@ -1428,29 +1558,7 @@
 	// else if (hasClass(element, 'card-thumb')) {
 	// 		var viewImg = window.open("", "Image Preview", "height=500,width=500");
 	// 		viewImg.document.write('<img src="' + element.src + '" />');
-	// 	} 
-
-
-	// else if (hasClass(element, 'data-details')) {
-	// 		if (document.getElementById('viewCardSection')) {
-	// 			closeCardView();
-	// 		}		
-	// 		var viewedCard = '';
-	// 		for(i = 0; i < existingCards.length; i++) {
-	// 			obj = existingCards[i];
-	// 			if(parentId.indexOf(obj.id) !== -1) {
-	// 				viewedCard = existingCards[i];
-	// 				break;
-	// 			}
-	// 		}
-	// 		// setViewedCardIndex
-	// 		viewedCardIndex = i + 1;
-	// 		// count view
-	// 		countView(viewedCard);
-	// 		// view card
-	// 		viewCard(event, viewedCard);
-	// 	} 
-
+	// 	}
 
 	//	else if (hasClass(element, 'previous-card-link')) {
 	// 		if(viewedCardIndex === 1) {
@@ -1469,8 +1577,6 @@
 	// 		viewedCardIndex += 1;
 	// 		viewCard(event, existingCards[viewedCardIndex - 1]);
 	// }
-
-
 
 	// else if (hasClass(element, 'card-author-anchor')) {
 	// 		searchCards.value = element.text;
@@ -1497,73 +1603,6 @@
 	// 		selectCardsByTopic();
 	// 	}
 	// }
-
-
-
-
-
-
-
-
-
-
-
-	// function checkSelectedFlashcardsOnly() {
-	// 	if(selectedFlashcardsOnly === true) {
-	// 		showFlashcardsOnly.checked = true;
-	// 		toggleTextCards();
-	// 	}
-	// }
-
-	// function selectSortingMethod(event) {
-	// 	var element = event.target;
-	// 	if (element.value === selectedSorting) {
-	// 		return false;
-	// 	} else {
-	// 		selectedSorting = element.value;
-	// 		localStorage.setItem("selectedSorting", JSON.stringify(selectedSorting));
-	// 		displayCards();
-	// 	}
-	// }
-
-
-
-	// function setSorting() {
-	// 	// Zamienić to na pętlę
-
-	// 	if (selectedSorting === 'date') {
-	// 		cardsFilter.getElementsByTagName('option')[0].selected = 'selected';
-	// 	} else if (selectedSorting === 'popularity') {
-	// 		cardsFilter.getElementsByTagName('option')[1].selected = 'selected';
-	// 	} else if (selectedSorting === 'title') {
-	// 		cardsFilter.getElementsByTagName('option')[2].selected = 'selected';
-	// 	}
-	// }
-
-	// function countView(viewedCard) {
-	// 	var existingCards = selectedCollection.cards,
-	// 		selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value;
-		
-	// 	viewedCard.views += 1;
-
-	// 	// Update and load new collections
-	// 	collections[selectedCollectionIndex].cards = existingCards;
-	// 	localStorage.setItem("Collections", JSON.stringify(collections));
-	// 	collections = JSON.parse(localStorage.getItem("Collections")) || [defaultCollection];
-
-	// 	// Update and load new selectedCollection based on updated collections
-	// 	selectedCollection = collections[selectedCollectionIndex];
-	// 	localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
-	// 	selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
-
-	// 	displayCards(selectedPage);
-	// 	selectCardsByTopic();
-	// }
-
-
-
-
-
 
 
 
@@ -1678,66 +1717,6 @@
 	// 	closeFogBlanket();
 	// }
 
-	// function toggleView(event) {
-	// 	var element = event.target;
-	// 	if (element.id === "gridViewBtn" && viewType !== 'grid-view') {
-	// 		switchGridView();
-	// 	} else if (element.id === "listViewBtn" && viewType !== 'list-view') {
-	// 		switchListView();	
-	// 	} else if (element.id === "detailsViewBtn" && viewType !== 'details-view') {
-	// 		switchDetailsView();	
-	// 	}
-	// }
-
-	// function getView() {
-	// 	if(viewType === 'grid-view') {
-	// 		switchGridView();
-	// 	} else if (viewType === 'list-view') {
-	// 		switchListView();
-	// 	} else {
-	// 		switchDetailsView();
-	// 	}
-	// }
-
-	// function switchGridView() {
-	// 	if (viewType === 'details-view') {
-	// 		removeCardPreview();
-	// 	}	
-	// 	viewType = 'grid-view';
-	// 	cardsPerPage = setCardsPerPage();
-	// 	cardsWrapper.className = 'grid-view';
-	// 	gridViewBtn.className += ' active';
-	// 	listViewBtn.className = listViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
-	// 	detailsViewBtn.className = detailsViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
-	// 	localStorage.setItem("viewType", JSON.stringify(viewType));
-	// 	addPagination();
-	// }
-
-	// function switchListView() {
-	// 	if (viewType === 'details-view') {
-	// 		removeCardPreview();
-	// 	}	
-	// 	viewType = 'list-view';
-	// 	cardsPerPage = setCardsPerPage();
-	// 	cardsWrapper.className = 'list-view';
-	// 	listViewBtn.className += ' active';
-	// 	gridViewBtn.className = gridViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
-	// 	detailsViewBtn.className = detailsViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
-	// 	localStorage.setItem("viewType", JSON.stringify(viewType));
-	// 	addPagination();		
-	// }
-
-	// function switchDetailsView() {
-	// 	viewType = 'details-view';
-	// 	cardsPerPage = setCardsPerPage();
-	// 	cardsWrapper.className = 'details-view';
-	// 	detailsViewBtn.className += ' active';
-	// 	listViewBtn.className = listViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
-	// 	gridViewBtn.className = gridViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
-	// 	localStorage.setItem("viewType", JSON.stringify(viewType));
-	// 	addPagination();
-	// 	createCardPreview();
-	// }
 
 	// function createCardPreview() {
 
@@ -1757,9 +1736,6 @@
 	// 	var cardPreview = document.getElementById("cardPreview");
 	// 	cardPreview.parentNode.removeChild(cardPreview);	
 	// }
-
-
-
 
 
 	// function renderCardSide(event, viewedCard, frontSide) {
@@ -1783,26 +1759,11 @@
 	// }
 
 
-
-
 	// function closeCollectionForm() {
 	// 	var collectionForm = document.getElementById("collectionForm").parentNode;
 	// 	collectionForm.parentNode.removeChild(collectionForm);
 	// 	closeFogBlanket();
 	// }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 	// /**
@@ -1852,77 +1813,9 @@
 
 
 
-
-	// function addPagination() {
-	// 	if(selectedCards.length <= cardsPerPage) {
-	// 		pseudoFooter.innerHTML = '';
-	// 		return false;
-	// 	}	
-
-	// 	var pagesCount = Math.ceil(selectedCards.length / cardsPerPage),
-	// 		buttons = '';
-
-	// 	for (var i=0; i < pagesCount; i++) {
-	// 		buttons += '<li class="pagination-page">' + (i+1) + '</li>';
-	// 	}
-
-	// 	var html = '';
-	// 		html += '	<ul id="paginationList" class="pagination-list">' + buttons + '</ul>';
-
-	// 	pseudoFooter.innerHTML = html;
-
-	// 	setCurrentPageClass();
-
-	// 	document.addEventListener("click", function(event) {
-	// 		var element = event.target;
-	// 		if(hasClass(element, "pagination-page")) {
-	// 			for(var i=0; i < paginationList.childNodes.length;i++) {
-	// 				paginationList.childNodes[i].className = "pagination-page";
-	// 			}		
-	// 			element.className += ' current-page';
-	// 			var page = element.firstChild.nodeValue;
-	// 			selectedPage = page;
-	// 			localStorage.setItem("selectedPage", JSON.stringify(page));
-	// 			displayCards(page);
-	// 		}
-	// 	});
-
-	// }
-
-	// function setCurrentPageClass() {
-	// 	if (paginationList.childNodes[parseInt(selectedPage) - 1]) {
-	// 		paginationList.childNodes[parseInt(selectedPage) - 1].className += ' current-page';
-	// 		//displayCards(selectedPage);
-	// 	} else {
-	// 		var pagesCount = Math.ceil(selectedCards.length / cardsPerPage);
-	// 		paginationList.childNodes[parseInt(pagesCount) - 1].className += ' current-page';
-	// 		//displayCards(pagesCount);
-	// 	}
-	// }
-
-
-
-
 	// function setCardPreviewHeight() {
 	// 	var cardPreviewHeight = window.innerHeight - (header.offsetHeight + cardsFilter.offsetHeight + pseudoFooter.offsetHeight);
 	// 	cardPreview.style.height = cardPreviewHeight + 'px';
-	// }
-
-
-
-	// /**
-	//  *  Initialize Flashrr app
-	//  */
-	// init: function() {
-	// 	getCollections();
-	// 	setSorting();
-	// 	countCards();
-	// 	getView();
-	// 	getTopics();
-	// 	selectCardsByTopic();
-	// 	greetUser(); /* zrobione */
-	// 	addPagination();
-	// 	checkSelectedFlashcardsOnly();		
 	// }
 
 
