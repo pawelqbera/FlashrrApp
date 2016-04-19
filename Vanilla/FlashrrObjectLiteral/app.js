@@ -217,9 +217,11 @@
 			//wstawić tutaj render modułu szukacza
 		},
 		searchCard: function(e) {
-			var searchValue = searchCards.value,
-				selectedCategorySearch = categorySearchSelect.options[categorySearchSelect.selectedIndex].value,
+			var searchValue = this.searchCards.value,
+				selectedCategorySearch = this.categorySearchSelect.options[this.categorySearchSelect.selectedIndex].value,
 				selectedCards = this.selectedCollection.cards;
+
+			console.log('search init with ' + searchValue);
 
 			cards.init(pagination.selectedPage);
 
