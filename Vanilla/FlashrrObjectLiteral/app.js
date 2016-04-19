@@ -455,6 +455,7 @@
 	var collectionSelector = {
 		collections: JSON.parse(localStorage.getItem("Collections")) || [data.defaultCollection],
 		selectedCollection: JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
+		selectedCollectionIndex: JSON.parse(localStorage.getItem("selectedCollectionIndex")) || 0,
 
 		init: function() {
 			this.cacheDOM();
@@ -505,7 +506,8 @@
 			}
 		},
 		selectCollection: function(e) {
-			var element = e.target;
+
+			var element = e.target || e;
 			
 			this.removeEditCollectionBtn();
 			
@@ -515,19 +517,22 @@
 				collectionForm.init();
 			} else {
 				this.selectedCollection = cards.collections[element.value];
-				localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
+				localStorage.setItem("selectedCollection", JSON.stringify(this.selectedCollection));
 				this.selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || cards.collections[0];
-				selectedTopic = -1;
-				localStorage.setItem("selectedTopic", JSON.stringify(selectedTopic));	
-				selectedCards = this.selectedCollection.cards;
+				topicSelector.selectedTopic = -1;
+				localStorage.setItem("selectedTopic", JSON.stringify(topicSelector.selectedTopic));	
+				//selectedCards = this.selectedCollection.cards;
+				this.selectedCollectionIndex = collectionSelector.collectionSelect.options[collectionSelector.collectionSelect.selectedIndex].value;
+				localStorage.setItem("selectedCollectionIndex", JSON.stringify(this.selectedCollectionIndex));
+
+				cards.init();
+				cardCounter.init();
 				
-				cards.render();
-				cardCounter.render();
-				
-				getTopics();
-				addPagination();
+				topicSelector.getTopics();
+				pagination.init();
 				
 				this.addEditCollectionBtn();
+
 			}
 		},
 		addEditCollectionBtn: function() {
@@ -624,7 +629,7 @@
 			var collectionForm = document.getElementById("collectionForm").parentNode;
 			collectionForm.parentNode.removeChild(collectionForm);
 			this.closeCreateCollectionFogBlanket();
-			collectionSelector.selectCollection();
+			collectionSelector.selectCollection(collectionSelector.selectedCollectionIndex);
 		},
 		closeCreateCollectionFogBlanket: function() {
 			var isFog = !!document.getElementById("fogBlanket");
@@ -934,7 +939,7 @@
 					topicSelector.selectedTopic = topicSelector.topicSelect.options[topicSelector.topicSelect.selectedIndex].value;
 					localStorage.setItem("selectedTopic", JSON.stringify(topicSelector.selectedTopic));
 					topicSelector.selectCardsByTopic();
-				} else if (hasClass(element, 'card-thumb')) {
+				} else if (utils.hasClass(element, 'card-thumb')) {
 					var viewImg = window.open("", "Image Preview", "height=500,width=500");
 					viewImg.document.write('<img src="' + element.src + '" />');
 				}
@@ -1029,7 +1034,7 @@
 				this.selectedSorting = element.value;
 				localStorage.setItem("selectedSorting", JSON.stringify(this.selectedSorting));
 				
-				cards.init();
+				cards.init(pagination.selectedPage);
 			}
 		},
 		setSorting: function() {
@@ -1314,6 +1319,9 @@
 
 		},
 		bindEvents: function() {
+			this.closeBtn.addEventListener('click', this.closeCardView.bind(this));
+			this.fogBlanket.addEventListener('click', this.closeCardView.bind(this));	
+
 			this.tempCardForm.addEventListener('click', function(e) {
 				var element = e.target;
 		
@@ -1423,6 +1431,9 @@
 				this.renderCardSide(event, viewedCard, true);	
 			}
 
+			this.closeBtn = document.getElementById('closeBtn');
+			this.fogBlanket = document.getElementById('fogBlanket');
+
 			this.countView(viewedCard);
 
 		},
@@ -1498,7 +1509,7 @@
 
 		},
 		bindEvents: function() {
-			cardTopic.addEventListener('change', function(event) {
+			this.cardTopic.addEventListener('change', function(event) {
 				//spr czy nie trzeba tutaj dać warunku isMultiple?
 				this.setSelectedTopics();
 			}.bind(this));
@@ -1515,15 +1526,17 @@
 
 			parent.innerHTML = html;
 
-			var cardTopic = document.getElementById("cardTopic");
+			this.cardTopic = document.getElementById("cardTopic");
 			
 			if(isMultiple) {
-				cardTopic.multiple = "multiple";
+				this.cardTopic.multiple = "multiple";
 			}
+
+			this.createAddTopicLink(parent);
 		},
 		setSelectedTopics: function() {
 			var selectedTopics = [],
-				options = cardTopic && cardTopic.options;
+				options = this.cardTopic && this.cardTopic.options;
 
 			for (var i=0, iLen=options.length; i<iLen; i++) {
 				if (options[i].selected) {
@@ -1532,7 +1545,7 @@
 			}
 			this.selectedCollection.topics = selectedTopics;
 		},
-		createAddTopicLink: function() {
+		createAddTopicLink: function(parentId) {
 			
 			var addTopicLink = document.createElement('a');
 			addTopicLink.id = "addTopicLink";
@@ -1540,15 +1553,15 @@
 			
 			var addTopicLinkLabel = document.createTextNode("+ Add new topic");
 			addTopicLink.appendChild(addTopicLinkLabel);
-			parent.appendChild(addTopicLink);
+			parentId.appendChild(addTopicLink);
 
 			addTopicLink.addEventListener('click', function(event) {
 				event.stopPropagation();
 				this.createAddTopicInput(event);
-			});
+			}.bind(this));
 		},
-		createAddTopicInput: function(event) {
-			var element = event.target;
+		createAddTopicInput: function(e) {
+			var element = e.target;
 			var createTopicInput = document.createElement('input');
 			createTopicInput.id = "createTopicInput";
 			createTopicInput.className = "create-topic-input";
@@ -1559,17 +1572,17 @@
 			element.parentNode.removeChild(element);
 
 			createTopicInput.addEventListener('blur', function(event) {
-				createNewTopic(event);
-				createAddTopicLink();
-				removeAddTopicInput();
-			});
+				this.createNewTopic(event);
+				this.createAddTopicLink();
+				this.removeAddTopicInput();
+			}.bind(this));
 		},
-		createNewTopic: function(event) {
+		createNewTopic: function(e) {
 			var createTopicValidationBox = document.getElementById('createTopicValidationBox'),
-				newTopic = event.target.value;
+				newTopic = e.target.value;
 
-			for(var i = 0; i < selectedCollection.topics.length; i++) {
-				if(selectedCollection.topics[i].indexOf(newTopic) !== -1) {
+			for(var i = 0; i < this.selectedCollection.topics.length; i++) {
+				if(this.selectedCollection.topics[i].indexOf(newTopic) !== -1) {
 					createTopicValidationBox.innerHTML = '<p class="validation-message">Specified topic already exists!</p>';
 					return false;
 				}
@@ -1578,8 +1591,7 @@
 			localStorage.setItem("selectedCollection", JSON.stringify(this.selectedCollection));
 			this.selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || cards.collections[0];		
 			
-
-			cardTopic.innerHTML = '';
+			this.cardTopic.innerHTML = '';
 			this.getCollectionTopics();
 		},
 		removeAddTopicLink: function() {
@@ -1587,6 +1599,7 @@
 			addTopicLink.parentNode.removeChild(addTopicLink);
 		},
 		removeAddTopicInput: function() {
+			var createTopicInput = document.getElementById('createTopicInput');
 			createTopicInput.parentNode.removeChild(createTopicInput);
 		},
 		getCollectionTopics: function() {
@@ -1597,7 +1610,10 @@
 			for (; i < this.selectedCollection.topics.length; i++) {
 				cardTopics += '<option>' + this.selectedCollection.topics[i] + '</option>';
 			}
-			cardTopic.innerHTML = cardTopics;
+			this.cardTopic.innerHTML = cardTopics;
+
+			this.createAddTopicLink();
+
 		}
 	};
 
@@ -1946,7 +1962,8 @@
 		}				
 	};
 
+	Flashrr.init();
 	window.Flashrr = Flashrr;
-	Flashrr.init();	
+	
 
 })(window);
