@@ -503,12 +503,11 @@
 			
 			this.collectionSelect.innerHTML = html;
 			
-			if(this.collectionSelect.value !== '-1' && this.collectionSelect.value !== 'addNewCollection'){
+			if(this.collectionSelect.value !== 'addNewCollection'){
 				this.addEditCollectionBtn();
 			}
 		},
 		selectCollection: function(e) {
-
 			var element = e.target || e;
 			
 			this.removeEditCollectionBtn();
@@ -545,7 +544,7 @@
 			if(!document.getElementById("editCollectionBtn")) {
 				return false;
 			}
-			this.collectionSelect.parentNode.removeChild(editCollectionBtn);
+			this.editCollectionBtn.parentNode.removeChild(this.editCollectionBtn);
 		}
 	};
 
@@ -686,13 +685,11 @@
 			
 			collectionSelector.init();
 			topicSelector.init();
-			cards.init(pagination.selectedPage);
+			//cards.init(pagination.selectedPage);
 			cardCounter.init();
 			pagination.init();
 			
 			this.closeCreateCollectionForm();
-			
-			//topicSelector.selectCardsByTopic();
 		},
 	 	deleteCollection: function() {
 	 		var confirmDelete = confirm("All your collection data including cards will be deleted. Continue?");
@@ -731,6 +728,8 @@
 		
 		init: function(page) {
 			page = page || false;
+
+			console.log('cards.init !');
 
 			this.cacheDOM();
 			this.bindEvents();
@@ -822,17 +821,17 @@
 			// spr dlaczego tutaj musiałem dawać document.get zamiast 
 			// np. this.pseudoFooter.offsetHeight - wyrzucało mi undefined
 			// nie czaje czemu ????
-			var cardsWrapperHeight = window.innerHeight - (document.getElementById("header").offsetHeight + cardsFilter.cardsFilterWrapper.offsetHeight + document.getElementById("pseudoFooter").offsetHeight),
+			var cardsWrapperHeight = window.innerHeight - (document.getElementById("header").offsetHeight + document.getElementById("cardsFilter").offsetHeight + document.getElementById("pseudoFooter").offsetHeight),
 				listViewCardHeight = 150, // ugly, should be avoided such appending
 				cardsPerPage = Math.floor(cardsWrapperHeight / listViewCardHeight);
 			return cardsPerPage;
 		},
 		setCardsWrapperHeight: function() {
-	 		var cardsWrapperHeight = window.innerHeight - (this.header.offsetHeight + cardsFilter.cardsFilterWrapper.offsetHeight + this.pseudoFooter.offsetHeight);
+	 		var cardsWrapperHeight = window.innerHeight - (document.getElementById("header").offsetHeight + document.getElementById("cardsFilter").offsetHeight + document.getElementById("pseudoFooter").offsetHeight);
 	 		cards.cardsWrapper.style.height = cardsWrapperHeight + 'px';
 		},
 		setCardPreviewHeight: function() {
-			var cardPreviewHeight = window.innerHeight - (this.header.offsetHeight + cardsFilter.cardsFilterWrapper.offsetHeight + this.pseudoFooter.offsetHeight),
+			var cardPreviewHeight = window.innerHeight - (document.getElementById("header").offsetHeight + document.getElementById("cardsFilter").offsetHeight + document.getElementById("pseudoFooter").offsetHeight),
 				cardPreview = document.getElementById('cardPreview');
 			
 			cardPreview.style.height = cardPreviewHeight + 'px';
@@ -1335,7 +1334,7 @@
 			this.closeBtn ? this.closeBtn.addEventListener('click', this.closeCardView.bind(this)) : false;
 			this.fogBlanket ? this.fogBlanket.addEventListener('click', this.closeCardView.bind(this)) : false;	
 
-			this.tempCardForm.addEventListener('click', function(e) {
+			this.tempCardForm ? this.tempCardForm.addEventListener('click', function(e) {
 				var element = e.target;
 		
 				if (utils.hasClass(element, 'previous-card-link')) {
@@ -1359,11 +1358,11 @@
 					this.closeCardView();
 					cards.removeCard(collectionSelector.selectedCollection.cards[this.viewedCardIndex - 1].id);
 				}
-			}.bind(this));
+			}.bind(this)) : false;
 		},
 		render: function(viewedCard) {
 			
-			if (document.getElementById('viewCardSection')) {
+			if (document.getElementById('viewCardSection') || !viewedCard) {
 				return false;
 			}
 
@@ -1484,7 +1483,7 @@
 			localStorage.setItem("selectedCollection", JSON.stringify(collectionSelector.selectedCollection));
 			collectionSelector.selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || cards.collections[0];
 
-			cards.init(pagination.selectedPage);
+			//cards.init(pagination.selectedPage);
 			topicSelector.selectCardsByTopic();
 		},
 		renderCardSide: function(e, viewedCard, frontSide) {
@@ -1664,6 +1663,7 @@
 		render: function() {
 			//tutaj wstawić budowanie topic selectora z htmla
 			this.getTopics();
+			this.selectCardsByTopic();
 		},
 		getTopics: function() {
 			var topicOptions = '';
@@ -1684,9 +1684,9 @@
 			this.topicSelect.innerHTML = html;
 		},
 		selectCardsByTopic: function(e) {
-			var element = e ? parseInt(e.target.value) : parseInt(this.selectedTopic);
+			var element = e ? e.target.value : this.selectedTopic;
 			
-			if (element === -1) {
+			if (element === '-1') {
 				this.selectedTopic = this.topicSelect.options[this.topicSelect.selectedIndex].value;
 				localStorage.setItem("selectedTopic", JSON.stringify(this.selectedTopic));
 				cards.init(pagination.selectedPage);
@@ -1786,28 +1786,46 @@
 			var topicValidationBox = document.getElementById('topicValidationBox'),
 				newTopicForm = document.getElementById('topicForm'),
 				topicName = document.getElementById('topicName'),
-				newTopic = topicName.value;
-			for(var i=0; i < collectionSelector.selectedCollection.topics.length;i++) {
+				newTopic = topicName.value,
+				existingCollections = JSON.parse(localStorage.getItem("Collections")),
+				i = 0;
+
+			for (; i < collectionSelector.selectedCollection.topics.length;i++) {
 				if(newTopic.indexOf(collectionSelector.selectedCollection.topics[i]) !== -1) {
 					topicValidationBox.innerHTML = '<p class="validation-message">Specified topic already exists!</p>';
 					newTopicForm.reset();
 					return false;
 				}
 			}
-			collectionSelector.selectedCollection.topics.push(newTopic);
 			
-			// wstawić nową selectedCollection do collections
-			var selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value;	
+			// Adding newly created topic to selected collection
+			this.selectedCollection.topics.push(newTopic);
+			// Updating Collections to contain collection with new topic
+			existingCollections[collectionSelector.selectedCollectionIndex] = this.selectedCollection;
+
+			// Updating Collections data
+			localStorage.setItem("Collections", JSON.stringify(existingCollections));
+			// Getting updated Collections data for our modules
+			collectionSelector.collections = JSON.parse(localStorage.getItem("Collections"));
+			cards.collections = JSON.parse(localStorage.getItem("Collections"));
+			
+			// Setting new selectedCollection
+			localStorage.setItem("selectedCollection", JSON.stringify(this.selectedCollection));
+			// Getting new selectedCollection for our modules		
+			topicSelector.selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || cards.collections[0];
+			collectionSelector.selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || cards.collections[0];
+
+
 			// Update and load new collections
-			cards.collections[selectedCollectionIndex] = collectionSelector.selectedCollection;
-			localStorage.setItem("Collections", JSON.stringify(cards.collections));
-			cards.collections = JSON.parse(localStorage.getItem("Collections")) || [defaultCollection];
+			//cards.collections[selectedCollectionIndex] = collectionSelector.selectedCollection;
+			//localStorage.setItem("Collections", JSON.stringify(cards.collections));
+			//cards.collections = JSON.parse(localStorage.getItem("Collections")) || [defaultCollection];
 
 			// Update and load new selectedCollection based on updated collections
-			collectionSelector.selectedCollection = cards.collections[selectedCollectionIndex];
-			localStorage.setItem("selectedCollection", JSON.stringify(collectionSelector.selectedCollection));
+			//collectionSelector.selectedCollection = cards.collections[selectedCollectionIndex];
+			//localStorage.setItem("selectedCollection", JSON.stringify(collectionSelector.selectedCollection));
+					
 			
-			topicSelector.selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || cards.collections[0];			
 			topicSelector.init();		
 			this.closeTopicForm();			
 		}
@@ -1918,8 +1936,7 @@
 			collectionSelector.init();
 			topicSelector.init();	
 			cardsFilter.init();
-			pagination.init();			
-			cards.init();
+			pagination.init();
 			viewTypes.init();			
 			cardCounter.init();
 		},
