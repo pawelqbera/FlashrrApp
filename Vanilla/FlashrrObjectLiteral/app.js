@@ -498,7 +498,6 @@
 				collectionOptions += '<option value="' + i + '"'+ isSelected +'>' + this.collections[i].name + '</option>';
 			}
 			var html = '';
-				html += '	<option value="-1">Collections</option>';
 				html += collectionOptions;
 				html += '	<option value="addNewCollection">ADD NEW COLLECTION</option>';
 			
@@ -514,9 +513,7 @@
 			
 			this.removeEditCollectionBtn();
 			
-			if (element.value === '-1') {
-				return false;
-			} else if (element.value === 'addNewCollection') {
+			if (element.value === 'addNewCollection') {
 				collectionForm.init();
 			} else {
 				this.selectedCollection = cards.collections[element.value];
@@ -635,7 +632,9 @@
 			var collectionForm = document.getElementById("collectionForm").parentNode;
 			collectionForm.parentNode.removeChild(collectionForm);
 			this.closeCreateCollectionFogBlanket();
-			collectionSelector.selectCollection(collectionSelector.selectedCollectionIndex);
+			
+			// chce ustawiac nowoutworzona kolekcje ale co jest zle tutaj 
+			//collectionSelector.selectCollection(collectionSelector.selectedCollectionIndex);
 		},
 		closeCreateCollectionFogBlanket: function() {
 			var isFog = !!document.getElementById("fogBlanket");
@@ -674,14 +673,16 @@
 			else {
 				existingCollections.push(collection);
 			}
-			cards.collections = existingCollections;
+			// Updating Collections data
 			localStorage.setItem("Collections", JSON.stringify(existingCollections));
+			// Getting updated Collections data for our modules
+			collectionSelector.collections = JSON.parse(localStorage.getItem("Collections"));
 			cards.collections = JSON.parse(localStorage.getItem("Collections"));
-			collectionSelector.selectedCollection = collection;
-			localStorage.setItem("selectedCollection", JSON.stringify(collectionSelector.selectedCollection));
-			collectionSelector.selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || cards.collections[0];	
 			
-			collectionSelector.removeEditCollectionBtn();
+			// Setting new selectedCollection
+			localStorage.setItem("selectedCollection", JSON.stringify(collection));
+			// Getting new selectedCollection for our modules
+			collectionSelector.selectedCollection = JSON.parse(localStorage.getItem("selectedCollection"));
 			
 			collectionSelector.init();
 			topicSelector.init();
@@ -691,7 +692,7 @@
 			
 			this.closeCreateCollectionForm();
 			
-			topicSelector.selectCardsByTopic();
+			//topicSelector.selectCardsByTopic();
 		},
 	 	deleteCollection: function() {
 	 		var confirmDelete = confirm("All your collection data including cards will be deleted. Continue?");
@@ -1535,11 +1536,19 @@
 		render: function(parentId, isMultiple) {
 
 			var parent = document.getElementById(parentId),
-				cardTopics = '';
+				topicOptions = '';
+			
+			for (var i = 0; i < collectionSelector.selectedCollection.topics.length; i++) {
+				if (parseInt(this.selectedTopic) !== i) {
+					topicOptions += '<option value="' + i + '">' + collectionSelector.selectedCollection.topics[i] + '</option>';
+				} else {
+					topicOptions += '<option value="' + i + '" selected="selected">' + collectionSelector.selectedCollection.topics[i] + '</option>';
+				}	
+			}				
 
 			var html = '';
 				html += '	<label for="cardTopic">Select Topic</label>';
-				html += '	<select id="cardTopic" required>' + cardTopics + '</select>';
+				html += '	<select id="cardTopic" required>' + topicOptions + '</select>';
 				html += '	<div id="createTopicValidationBox" class="validation-box"></div>';
 
 			parent.innerHTML = html;

@@ -181,7 +181,7 @@ header {
 
 	    margin-right: 18px;
 	}
-
+		
 		nav {
 			padding: 21px 0;
 			width: 100%;
@@ -201,9 +201,18 @@ header {
 			font-weight: 600;
 		}
 
+		input[type='checkbox'] {
+			vertical-align: text-top;
+		}
+
 	.right-nav {
 		float: right;
 	}
+		
+		.collectionSelectLabel {
+			font-size: 13px;
+		}
+
 		.fa-cog {
 			cursor: pointer;
 			padding: 7.5px;
