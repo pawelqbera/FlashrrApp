@@ -267,6 +267,8 @@
 		},
 		render: function() {
 			//tu wstawić render buttonów do wyboru view type
+
+			this.getView();
 		},
 		toggleView: function(e) {
 			var element = e.target;
@@ -281,7 +283,7 @@
 		},
 		getView: function() {
 			if(this.viewType === 'grid-view') {
-				switchGridView();
+				this.switchGridView();
 			} else if (this.viewType === 'list-view') {
 				this.switchListView();
 			} else {
@@ -309,7 +311,7 @@
 			this.viewType = 'list-view';
 			var cardsPerPage = cards.setCardsPerPage();
 			cards.cardsWrapper.className = 'list-view';
-			this.cacheDOM.listViewBtn.className += ' active';
+			this.listViewBtn.className += ' active';
 			this.gridViewBtn.className = this.gridViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
 			this.detailsViewBtn.className = this.detailsViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
 			localStorage.setItem("viewType", JSON.stringify(this.viewType));
@@ -326,8 +328,8 @@
 			localStorage.setItem("viewType", JSON.stringify(this.viewType));
 			
 			pagination.init();
-			
 			this.createCardPreview();
+			cardView.init(collectionSelector.selectedCollection.cards[0]);
 		},
 		createCardPreview: function() {
 			var html = '';
@@ -816,10 +818,13 @@
 	     *  Determine the number of cards to be displayed in the list view on a single page
 	     */
 		countCardsPerPage: function() {
-			var cardsWrapperHeight = window.innerHeight - (this.header.offsetHeight + cardsFilter.cardsFilterWrapper.offsetHeight + this.pseudoFooter.offsetHeight),
-				listViewCardHeight = 150; // ugly, should be avoided such appending
-				cards = Math.floor(cardsWrapperHeight / listViewCardHeight);
-			return cards;
+			// spr dlaczego tutaj musiałem dawać document.get zamiast 
+			// np. this.pseudoFooter.offsetHeight - wyrzucało mi undefined
+			// nie czaje czemu ????
+			var cardsWrapperHeight = window.innerHeight - (document.getElementById("header").offsetHeight + cardsFilter.cardsFilterWrapper.offsetHeight + document.getElementById("pseudoFooter").offsetHeight),
+				listViewCardHeight = 150, // ugly, should be avoided such appending
+				cardsPerPage = Math.floor(cardsWrapperHeight / listViewCardHeight);
+			return cardsPerPage;
 		},
 		setCardsWrapperHeight: function() {
 	 		var cardsWrapperHeight = window.innerHeight - (this.header.offsetHeight + cardsFilter.cardsFilterWrapper.offsetHeight + this.pseudoFooter.offsetHeight);
@@ -1315,7 +1320,7 @@
 	 */
 	var cardView = {
 		selectedCollection: JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
-		viewedCardIndex: null,
+		viewedCardIndex: 1,
 
 		init: function(viewedCard) {
 			this.cacheDOM();			
@@ -1326,8 +1331,8 @@
 
 		},
 		bindEvents: function() {
-			this.closeBtn.addEventListener('click', this.closeCardView.bind(this));
-			this.fogBlanket.addEventListener('click', this.closeCardView.bind(this));	
+			this.closeBtn ? this.closeBtn.addEventListener('click', this.closeCardView.bind(this)) : false;
+			this.fogBlanket ? this.fogBlanket.addEventListener('click', this.closeCardView.bind(this)) : false;	
 
 			this.tempCardForm.addEventListener('click', function(e) {
 				var element = e.target;
@@ -1874,10 +1879,10 @@
 		utils: utils,
 		flashcardsOnly: flashcardsOnly,
 		searchCards: searchCards,
-		viewTypes: viewTypes,
 		profile: profile,
 		collectionSelector: collectionSelector,
 		cards: cards,
+		viewTypes: viewTypes,		
 		cardCounter: cardCounter,
 		topicSelector: topicSelector,
 		cardsFilter: cardsFilter,
@@ -1900,13 +1905,13 @@
 
 			flashcardsOnly.init();
 			searchCards.init();
-			viewTypes.init();
 			profile.init();
 			collectionSelector.init();
 			topicSelector.init();	
 			cardsFilter.init();
 			pagination.init();			
 			cards.init();
+			viewTypes.init();			
 			cardCounter.init();
 		},
 		handlePageDragOver: function(e){

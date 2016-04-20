@@ -1,10 +1,13 @@
 # FlashrrApp
-Flashrr is a knowledge management tool that helps you organize data in the clear form of flashcard collections
+Flashrr is a knowledge management tool that helps organize your data in a clear and intuitive form of flashcard collections.
 
 Visit official [Flashrr.com](http://flashrr.com) website for more details.
 
 # WHYS
-The goal is to create an example web app in many possible ways starting off from filthy and messy vanilla JavaScript spaghetti, continue by gradually refactoring and adding design patterns and libraries, to finally end up with a full stack web apps built with the most popular frameworks. 
+
+## More than a to-do list app...
+
+The goal is to create an example web app in many possible ways starting off from filthy and messy vanilla JavaScript spaghetti code, continuing by gradually refactoring by implementation most common design patterns and libraries, and finally ending up with a full stack web app built with recently most popular frameworks. 
 
 Long way to go!
 
