@@ -14,19 +14,6 @@
 	 */
 
 	/**
-	 *	Spotted drawbacks of Object Literal Pattern: 
-	 *  - no private methods: all methods are actually avaiable via Public API 
-	 */
-
-	/** TODOOS:
-	 *	1. collectionSelector.selectedCollection -> definiować i odwoływać się do tylko w jednym module
-	 *		bo jest problem z updejtem, jak się coś w kolekcji zmieni
-	 *  2. Ustawić w każdym module poprawną kolejność: cacheDOM, render, bindEvents
-	 *  	- w cacheDOM nie powinny być odwołania do dynamicznych elementów z render
-	 *	3. Przenieść wszystkie inicjacyjne komponenty z index.html do pustych funkcji render()
-	 */
-
-	/**
 	 * Model with Default Data Collections
 	 */
 	var data = {
@@ -469,26 +456,7 @@
 			this.collectionSelect = document.getElementById("collectionSelect");
 		},
 		bindEvents: function() {
-			this.collectionSelect.addEventListener("change", this.selectCollection.bind(this));
-			this.editCollectionBtn.addEventListener("click", function(e) {
-				if (document.getElementById('collectionSection')) {
-					collectionForm.closeCreateCollectionForm();
-				}
-
-				var selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value,
-					i = 0,
-					obj = null,
-					editableCollection = null;			
-
-				for(; i < cards.collections.length; i++) {
-					obj = cards.collections[i];
-					if(cards.collections[selectedCollectionIndex].id.indexOf(obj.id) !== -1) {
-						editableCollection = cards.collections[i];
-						break;
-					}
-				}
-				collectionForm.init(editableCollection);
-			}.bind(this));			
+			this.collectionSelect.addEventListener("change", this.selectCollection.bind(this));		
 		},
 		render: function() {
 			this.selectedCards = this.selectedCollection.cards;
@@ -526,12 +494,9 @@
 
 				cards.init();
 				cardCounter.init();
-				
 				topicSelector.getTopics();
 				pagination.init();
-				
 				this.addEditCollectionBtn();
-
 			}
 		},
 		addEditCollectionBtn: function() {
@@ -539,6 +504,26 @@
 			this.editCollectionBtn.className = "edit-collection fa fa-cog";
 			this.editCollectionBtn.id = "editCollectionBtn";
 			this.collectionSelect.parentNode.appendChild(this.editCollectionBtn);
+			
+			this.editCollectionBtn.addEventListener("click", function(e) {
+				if (document.getElementById('collectionSection')) {
+					collectionForm.closeCreateCollectionForm();
+				}
+
+				var selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value,
+					i = 0,
+					obj = null,
+					editableCollection = null;			
+
+				for(; i < cards.collections.length; i++) {
+					obj = cards.collections[i];
+					if(cards.collections[selectedCollectionIndex].id.indexOf(obj.id) !== -1) {
+						editableCollection = cards.collections[i];
+						break;
+					}
+				}
+				collectionForm.init(editableCollection);
+			}.bind(this));
 		},
 		removeEditCollectionBtn: function() {
 			if(!document.getElementById("editCollectionBtn")) {
@@ -1083,7 +1068,6 @@
 			this.fogBlanket.addEventListener('click', this.closeCreateCardForm.bind(this));	
 
 			createCardForm.addEventListener('submit', function(event) {
-				event.preventDefault();
 				this.createCard(this.updatedCardId, this.cardAttachments);
 			}.bind(this));
 
@@ -1538,7 +1522,7 @@
 				topicOptions = '';
 			
 			for (var i = 0; i < collectionSelector.selectedCollection.topics.length; i++) {
-				if (parseInt(this.selectedTopic) !== i) {
+				if (this.selectedTopic !== i) {
 					topicOptions += '<option value="' + i + '">' + collectionSelector.selectedCollection.topics[i] + '</option>';
 				} else {
 					topicOptions += '<option value="' + i + '" selected="selected">' + collectionSelector.selectedCollection.topics[i] + '</option>';
@@ -1646,7 +1630,7 @@
 	 *
 	 */	
 	var topicSelector = {
-		selectedTopic: JSON.parse(localStorage.getItem("selectedTopic")) || -1,
+		selectedTopic: parseInt(JSON.parse(localStorage.getItem("selectedTopic"))) || -1,
 		selectedCollection: JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
 		
 		init: function() {
@@ -1666,10 +1650,11 @@
 			this.selectCardsByTopic();
 		},
 		getTopics: function() {
-			var topicOptions = '';
+			var topicOptions = '',
+				i = 0;
 			
-			for (var i = 0; i < collectionSelector.selectedCollection.topics.length; i++) {
-				if (parseInt(this.selectedTopic) !== i) {
+			for (; i < collectionSelector.selectedCollection.topics.length; i++) {
+				if (this.selectedTopic !== i) {
 					topicOptions += '<option value="' + i + '">' + collectionSelector.selectedCollection.topics[i] + '</option>';
 				} else {
 					topicOptions += '<option value="' + i + '" selected="selected">' + collectionSelector.selectedCollection.topics[i] + '</option>';
@@ -1684,17 +1669,22 @@
 			this.topicSelect.innerHTML = html;
 		},
 		selectCardsByTopic: function(e) {
-			var element = e ? e.target.value : this.selectedTopic;
-			
+			var element = e ? e.target.value : parseInt(this.selectedTopic);
+
+			console.log('czym jest element' + element +  '  ' + typeof element);
+
 			if (element === '-1') {
 				this.selectedTopic = this.topicSelect.options[this.topicSelect.selectedIndex].value;
 				localStorage.setItem("selectedTopic", JSON.stringify(this.selectedTopic));
 				cards.init(pagination.selectedPage);
 			} else if (element === 'addNewTopic') {
-				// tu bedzie co innego
 				topicForm.init();
 			} else {
+				element = parseInt(element);
+				
 				cards.init(pagination.selectedPage);
+
+				//element = (element === '0') ? 0 : element;
 				
 				for(var i = 0; i < collectionSelector.selectedCollection.cards.length; i++) {
 					if(collectionSelector.selectedCollection.topics[element].indexOf(collectionSelector.selectedCollection.cards[i].topic) === -1) {
@@ -1703,7 +1693,7 @@
 							card.parentNode.removeChild(card);					
 						}
 						this.selectedTopic = this.topicSelect.options[this.topicSelect.selectedIndex].value;
-						localStorage.setItem("selectedTopic", JSON.stringify(this.selectedTopic));			
+						localStorage.setItem("selectedTopic", JSON.stringify(this.selectedTopic));
 					}
 				}
 			}
@@ -1782,7 +1772,7 @@
 			}
 		},
 		createTopic: function(e) {
-			e.preventDefault();
+
 			var topicValidationBox = document.getElementById('topicValidationBox'),
 				newTopicForm = document.getElementById('topicForm'),
 				topicName = document.getElementById('topicName'),

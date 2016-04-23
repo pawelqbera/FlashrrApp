@@ -95,11 +95,13 @@ All versions of Flashrr can be simply be downloaded and opened in the browser lo
 - separation of concerns: every module contains its own core methods like init, cache the DOM, bind events and render
 - expose Flashrr modules to public API and enable communication across module via this API
 - refactor of profile module
+- extract and re-factor the rest of the code
+- major bug-fixing
 
 ## Currently working on Flashrr 0.5.0, Vanilla, Object Literal 
 
 ## Features to be added in 0.5.0
-- extract and re-factor the rest of the code
+
 
 ## Bugs
 
