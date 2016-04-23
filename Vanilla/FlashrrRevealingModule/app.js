@@ -51,26 +51,27 @@
 				url: "olp.com",
 				views: 20				
 			}]
-		}
+		} 
 	};
 
 	/**	
 	 *  Utils module contains shims, DOM manipulation 
 	 *  function helpers and stuff for other purposes 
 	 */
-	var utils = {
+	var utils = (function() {
 
-		hasClass: function(element, cls) {
+		function hasClass(element, cls) {
 		    return (' ' + element.className + ' ').indexOf(' ' + cls + ' ') > -1;
-		},
-		urlify: function(text) {
+		}
+		
+		function urlify(text) {
 			/**
 			* Store the base text string for further comparison
 			*/
 			var baseStr = text;
 			/**
 			* Match all URLs except image and YouTube video links
-			*/ 
+			*/  
 			var ordinaryUrlRegexp = /(?!(https?:\/\/.*\.(?:png|jpg|gif|jpeg)))(?!(http(?:s)?:\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?[\w\?​=]*)?))(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;	
 			/**
 			* Match all YouTube video links
@@ -87,8 +88,9 @@
 			baseStr === text ? text = '' : text;			
 
 			return text;
-		},
-		extractDomain: function(url) {
+		}
+
+		function extractDomain(url) {
 			var domain = null;
 			
 			/**
@@ -106,63 +108,84 @@
 			domain = domain.split(':')[0];
 
 			return domain;
-		},
-		makeid: function() {
+		}
+
+		function makeid() {
 		    var text = "",
 		    	possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 		    for( var i=0; i < 5; i++ )
 		        text += possible.charAt(Math.floor(Math.random() * possible.length));
 		    return text;
 		}
-	};
+		
+		return {
+			hasClass: hasClass,
+			urlify: urlify,
+			extractDomain: extractDomain,
+			makeid: makeid
+		};
+
+	})();
 
 	/**	
 	 *  Card counter module 
 	 */
-	var cardCounter = {
-		init: function() {
+	var cardCounter = (function() {
+		
+		function init() {
 			collectionSelector.selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection;
 
 			this.cacheDOM();
 			this.render();
-		},
-		cacheDOM: function() {
+		}
+
+		function cacheDOM() {
 			this.cardCounter = document.getElementById("cardCounter");
-		},
-		render: function() {
+		}
+
+		function render() {
 			var existingCards = collectionSelector.selectedCollection.cards,
 				count = document.createTextNode(existingCards.length);
 			
 			this.cardCounter.innerHTML = '';
 			this.cardCounter.appendChild(count);
 			count.nodeValue = existingCards.length
-		}		
-	};
+		}
+
+		return {
+			init: init
+		};
+
+	})();
 
 	/**	
 	 *  Flashcards only checkbox option module
 	 */
-	var flashcardsOnly = {
-		selectedFlashcardsOnly: JSON.parse(localStorage.getItem("selectedFlashcardsOnly")) || false,
-		selectedCollection: JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
+	var flashcardsOnly = (function() {
+		var selectedFlashcardsOnly = JSON.parse(localStorage.getItem("selectedFlashcardsOnly")) || false,
+			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection;
 
-		init: function() {
+		function init() {
 			this.cacheDOM();
 			this.bindEvents();
 			this.render();
-		},
-		cacheDOM: function() {
+		}
+		
+		function cacheDOM() {
 			this.showFlashcardsOnly = document.getElementById("showFlashcardsOnly");
-		},
-		bindEvents: function() {
+		}
+
+		function bindEvents() {
 			this.showFlashcardsOnly.addEventListener("click", this.toggleTextCards.bind(this));
-		},
-		render: function() {
+		}
+
+		function render() {
 			// bring here html from index.html
 
 			this.checkSelectedFlashcardsOnly();
-		},
-		toggleTextCards: function(e) {
+		}
+
+		function toggleTextCards(e) {
 
 			var element = (typeof e !== 'undefined') ? e.target : this.showFlashcardsOnly;
 
@@ -185,39 +208,48 @@
 				localStorage.setItem('selectedFlashcardsOnly', JSON.stringify(false));		
 				cards.render(collectionSelector.selectedCollection.cards);
 			}
-		},
-		checkSelectedFlashcardsOnly: function() {
+		}
+
+		function checkSelectedFlashcardsOnly() {
 			if(this.selectedFlashcardsOnly === true) {
 				this.showFlashcardsOnly.checked = true;
 				this.toggleTextCards();
 			}
 		}
 		
-	};
+		return {
+			init: init
+		};
+
+	})();
 
 	/**	
 	 *  Search cards module 
 	 *
 	 */
-	var searchCards = {
-		selectedCollection: JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
-
-		init: function() {
+	var searchCards = (function() {
+		var selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection;
+		
+		function init() {
 			this.cacheDOM();
 			this.bindEvents();
 			this.render();
-		},
-		cacheDOM: function() {
+		}
+
+		function cacheDOM() {
 			this.searchCards = document.getElementById("searchCards");
 			this.categorySearchSelect = document.getElementById("categorySearchSelect");			
-		},
-		bindEvents: function() {
+		}
+
+		function bindEvents() {
 			this.searchCards.addEventListener("keyup", this.searchCard.bind(this));
-		},
-		render: function() {
+		}
+
+		function render() {
 			//wstawić tutaj render modułu szukacza
-		},
-		searchCard: function(e) {
+		}
+
+		function searchCard(e) {
 			var searchValue = this.searchCards.value,
 				selectedCategorySearch = this.categorySearchSelect.options[this.categorySearchSelect.selectedIndex].value,
 				selectedCards = collectionSelector.selectedCollection.cards;
@@ -239,40 +271,48 @@
 					pagination.init();
 				}
 			}
+		}	
 
-		}		
-	};
+		return {
+			init: init
+		};
+
+	})();
 
 	/**	
 	 *  Views module for manipulating displaying 
 	 *  cards options and types
 	 *
 	 */
-	var viewTypes = {
-		viewType: JSON.parse(localStorage.getItem("viewType")) || 'grid-view',
+	var viewTypes = (function() {
+		var viewType = JSON.parse(localStorage.getItem("viewType")) || 'grid-view';
 
-		init: function() {
+		function init() {
 			this.cacheDOM();
 			this.bindEvents();
 			this.render();
-		},
-		cacheDOM: function() {
+		}
+		
+		function cacheDOM() {
 			this.listViewBtn = document.getElementById("listViewBtn");
 			this.gridViewBtn = document.getElementById("gridViewBtn");
 			this.detailsViewBtn = document.getElementById("detailsViewBtn");
 			this.sectionWrapper = document.getElementById("sectionWrapper");
-		},
-		bindEvents: function() {
+		}
+		
+		function bindEvents() {
 			this.gridViewBtn.addEventListener("click", this.toggleView.bind(this));
 			this.listViewBtn.addEventListener("click", this.toggleView.bind(this));
 			this.detailsViewBtn.addEventListener("click", this.toggleView.bind(this));
-		},
-		render: function() {
+		}
+
+		function render() {
 			//tu wstawić render buttonów do wyboru view type
 
 			this.getView();
-		},
-		toggleView: function(e) {
+		}
+		
+		function toggleView(e) {
 			var element = e.target;
 			
 			if (element.id === "gridViewBtn" && this.viewType !== 'grid-view') {
@@ -282,8 +322,9 @@
 			} else if (element.id === "detailsViewBtn" && this.viewType !== 'details-view') {
 				this.switchDetailsView();	
 			}
-		},
-		getView: function() {
+		}
+		
+		function getView() {
 			if(this.viewType === 'grid-view') {
 				this.switchGridView();
 			} else if (this.viewType === 'list-view') {
@@ -291,8 +332,9 @@
 			} else {
 				this.switchDetailsView();
 			}
-		},
-		switchGridView: function() {
+		}
+		
+		function switchGridView() {
 			if (this.viewType === 'details-view') {
 				this.removeCardPreview();
 			}	
@@ -305,8 +347,9 @@
 			localStorage.setItem("viewType", JSON.stringify(this.viewType));
 			
 			pagination.init();
-		},
-		switchListView: function() {
+		}
+		
+		function switchListView() {
 			if (this.viewType === 'details-view') {
 				this.removeCardPreview();
 			}	
@@ -319,8 +362,9 @@
 			localStorage.setItem("viewType", JSON.stringify(this.viewType));
 			
 			pagination.init();		
-		},
-		switchDetailsView: function() {
+		}
+		
+		function switchDetailsView() {
 			this.viewType = 'details-view';
 			var cardsPerPage = cards.setCardsPerPage();
 			cards.cardsWrapper.className = 'details-view';
@@ -332,8 +376,9 @@
 			pagination.init();
 			this.createCardPreview();
 			cardView.init(collectionSelector.selectedCollection.cards[0]);
-		},
-		createCardPreview: function() {
+		}
+		
+		function createCardPreview() {
 			var html = '';
 
 			html += '<div id="cardField" class="card-preview-sheet"></div>';
@@ -344,48 +389,63 @@
 			cardPreview.innerHTML = html.trim();
 			this.sectionWrapper.appendChild(cardPreview);
 			cards.setCardPreviewHeight();	
-		},
-		removeCardPreview: function() {
+		}
+		
+		function removeCardPreview() {
 			var cardPreview = document.getElementById("cardPreview");
 			cardPreview.parentNode.removeChild(cardPreview);	
 		}
-	};
+
+		return {
+			init: init
+		};
+
+	})();
 
 	/**
 	 *	Profile module
 	 */
-	var profile = {
-		userName: JSON.parse(localStorage.getItem("userName")) || "Guest",
+	var profile = (function() {
+		var userName = JSON.parse(localStorage.getItem("userName")) || "Guest";
 
-		init: function() {
+		function init() {
 			this.cacheDOM();
 			this.bindEvents();
 			this.render();
-		},
-		cacheDOM: function() {
+		}
+		
+		function cacheDOM() {
 			this.hiUserName = document.getElementById("hiUserName");
 			this.userNameSection = document.getElementById('userNameSection');
-		},
-		bindEvents: function() {
+		}
+		
+		function bindEvents() {
 			this.hiUserName.addEventListener("click", function() { userNameForm.init(); });
-		},
-		render: function() {
+		}
+		
+		function render() {
 			var data = {
 				userName: this.userName
 			}
 			this.hiUserName.innerHTML = data.userName;
 		}
-	};
 
-	var userNameForm = {
-		userName: JSON.parse(localStorage.getItem("userName")) || "Guest",
+		return {
+			init: init
+		};
 
-		init: function() {
+	})();
+
+	var userNameForm = function() {
+		var userName = JSON.parse(localStorage.getItem("userName")) || "Guest";
+
+		function init() {
 			this.render();
 			this.cacheDOM();
 			this.bindEvents();
-		},
-		render: function() {
+		}
+		
+		function render() {
 			// ponadto przyda się ogólny obiekt na tworzenie FORMÓW, bo widać tu 
 			// ewidentnie wspólne elementy takie jak: fogBlanket, metoda close, appendowanie do parenta itp.
 
@@ -419,61 +479,74 @@
 			fogBlanket.className = "fog-blanket";
 			fogBlanket.id = "fogBlanket";
 			pageWrapper.appendChild(fogBlanket);
-		},
-		cacheDOM: function() {
+		}
+		
+		function cacheDOM() {
 			this.userNameForm = document.getElementById("userNameForm");
 			this.closeBtn = document.getElementById('closeBtn');
 			this.cancelForm = document.getElementById('cancelForm');
 			this.fogBlanket = document.getElementById('fogBlanket');
-		},
-		bindEvents: function() {
+		}
+		
+		function bindEvents() {
 			this.closeBtn.addEventListener('click', this.closeUserNameForm.bind(this));
 			this.cancelForm.addEventListener('click', this.closeUserNameForm.bind(this));
 			this.fogBlanket.addEventListener('click', this.closeUserNameForm.bind(this));
 			this.userNameForm.addEventListener('submit', this.userNameSubmit.bind(this));			
-		},
-		closeUserNameForm: function() {
+		}
+		
+		function closeUserNameForm() {
 			var userNameFormWrapper = this.userNameForm.parentNode;
 			userNameFormWrapper.parentNode.removeChild(userNameFormWrapper);
 			this.closeUserNameFogBlanket();
-		},
-		closeUserNameFogBlanket: function() {
+		}
+		
+		function closeUserNameFogBlanket() {
 			var isFog = !!document.getElementById("fogBlanket");
 			
 			if(isFog) {
 				var fogBlanket = document.getElementById("fogBlanket");
 				fogBlanket.parentNode.removeChild(fogBlanket);		
 			}
-		},
-		userNameSubmit: function() {
+		}
+		
+		function userNameSubmit() {
 			this.userName = formUserName.value;
 			localStorage.setItem("userName", JSON.stringify(this.userName));
 			this.closeUserNameForm();
 			profile.render();
 		}
+
+		return {
+			init: init
+		};
+
 	};
 
 	/**	
 	 *  Card Collections module
 	 *
 	 */
-	var collectionSelector = {
-		collections: JSON.parse(localStorage.getItem("Collections")) || [data.defaultCollection],
-		selectedCollection: JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
-		selectedCollectionIndex: JSON.parse(localStorage.getItem("selectedCollectionIndex")) || 0,
+	var collectionSelector = (function() {
+		var collections = JSON.parse(localStorage.getItem("Collections")) || [data.defaultCollection],
+			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
+			selectedCollectionIndex = JSON.parse(localStorage.getItem("selectedCollectionIndex")) || 0;
 
-		init: function() {
+		function init() {
 			this.cacheDOM();
 			this.render();
 			this.bindEvents();			
-		},
-		cacheDOM: function() {
+		}
+		
+		function cacheDOM() {
 			this.collectionSelect = document.getElementById("collectionSelect");
-		},
-		bindEvents: function() {
+		}
+		
+		function bindEvents() {
 			this.collectionSelect.addEventListener("change", this.selectCollection.bind(this));		
-		},
-		render: function() {
+		}
+		
+		function render() {
 			this.selectedCards = this.selectedCollection.cards;
 			var collectionOptions = '';
 			for (var i = 0; i < this.collections.length; i++) {
@@ -489,8 +562,9 @@
 			if(this.collectionSelect.value !== 'addNewCollection'){
 				this.addEditCollectionBtn();
 			}
-		},
-		selectCollection: function(e) {
+		}
+		
+		function selectCollection(e) {
 			var element = e.target || e;
 			
 			this.removeEditCollectionBtn();
@@ -513,8 +587,9 @@
 				pagination.init();
 				this.addEditCollectionBtn();
 			}
-		},
-		addEditCollectionBtn: function() {
+		}
+		
+		function addEditCollectionBtn() {
 			this.editCollectionBtn = document.createElement("i");
 			this.editCollectionBtn.className = "edit-collection fa fa-cog";
 			this.editCollectionBtn.id = "editCollectionBtn";
@@ -539,36 +614,44 @@
 				}
 				collectionForm.init(editableCollection);
 			}.bind(this));
-		},
-		removeEditCollectionBtn: function() {
+		}
+		
+		function removeEditCollectionBtn() {
 			if(!document.getElementById("editCollectionBtn")) {
 				return false;
 			}
 			this.editCollectionBtn.parentNode.removeChild(this.editCollectionBtn);
 		}
-	};
+
+		return {
+			init: init
+		};
+
+	})();
 
 	/**
 	*  Collection Form
 	*/
-	var collectionForm = {
-		selectedCollection: JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
+	var collectionForm = function() {
+		var selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection;
 
-		init: function(editableCollection) {
+		function init(editableCollection) {
 			editableCollection = editableCollection || false;
 
 			this.render(editableCollection);
 			this.cacheDOM();
 			this.bindEvents();
-		},
-		cacheDOM: function() {			
+		}
+		
+		function cacheDOM() {			
 			this.collectionForm = document.getElementById('collectionForm');
 			this.fogBlanket = document.getElementById('fogBlanket');			
 			this.closeBtn = document.getElementById('closeBtn');
 			this.cancelFormBtn = document.getElementById('cancelFormBtn');
 			this.deleteCollectionBtn = document.getElementById('deleteCollectionBtn');
-		},
-		bindEvents: function() {
+		}
+		
+		function bindEvents() {
 			this.closeBtn.addEventListener('click', this.closeCreateCollectionForm.bind(this));
 			this.cancelFormBtn.addEventListener('click', this.closeCreateCollectionForm.bind(this));
 			this.fogBlanket.addEventListener('click', this.closeCreateCollectionForm.bind(this));			
@@ -576,8 +659,9 @@
 				event.preventDefault();
 				this.createCollection(this.updatedCollectionId, this.collectionCards);
 			}.bind(this));
-		},
-		render: function(editableCollection) {
+		}
+		
+		function render(editableCollection) {
 			if (document.getElementById('collectionSection')) {
 				return false;
 			}
@@ -626,24 +710,27 @@
 			pageWrapper.appendChild(fogBlanket);
 
 			topicAdder.init("cardTopicWrapper", true);
-		},
-		closeCreateCollectionForm: function() {
+		}
+		
+		function closeCreateCollectionForm() {
 			var collectionForm = document.getElementById("collectionForm").parentNode;
 			collectionForm.parentNode.removeChild(collectionForm);
 			this.closeCreateCollectionFogBlanket();
 			
 			// chce ustawiac nowoutworzona kolekcje ale co jest zle tutaj 
 			//collectionSelector.selectCollection(collectionSelector.selectedCollectionIndex);
-		},
-		closeCreateCollectionFogBlanket: function() {
+		}
+		
+		function closeCreateCollectionFogBlanket() {
 			var isFog = !!document.getElementById("fogBlanket");
 			
 			if(isFog) {
 				var fogBlanket = document.getElementById("fogBlanket");
 				fogBlanket.parentNode.removeChild(fogBlanket);		
 			}
-		},		
-		createCollection: function(updatedCollectionId, collectionCards) {
+		}
+
+		function createCollection(updatedCollectionId, collectionCards) {
 			var date = new Date(),
 				form = document.forms[0],
 				collection = {
@@ -690,8 +777,9 @@
 			pagination.init();
 			
 			this.closeCreateCollectionForm();
-		},
-	 	deleteCollection: function() {
+		}
+
+	 	function deleteCollection() {
 	 		var confirmDelete = confirm("All your collection data including cards will be deleted. Continue?");
 	 		
 	 		if (confirmDelete) {
@@ -715,18 +803,23 @@
 	 		} else {
 	 			return false;
 	 		}
-	    }	
+	    }
+
+	    return {
+			init: init
+		};
+
 	};
 
 	/**	
 	 *  Cards module
 	 *
 	 */			
-	var cards = {
-		collections: JSON.parse(localStorage.getItem("Collections")) || [data.defaultCollection],
-		selectedCollection: JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
+	var cards = function() {
+		var collections = JSON.parse(localStorage.getItem("Collections")) || [data.defaultCollection],
+			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection;
 		
-		init: function(page) {
+		function init(page) {
 			page = page || false;
 
 			console.log('cards.init !');
@@ -734,17 +827,20 @@
 			this.cacheDOM();
 			this.bindEvents();
 			this.render(page);
-		},
-		cacheDOM: function() {
+		}
+		
+		function cacheDOM() {
 			this.createCardBtn = document.getElementById("createCardBtn");
 			this.cardsWrapper = document.getElementById("cardsWrapper");
 			this.header = document.getElementById("header");
 			this.pseudoFooter = document.getElementById("pseudoFooter");			
-		},
-		bindEvents: function() {
+		}
+		
+		function bindEvents() {
 			this.createCardBtn.addEventListener("click", function() { cardForm.init(); });
-		},
-		render: function(page) {
+		}
+		
+		function render(page) {
 
 			var pageIndex = parseInt(page) || 1,
 				i = 0,
@@ -780,8 +876,9 @@
 
 			this.setCardsWrapperHeight();
 
-		},
-		sortCards: function(cards) {
+		}
+		
+		function sortCards(cards) {
 			if(cardsFilter.selectedSorting === 'date') {
 				this.sortCardsByDate(cards);
 			} else if(cardsFilter.selectedSorting === 'popularity') {
@@ -789,18 +886,21 @@
 			} else if(cardsFilter.selectedSorting === 'title') {
 				this.sortCardsByTitle(cards);
 			}		
-		},
-		sortCardsByDate: function(cards) {
+		}
+		
+		function sortCardsByDate(cards) {
 			cards.sort(function(a, b){
 				return b.date - a.date;
 			});
-		},
-		sortCardsByPopularity: function(cards) {
+		}
+		
+		function sortCardsByPopularity(cards) {
 			cards.sort(function(a, b){
 				return b.views - a.views;
 			});
-		},
-		sortCardsByTitle: function(cards) {
+		}
+		
+		function sortCardsByTitle(cards) {
 			cards.sort(function(a, b){
 				if (a.title < b.title) {
 					return -1;
@@ -810,14 +910,16 @@
 					return 0;
 				}
 			});
-		},
-		setCardsPerPage: function() {
+		}
+		
+		function setCardsPerPage() {
 	 		return (viewTypes.viewType === 'grid-view' || viewTypes.viewType === 'details-view') ? 12 : this.countCardsPerPage();
-		},
+		}
+
 		/**
 	     *  Determine the number of cards to be displayed in the list view on a single page
 	     */
-		countCardsPerPage: function() {
+		function countCardsPerPage() {
 			// spr dlaczego tutaj musiałem dawać document.get zamiast 
 			// np. this.pseudoFooter.offsetHeight - wyrzucało mi undefined
 			// nie czaje czemu ????
@@ -825,18 +927,21 @@
 				listViewCardHeight = 150, // ugly, should be avoided such appending
 				cardsPerPage = Math.floor(cardsWrapperHeight / listViewCardHeight);
 			return cardsPerPage;
-		},
-		setCardsWrapperHeight: function() {
+		}
+		
+		function setCardsWrapperHeight() {
 	 		var cardsWrapperHeight = window.innerHeight - (document.getElementById("header").offsetHeight + document.getElementById("cardsFilter").offsetHeight + document.getElementById("pseudoFooter").offsetHeight);
 	 		cards.cardsWrapper.style.height = cardsWrapperHeight + 'px';
-		},
-		setCardPreviewHeight: function() {
+		}
+		
+		function setCardPreviewHeight() {
 			var cardPreviewHeight = window.innerHeight - (document.getElementById("header").offsetHeight + document.getElementById("cardsFilter").offsetHeight + document.getElementById("pseudoFooter").offsetHeight),
 				cardPreview = document.getElementById('cardPreview');
 			
 			cardPreview.style.height = cardPreviewHeight + 'px';
-		},
-		removeCard: function(cardId) {
+		}
+		
+		function removeCard(cardId) {
 		    var selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value,
 				i = 0,
 				obj = null;
@@ -869,25 +974,32 @@
 			pagination.init();	
 			cardCounter.init();
 		}
+
+		return {
+			init: init
+		};
+
 	};
 
 	/**
 	 * Card Miniature module
 	 *
 	 */
-	var cardMiniature = {
-		selectedCollection: JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
+	var cardMiniature = function() {
+		var selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection;
 
-		init: function(card) {
+		function init(card) {
 			this.render(card);
 			this.cacheDOM(card);
 			this.bindEvents();
-		},
-		cacheDOM: function(card) {
+		}
+		
+		function cacheDOM(card) {
 			this.cardId = card.id;			
 			this.tempCardMiniature = document.getElementById("cardMiniature" + this.cardId);
-		},
-		bindEvents: function() {
+		}
+		
+		function bindEvents() {
 			this.tempCardMiniature.addEventListener('click', function(e) {
 				var element = e.target,
 					parentId = (element.parentNode && element.parentNode.id) ? element.parentNode.id.slice(-5) : '';
@@ -953,8 +1065,9 @@
 					viewImg.document.write('<img src="' + element.src + '" />');
 				}
 			}.bind(this));
-		},
-		render: function(card) {
+		}
+		
+		function render(card) {
 			var thumbs = '',
 				timeString = '';
 
@@ -1011,31 +1124,40 @@
 			tempCardMiniature.className = "card-miniature";
 			tempCardMiniature.innerHTML = html.trim();
 			cards.cardsWrapper.appendChild(tempCardMiniature);
-		}		
-	};
+		}
+
+		return {
+			init: init
+		};
+
+	}
 
 	/**	
 	 *  Cards Filter module
 	 *
 	 */	
-	var cardsFilter = {
-		selectedSorting: JSON.parse(localStorage.getItem("selectedSorting")) || "date",
+	var cardsFilter = (function() {
+		var selectedSorting = JSON.parse(localStorage.getItem("selectedSorting")) || "date";
 
-		init: function() {
+		function init() {
 			this.cacheDOM();
 			this.bindEvents();
 			this.render();
-		},
-		cacheDOM: function() {
+		}
+		
+		function cacheDOM() {
 			this.cardsFilterWrapper = document.getElementById("cardsFilter");
-		},
-		bindEvents: function() {
+		}
+		
+		function bindEvents() {
 			this.cardsFilterWrapper.addEventListener("change", this.selectSortingMethod.bind(this));
-		},
-		render: function() {
+		}
+		
+		function render() {
 
-		},
-		selectSortingMethod: function(e) {
+		}
+		
+		function selectSortingMethod(e) {
 			var element = e.target;
 			if (element.value === this.selectedSorting) {
 				return false;
@@ -1045,8 +1167,9 @@
 				
 				cards.init(pagination.selectedPage);
 			}
-		},
-		setSorting: function() {
+		}
+		
+		function setSorting() {
 			// Zamienić to na pętlę???
 
 			if (this.selectedSorting === 'date') {
@@ -1057,27 +1180,34 @@
 				this.cardsFilterWrapper.getElementsByTagName('option')[2].selected = 'selected';
 			}
 		}
-	};
+
+		return {
+			init: init
+		};
+
+	})();
 
 	/**
 	 * Card Form module
 	 *
 	 */
-	var cardForm = {
-		selectedCollection: JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
+	var cardForm = function() {
+		var selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection;
 
-		init: function(editableCard) {
+		function init(editableCard) {
 			editableCard = editableCard || false;
 			this.render(editableCard);
 			this.cacheDOM();			
 			this.bindEvents();			
-		},
-		cacheDOM: function() {
+		}
+		
+		function cacheDOM() {
 			this.closeBtn = document.getElementById('closeBtn');
 			this.cancelForm = document.getElementById('cancelFormBtn');
 			this.fogBlanket = document.getElementById('fogBlanket');
-		},
-		bindEvents: function() {
+		}
+		
+		function bindEvents() {
 			this.closeBtn.addEventListener('click', this.closeCreateCardForm.bind(this));
 			this.cancelForm.addEventListener('click', this.closeCreateCardForm.bind(this));
 			this.fogBlanket.addEventListener('click', this.closeCreateCardForm.bind(this));	
@@ -1103,8 +1233,9 @@
 			cardDropArea.addEventListener("drop", function(event) {
 				this.getAttachments(event, this.cardAttachments);
 			}.bind(this));
-		},
-		render: function(editableCard) {
+		}
+		
+		function render(editableCard) {
 			if (document.getElementById('createCardSection')) {
 				return false;
 			}
@@ -1199,9 +1330,9 @@
 			var addTopicLink = document.getElementById("addTopicLink");
 
 			topicAdder.getCollectionTopics();
-
-		},
-		getAttachments: function(e, cardAttachments) {
+		}
+		
+		function getAttachments(e, cardAttachments) {
 			e.stopPropagation();
 			e.preventDefault();	
 
@@ -1233,21 +1364,24 @@
 			}
 
 			return cardAttachments;
-		},
-		closeCreateCardForm: function() {
+		}
+		
+		function closeCreateCardForm() {
 			var createCardForm = document.getElementById("createCardForm").parentNode;			
 			createCardForm.parentNode.removeChild(createCardForm);
 			this.closeCreateCardFogBlanket();
-		},
-		closeCreateCardFogBlanket: function() {
+		}
+		
+		function closeCreateCardFogBlanket() {
 			var isFog = !!document.getElementById("fogBlanket");
 			
 			if(isFog) {
 				var fogBlanket = document.getElementById("fogBlanket");
 				fogBlanket.parentNode.removeChild(fogBlanket);		
 			}
-		},		
-		createCard: function(updatedCardId, cardAttachments) {
+		}
+
+		function createCard(updatedCardId, cardAttachments) {
 			var selectedCollectionIndex = collectionSelector.collectionSelect.options[collectionSelector.collectionSelect.selectedIndex].value,
 				tags = (typeof cardTags !== 'undefined') ? cardTags.value.split(",") : tags,
 				date = new Date(),
@@ -1311,25 +1445,32 @@
 			pagination.init();
 			cardCounter.init();			
 		}
+
+		return {
+			init: init
+		};
+
 	};
 
 	/**
 	 * Card View module
 	 *
 	 */
-	var cardView = {
-		selectedCollection: JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
-		viewedCardIndex: 1,
+	var cardView = function() {
+		var selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
+			viewedCardIndex = 1;
 
-		init: function(viewedCard) {
+		function init(viewedCard) {
 			this.cacheDOM();			
 			this.render(viewedCard);
 			this.bindEvents();
-		},
-		cacheDOM: function() {
+		}
+		
+		function cacheDOM() {
 
-		},
-		bindEvents: function() {
+		}
+		
+		function bindEvents() {
 			this.closeBtn ? this.closeBtn.addEventListener('click', this.closeCardView.bind(this)) : false;
 			this.fogBlanket ? this.fogBlanket.addEventListener('click', this.closeCardView.bind(this)) : false;	
 
@@ -1358,8 +1499,9 @@
 					cards.removeCard(collectionSelector.selectedCollection.cards[this.viewedCardIndex - 1].id);
 				}
 			}.bind(this)) : false;
-		},
-		render: function(viewedCard) {
+		}
+		
+		function render(viewedCard) {
 			
 			if (document.getElementById('viewCardSection') || !viewedCard) {
 				return false;
@@ -1453,21 +1595,24 @@
 
 			this.countView(viewedCard);
 
-		},
-		closeCardView: function() {
+		}
+		
+		function closeCardView() {
 			var viewCardForm = document.getElementById("viewCardForm").parentNode;
 			viewCardForm.parentNode.removeChild(viewCardForm);
 			this.closeCardViewFogBlanket();
-		},
-		closeCardViewFogBlanket: function() {
+		}
+		
+		function closeCardViewFogBlanket() {
 			var isFog = !!document.getElementById("fogBlanket");
 			
 			if(isFog) {
 				var fogBlanket = document.getElementById("fogBlanket");
 				fogBlanket.parentNode.removeChild(fogBlanket);		
 			}
-		},		
-		countView: function(viewedCard) {
+		}
+
+		function countView(viewedCard) {
 			var selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value;
 			
 			viewedCard.views += 1;
@@ -1484,8 +1629,9 @@
 
 			//cards.init(pagination.selectedPage);
 			topicSelector.selectCardsByTopic();
-		},
-		renderCardSide: function(e, viewedCard, frontSide) {
+		}
+		
+		function renderCardSide(e, viewedCard, frontSide) {
 			var flashCardText = document.getElementById('flashCardText') ? document.getElementById('flashCardText') : null,	
 				cardContent = document.getElementById('cardContent');
 
@@ -1506,32 +1652,40 @@
 			flashCardHtml += '	</div>';
 			cardContent.innerHTML = flashCardHtml;
 		}
-	};	
+
+		return {
+			init: init
+		};
+
+	};
 
 	/**
 	 *  Topic Adder module
 	 *
 	 */
-	var topicAdder = {
-		selectedCollection: JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
+	var topicAdder = function() {
+		var selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection;
 
-		init: function(parentId, isMultiple) {
+		function init(parentId, isMultiple) {
 			isMultiple = isMultiple || false; 
 
 			this.render(parentId, isMultiple);
 			this.cacheDOM();
 			this.bindEvents();			
-		},
-		cacheDOM: function() {
+		}
+		
+		function cacheDOM() {
 
-		},
-		bindEvents: function() {
+		}
+		
+		function bindEvents() {
 			this.cardTopic.addEventListener('change', function(event) {
 				//spr czy nie trzeba tutaj dać warunku isMultiple?
 				this.setSelectedTopics();
 			}.bind(this));
-		},
-		render: function(parentId, isMultiple) {
+		}
+		
+		function render(parentId, isMultiple) {
 
 			var parent = document.getElementById(parentId),
 				topicOptions = '';
@@ -1558,8 +1712,9 @@
 			}
 
 			this.createAddTopicLink(parentId);
-		},
-		setSelectedTopics: function() {
+		}
+		
+		function setSelectedTopics() {
 			var selectedTopics = [],
 				options = this.cardTopic && this.cardTopic.options;
 
@@ -1569,8 +1724,9 @@
 				}
 			}
 			collectionSelector.selectedCollection.topics = selectedTopics;
-		},
-		createAddTopicLink: function(parentId) {
+		}
+		
+		function createAddTopicLink(parentId) {
 			
 			var addTopicLink = document.createElement('a');
 			addTopicLink.id = "addTopicLink";
@@ -1585,8 +1741,9 @@
 				event.stopPropagation();
 				this.createAddTopicInput(event, parentId);
 			}.bind(this));
-		},
-		createAddTopicInput: function(e, parentId) {
+		}
+		
+		function createAddTopicInput(e, parentId) {
 			var element = e.target;
 			var createTopicInput = document.createElement('input');
 			createTopicInput.id = "createTopicInput";
@@ -1602,8 +1759,9 @@
 				this.removeAddTopicInput();
 				this.createAddTopicLink(parentId);				
 			}.bind(this));
-		},
-		createNewTopic: function(e) {
+		}
+		
+		function createNewTopic(e) {
 			var createTopicValidationBox = document.getElementById('createTopicValidationBox'),
 				newTopic = e.target.value;
 
@@ -1619,16 +1777,19 @@
 			
 			this.cardTopic.innerHTML = '';
 			this.getCollectionTopics();
-		},
-		removeAddTopicLink: function() {
+		}
+		
+		function removeAddTopicLink() {
 			var addTopicLink = document.getElementById("addTopicLink");
 			addTopicLink.parentNode.removeChild(addTopicLink);
-		},
-		removeAddTopicInput: function() {
+		}
+		
+		function removeAddTopicInput() {
 			var createTopicInput = document.getElementById('createTopicInput');
 			createTopicInput.parentNode.removeChild(createTopicInput);
-		},
-		getCollectionTopics: function() {
+		}
+		
+		function getCollectionTopics() {
 			// Get Collection Topics
 			var cardTopics = '',
 				i = 0;
@@ -1638,33 +1799,42 @@
 			}
 			this.cardTopic.innerHTML = cardTopics;
 		}
+
+		return {
+			init: init
+		};
+
 	};
 
 	/**	
 	 *  Topic Selector module
 	 *
 	 */	
-	var topicSelector = {
-		selectedTopic: parseInt(JSON.parse(localStorage.getItem("selectedTopic"))) || -1,
-		selectedCollection: JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
+	var topicSelector = (function() {
+		var selectedTopic = parseInt(JSON.parse(localStorage.getItem("selectedTopic"))) || -1,
+			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection;
 		
-		init: function() {
+		function init() {
 			this.cacheDOM();
 			this.bindEvents();
 			this.render();
-		},
-		cacheDOM: function() {
+		}
+		
+		function cacheDOM() {
 			this.topicSelect = document.getElementById("topicSelect");
-		},
-		bindEvents: function() {
+		}
+		
+		function bindEvents() {
 			this.topicSelect.addEventListener("change", this.selectCardsByTopic.bind(this));
-		},
-		render: function() {
+		}
+		
+		function render() {
 			//tutaj wstawić budowanie topic selectora z htmla
 			this.getTopics();
 			this.selectCardsByTopic();
-		},
-		getTopics: function() {
+		}
+		
+		function getTopics() {
 			var topicOptions = '',
 				i = 0;
 			
@@ -1682,8 +1852,9 @@
 				html += '	<option value="addNewTopic">ADD NEW TOPIC</option>';
 			
 			this.topicSelect.innerHTML = html;
-		},
-		selectCardsByTopic: function(e) {
+		}
+		
+		function selectCardsByTopic(e) {
 			var element = e ? e.target.value : parseInt(this.selectedTopic);
 
 			console.log('czym jest element' + element +  '  ' + typeof element);
@@ -1713,32 +1884,40 @@
 				}
 			}
 		}
-	};
+
+		return {
+			init: init
+		};
+
+	})();
 
 	/**
 	 *	Topic Form Module
 	 *
 	 */
-	var topicForm = {
-		selectedCollection: JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
+	var topicForm = function() {
+		var selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection;
 
-		init: function() {
+		function init() {
 			this.render();
 			this.cacheDOM();			
 			this.bindEvents();
-		},
-		cacheDOM: function() {
+		}
+		
+		function cacheDOM() {
 
-		},
-		bindEvents: function() {
+		}
+		
+		function bindEvents() {
 			this.closeBtn.addEventListener('click', this.closeTopicForm.bind(this));
 			this.cancelFormBtn.addEventListener('click', this.closeTopicForm.bind(this));
 			this.fogBlanket.addEventListener('click', this.closeTopicForm.bind(this));
 			this.topicForm.addEventListener('submit', function(event) {
 				this.createTopic(event);
 			}.bind(this));
-		},
-		render: function() {
+		}
+		
+		function render() {
 			if (document.getElementById('topicSection')) {
 				return false;
 			}
@@ -1771,22 +1950,25 @@
 			this.closeBtn = document.getElementById('closeBtn');
 			this.cancelFormBtn = document.getElementById('cancelFormBtn');
 
-		},
-		closeTopicForm: function() {
+		}
+		
+		function closeTopicForm() {
 			var topicForm = document.getElementById("topicForm").parentNode;
 			topicForm.parentNode.removeChild(topicForm);
 			topicSelect.getElementsByTagName('option')[0].selected = 'selected';
 			this.closeTopicFormFogBlanket();
-		},
-		closeTopicFormFogBlanket: function() {
+		}
+		
+		function closeTopicFormFogBlanket() {
 			var isFog = !!document.getElementById("fogBlanket");
 			
 			if(isFog) {
 				var fogBlanket = document.getElementById("fogBlanket");
 				fogBlanket.parentNode.removeChild(fogBlanket);		
 			}
-		},
-		createTopic: function(e) {
+		}
+		
+		function createTopic(e) {
 
 			var topicValidationBox = document.getElementById('topicValidationBox'),
 				newTopicForm = document.getElementById('topicForm'),
@@ -1834,14 +2016,19 @@
 			topicSelector.init();		
 			this.closeTopicForm();			
 		}
+
+		return {
+			init: init
+		};
+
 	};
 
 	/**	
 	 *  Pagination module
 	 *
 	 */	
-	var pagination = {		
-		init: function() {
+	var pagination = (function() {		
+		function init() {
 			collectionSelector.selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection;
 			this.selectedPage = JSON.parse(localStorage.getItem("selectedPage")) || 1;
 			this.cardsPerPage = cards.setCardsPerPage();
@@ -1849,11 +2036,13 @@
 			this.cacheDOM();			
 			this.render();
 			this.bindEvents();
-		},
-		cacheDOM: function() {
+		}
+		
+		function cacheDOM() {
 			this.pseudoFooter = document.getElementById('pseudoFooter');
-		},
-		bindEvents: function() {
+		}
+		
+		function bindEvents() {
 			document.addEventListener("click", function(e) {
 				var element = e.target,
 					paginationList = document.getElementById('paginationList');
@@ -1870,8 +2059,9 @@
 					cards.init(page);
 				}
 			}.bind(this));
-		},
-		render: function() {
+		}
+		
+		function render() {
 			if(collectionSelector.selectedCollection.cards.length <= this.cardsPerPage) {
 				this.pseudoFooter.innerHTML = '';
 				return false;
@@ -1889,8 +2079,9 @@
 			
 			this.pseudoFooter.innerHTML = html;
 			this.setCurrentPageClass();
-		},
-		setCurrentPageClass: function() {
+		}
+		
+		function setCurrentPageClass() {
 			var paginationList = document.getElementById('paginationList');
 			
 			if (paginationList.childNodes[parseInt(this.selectedPage) - 1]) {
@@ -1900,72 +2091,82 @@
 				paginationList.childNodes[parseInt(pagesCount) - 1].className += ' current-page';
 			}
 		}
-	};
+
+		return {
+			init: init
+		};
+
+	})();
 
 	/**
 	 * Expose Flashrr modules via public API
 	 */
-	var Flashrr = {
-		selectedCollection: JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
-		
-		utils: utils,
-		flashcardsOnly: flashcardsOnly,
-		searchCards: searchCards,
-		profile: profile,
-		collectionSelector: collectionSelector,
-		cards: cards,
-		viewTypes: viewTypes,		
-		cardCounter: cardCounter,
-		topicSelector: topicSelector,
-		cardsFilter: cardsFilter,
-		pagination: pagination,
+	var Flashrr = (function(object) {
+		var selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
+			utils = utils,
+			flashcardsOnly = flashcardsOnly,
+			searchCards = searchCards,
+			profile = profile,
+			collectionSelector = collectionSelector,
+			cards = cards,
+			viewTypes = viewTypes,		
+			cardCounter = cardCounter,
+			topicSelector = topicSelector,
+			cardsFilter = cardsFilter,
+			pagination = pagination;
 
-		cacheDOM: function() {
+		function cacheDOM() {
 			this.pageWrapper = document.getElementById("pageWrapper");	
 			this.sectionWrapper = document.getElementById("sectionWrapper");
-		},
-		bindEvents: function() {
+		}
+		
+		function bindEvents() {
 			document.addEventListener("keydown", this.handleCardKeydownEvents.bind(this));			
 			window.addEventListener("resize", this.handleResize.bind(this));
 			this.pageWrapper.addEventListener("dragover", this.handlePageDragOver.bind(this));
 			this.pageWrapper.addEventListener("dragleave", this.handlePageDragLeave.bind(this));
 			this.pageWrapper.addEventListener("drop", this.handlePageDrop.bind(this));
-		},
-		init: function() {
+		}
+		
+		function init() {
 			this.cacheDOM();
 			this.bindEvents();
 
-			flashcardsOnly.init();
-			searchCards.init();
-			profile.init();
-			collectionSelector.init();
-			topicSelector.init();	
-			cardsFilter.init();
-			pagination.init();
-			viewTypes.init();			
-			cardCounter.init();
-		},
-		handlePageDragOver: function(e){
+			//flashcardsOnly.init();
+			//searchCards.init();
+			//profile.init();
+			//collectionSelector.init();
+			//topicSelector.init();	
+			//cardsFilter.init();
+			//pagination.init();
+			//viewTypes.init();			
+			//cardCounter.init();
+		}
+		
+		function handlePageDragOver(e) {
 			e.preventDefault();
 			if(utils.hasClass(this.pageWrapper, "drag")){
 				return false;
 			}
 			this.pageWrapper.className += " drag";
-		},
-		handlePageDragLeave: function(e){
+		}
+		
+		function handlePageDragLeave(e) {
 			event.preventDefault();
 			this.pageWrapper.className = pageWrapper.className.replace( /(?:^|\s)drag(?!\S)/g , '' );		
-		},
-		handlePageDrop: function(e){
+		}
+		
+		function handlePageDrop(e) {
 			e.stopPropagation();
 			e.preventDefault();
 			this.getCardFromTxt(e);
 			this.pageWrapper.className = this.pageWrapper.className.replace(/(?:^|\s)drag(?!\S)/g, "");
-		},
+		}
+
 		/**
 		 *	Handle drag and drop txt files
 		 */
-		getCardFromTxt: function(e) {
+		function getCardFromTxt(e) {
 			var files = e.target.files || e.dataTransfer.files,
 				f = files[0];
 				
@@ -1989,16 +2190,18 @@
 				};
 				reader.readAsText(f);	
 			}
-		},
-		handleResize: function() {
+		}
+		
+		function handleResize() {
 			cards.setCardsWrapperHeight();
 			
 			//na razie to zakomentuje nie wiem czy potrzebne
 			// ale pewnie jakiś re-render sie przyda
 			//setCardsPerPage();
 			//getView();
-		},
-		handleCardKeydownEvents: function(e) {
+		}
+		
+		function handleCardKeydownEvents(e) {
 			if (cardView.viewedCardIndex !== null) {
 				var viewedCard = collectionSelector.selectedCollection.cards[cardView.viewedCardIndex - 1];
 
@@ -2006,10 +2209,14 @@
 					cardView.renderCardSide(event, viewedCard);				
 				}
 			}	
-		}				
-	};
+		}
 
-	Flashrr.init();
+		return {
+			init: init
+		};
+
+	})();
+
 	window.Flashrr = Flashrr;
 	
 
