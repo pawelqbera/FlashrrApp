@@ -98,10 +98,10 @@ All versions of Flashrr can be simply be downloaded and opened in the browser lo
 - extract and re-factor the rest of the code
 - major bug-fixing
 
-## Currently working on Flashrr 0.5.0, Vanilla, Object Literal 
+## Currently working on Flashrr 0.6.0, Vanilla, Revealing Module Pattern
 
-## Features to be added in 0.5.0
-
+## Features to be added in 0.6.0
+- Refactor to follow the Revealing Module Pattern
 
 ## Bugs
 
