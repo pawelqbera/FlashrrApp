@@ -284,6 +284,8 @@
 			_bindEvents();
 			_render();
 		}
+		// czy powinno się to wywoływac we Flashrr module lepiej????
+		init();
 				
 		function _bindEvents() {
 			hiUserName.addEventListener("click", function() { userNameForm.init(); });
@@ -292,7 +294,7 @@
 		function _render() {
 			var data = {
 				userName: userName
-			}
+			};
 			hiUserName.innerHTML = data.userName;
 		}
 
@@ -307,14 +309,13 @@
 
 		function init() {
 			_render();
-			_bindEvents();
 		}
 		
 		function _render() {
 			// ponadto przyda się ogólny obiekt na tworzenie FORMÓW, bo widać tu 
 			// ewidentnie wspólne elementy takie jak: fogBlanket, metoda close, appendowanie do parenta itp.
 
-			if (userNameSection) {
+			if (typeof userNameSection !== 'undefined') {
 				return false;
 			}
 
@@ -349,7 +350,7 @@
 		}
 		
 		function _cacheRenderedDOM() {
-			var userNameForm = document.getElementById("userNameForm"),
+			var userNameSection = document.getElementById("userNameSection"),
 				closeBtn = document.getElementById('closeBtn'),
 				cancelForm = document.getElementById('cancelForm'),
 				fogBlanket = document.getElementById('fogBlanket');
@@ -359,11 +360,11 @@
 			closeBtn.addEventListener('click', _closeUserNameForm.bind(this));
 			cancelForm.addEventListener('click', _closeUserNameForm.bind(this));
 			fogBlanket.addEventListener('click', _closeUserNameForm.bind(this));
-			userNameForm.addEventListener('submit', _userNameSubmit.bind(this));			
+			userNameSection.addEventListener('submit', _userNameSubmit.bind(this));			
 		}
 		
 		function _closeUserNameForm() {
-			var userNameFormWrapper = userNameForm.parentNode;
+			var userNameFormWrapper = document.getElementById('userNameForm').parentNode;
 			userNameFormWrapper.parentNode.removeChild(userNameFormWrapper);
 			_closeUserNameFogBlanket();
 		}
@@ -402,10 +403,10 @@
 		//CacheDOM
 		var collectionSelect = document.getElementById("collectionSelect");
 		
-		var init = (function() {			
+		function init() {			
 			_render();
 			_bindEvents();			
-		})();
+		}
 				
 		function _bindEvents() {
 			collectionSelect.addEventListener("change", _selectCollection.bind(this));		
@@ -559,22 +560,22 @@
 			topicAdder.init("cardTopicWrapper", true);
 
 			_cacheRenderedDOM();
-			_bindRenderedEvents();
+			_bindRenderedEvents(updatedCollectionId, collectionCards);
 		}
 
 		function _cacheRenderedDOM() {			
-			var collectionForm = document.getElementById('collectionSection'),
+			var collectionSection = document.getElementById('collectionSection'),
 				fogBlanket = document.getElementById('fogBlanket'),			
 				closeBtn = document.getElementById('closeBtn'),
 				cancelFormBtn = document.getElementById('cancelFormBtn'),
 				deleteCollectionBtn = document.getElementById('deleteCollectionBtn');
 		}
 		
-		function _bindRenderedEvents() {
+		function _bindRenderedEvents(updatedCollectionId, collectionCards) {
 			closeBtn.addEventListener('click', _closeCreateCollectionForm.bind(this));
 			cancelFormBtn.addEventListener('click', _closeCreateCollectionForm.bind(this));
 			fogBlanket.addEventListener('click', _closeCreateCollectionForm.bind(this));			
-			collectionForm.addEventListener('submit', function(event) {
+			collectionSection.addEventListener('submit', function(event) {
 				event.preventDefault();
 				createCollection(updatedCollectionId, collectionCards);
 			}.bind(this));
@@ -630,8 +631,7 @@
 			// Updating Collections data
 			localStorage.setItem("Collections", JSON.stringify(existingCollections));
 			// Getting updated Collections data for our modules
-			collections = JSON.parse(localStorage.getItem("Collections"));
-			cards.collections = JSON.parse(localStorage.getItem("Collections"));
+			var collections = JSON.parse(localStorage.getItem("Collections"));
 			
 			// Setting new selectedCollection
 			localStorage.setItem("selectedCollection", JSON.stringify(collection));
