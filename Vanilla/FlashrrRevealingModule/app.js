@@ -2,16 +2,31 @@
 	'use strict'
 
 	/*!
-	 * Flashrr App v0.5.0
-	 * Vanilla, Object Literal Pattern
+	 * Flashrr App v0.6.0
+	 * Vanilla, Revealing Module Pattern
 	 * http://flashrr.com
 	 *
 	 * Author Paweł Kubera
 	 * Released under the MIT license
 	 * http://flashrr.com/license
 	 *
-	 * Date: 2016-03-21
+	 * Date: 2016-04-23
 	 */
+
+	/**
+	 * Revealing Module Pattern Pros:
+	 * - each module has it's own private scope
+     * - we privatize module members - both vaiables and methods
+	 * - expose via Public API only those methods which are needed to 
+     * - we dont need to initialize all modules at start - thanks to IIFE
+	 */
+
+	/**
+	 * Spotted Drawbacks:
+	 * - memory issue with copying all methods in object instantiations
+	 * - poor extensibility
+	 */
+
 
 	/**
 	 * Model with Default Data Collections
