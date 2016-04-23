@@ -19,7 +19,7 @@ All versions of Flashrr can be simply be downloaded and opened in the browser lo
 
 # Changelog
 
-## 0.1.0
+## 0.1.0 (Flashrr Spaghetti)
 - a card is a model that have id, title, text and image attachments
 - one can add new cards via form by entering card title, text content and [optionaly] image attachments
 - data is saved in local storage 
@@ -88,7 +88,7 @@ All versions of Flashrr can be simply be downloaded and opened in the browser lo
 - FIXED: selected topic is not correctly saved into database (after page refresh wrong topic is displayed)
 - FIXED: if I change collection, all topics are still displayed at once
 
-## 0.5.0
+## 0.5.0 (Vanilla, Object Literal Pattern)
 - get rid of global variables by wrapping the whole code in self-executed anonymous function
 - add 'use strict'
 - re-think the modularity by dividing monolithic code into object literal modules
@@ -100,7 +100,7 @@ All versions of Flashrr can be simply be downloaded and opened in the browser lo
 
 ## Currently working on Flashrr 0.6.0, Vanilla, Revealing Module Pattern
 
-## Features to be added in 0.6.0
+## Features to be added in 0.6.0 (Revealing Module Pattern)
 - Refactor to follow the Revealing Module Pattern
 
 ## Bugs
