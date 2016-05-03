@@ -298,7 +298,8 @@
 		}
 
 		return {
-			init: init
+			init: init,
+			userName: userName
 		};
 
 	})();
@@ -849,14 +850,14 @@
 			// DRY: Wstawić to do osobnej funkcji
 			//      updateCardCollections()
 			// Update and load new collections
-			cards.collections[selectedCollectionIndex].cards = selectedCollection.cards;
-			localStorage.setItem("Collections", JSON.stringify(cards.collections));
-			cards.collections = JSON.parse(localStorage.getItem("Collections")) || [defaultCollection];
+			collections[selectedCollectionIndex].cards = selectedCollection.cards;
+			localStorage.setItem("Collections", JSON.stringify(collections));
+			collections = JSON.parse(localStorage.getItem("Collections")) || [defaultCollection];
 
 			// Update and load new selectedCollection based on updated collections
-			selectedCollection = cards.collections[selectedCollectionIndex];
+			selectedCollection = collections[selectedCollectionIndex];
 			localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
-			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || cards.collections[0];
+			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
 		
 			init(pagination.selectedPage);
 			pagination.init();	
@@ -1161,12 +1162,12 @@
 			cancelFormBtn.addEventListener('click', _closeCreateCardForm.bind(this));
 			fogBlanket.addEventListener('click', _closeCreateCardForm.bind(this));	
 
-			createCardForm.addEventListener('submit', function() {
+			createCardForm.addEventListener('submit', function(event) {
 
 			console.log('updatedCardId in submit listener calback fn: ' + updatedCardId);
 			console.log('cardAttachments in submit listener calback fn: ' +cardAttachments);	
 
-				//event.preventDefault();
+				event.preventDefault();
 				createCard(updatedCardId, cardAttachments);
 			});
 
@@ -1299,15 +1300,15 @@
 			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
 			//cardMiniature.selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
 
-			///_closeCreateCardForm();
+			_closeCreateCardForm();
 			//getView();
 
 			//topicSelector.getTopics();
 			//selectCardsByTopic();
 			//greetUser();
-			//cards.init();			
-			//pagination.init();
-			//cardCounter.init();			
+			cards.init();			
+			pagination.init();
+			cardCounter.init();			
 		}
 
 		return {
@@ -1416,19 +1417,12 @@
 			if(viewedCard.isFlashcard) {
 				_renderCardSide(event, viewedCard, true);	
 			}
-			_cacheRenderedDOM();
-			_bindRenderedEvents();
-			_countView(viewedCard);
-		}
-
-		function _cacheRenderedDOM() {		
+			
 			var closeBtn = document.getElementById('closeBtn'),
 				fogBlanket = document.getElementById('fogBlanket');
-		}
 
-		function _bindRenderedEvents() {
-			closeBtn ? closeBtn.addEventListener('click', _closeCardView.bind(this)) : false;
-			fogBlanket ? fogBlanket.addEventListener('click', _closeCardView.bind(this)) : false;	
+			closeBtn ? closeBtn.addEventListener('click', closeCardView.bind(this)) : false;
+			fogBlanket ? fogBlanket.addEventListener('click', closeCardView.bind(this)) : false;	
 
 			tempCardForm ? tempCardForm.addEventListener('click', function(e) {
 				var element = e.target;
@@ -1437,27 +1431,29 @@
 					if(viewedCardIndex === 1) {
 						return false;
 					}
-					_closeCardView();
+					closeCardView();
 					viewedCardIndex -= 1;
 					init(selectedCollection.cards[viewedCardIndex - 1]);
 				} else if (utils.hasClass(element, 'next-card-link')) {
 					if(viewedCardIndex === selectedCollection.cards.length) {
 						return false;
 					}
-					_closeCardView();
+					closeCardView();
 					viewedCardIndex += 1;
 					init(selectedCollection.cards[viewedCardIndex - 1]);
 				} else if (utils.hasClass(element, 'edit-card')) {
-					_closeCardView();					
+					closeCardView();					
 					cardForm.init(selectedCollection.cards[viewedCardIndex - 1]);
 				} else if (utils.hasClass(element, 'remove-card')) {
-					_closeCardView();
+					closeCardView();
 					cards.removeCard(selectedCollection.cards[viewedCardIndex - 1].id);
 				}
 			}.bind(this)) : false;
-		}		
+
+			_countView(viewedCard);
+		}	
 		
-		function _closeCardView() {
+		function closeCardView() {
 			var viewCardForm = document.getElementById("viewCardForm").parentNode;
 			viewCardForm.parentNode.removeChild(viewCardForm);
 			_closeCardViewFogBlanket();
@@ -1473,19 +1469,22 @@
 		}
 
 		function _countView(viewedCard) {
-			var selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value;
+			var selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value,
+				collections = JSON.parse(localStorage.getItem("Collections")) || [defaultCollection];
+
+			console.log('selectedCollectionIndex is: ' + selectedCollectionIndex);
 			
 			viewedCard.views += 1;
 
 			// Update and load new collections
-			cards.collections[selectedCollectionIndex].cards = selectedCollection.cards;
-			localStorage.setItem("Collections", JSON.stringify(cards.collections));
-			cards.collections = JSON.parse(localStorage.getItem("Collections")) || [defaultCollection];
+			collections[selectedCollectionIndex].cards = selectedCollection.cards;
+			localStorage.setItem("Collections", JSON.stringify(collections));
+			collections = JSON.parse(localStorage.getItem("Collections")) || [defaultCollection];
 
 			// Update and load new selectedCollection based on updated collections
-			selectedCollection = cards.collections[selectedCollectionIndex];
+			selectedCollection = collections[selectedCollectionIndex];
 			localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
-			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || cards.collections[0];
+			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
 
 			//cards.init(pagination.selectedPage);
 			topicSelector.selectCardsByTopic();
@@ -1514,7 +1513,8 @@
 		}
 
 		return {
-			init: init
+			init: init,
+			closeCardView: closeCardView
 		};
 
 	})();
@@ -1838,7 +1838,8 @@
 	 *
 	 */
 	var topicForm = (function() {
-		var selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection;
+		var selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
+			selectedCollectionIndex = JSON.parse(localStorage.getItem("selectedCollectionIndex")) || 0;
 
 		function init() {
 			_render();
@@ -1874,22 +1875,16 @@
 			fogBlanket.id = "fogBlanket";
 			pageWrapper.appendChild(fogBlanket);
 
-			_cacheRenderedDOM();
-			_bindRenderedEvents();
-		}
-
-		function _cacheRenderedDOM() {
 			var closeBtn = document.getElementById('closeBtn'),
 				fogBlanket = document.getElementById("fogBlanket"),
 				cancelFormBtn = document.getElementById('cancelFormBtn'),
-				topicForm = document.getElementById('topicSection');			
-		}
+				topicForm = document.getElementById('topicSection');
 
-		function _bindRenderedEvents() {
 			closeBtn.addEventListener('click', _closeTopicForm.bind(this));
 			cancelFormBtn.addEventListener('click', _closeTopicForm.bind(this));
 			fogBlanket.addEventListener('click', _closeTopicForm.bind(this));
 			topicForm.addEventListener('submit', function(event) {
+				event.preventDefault();
 				_createTopic(event);
 			}.bind(this));
 		}		
@@ -1934,14 +1929,13 @@
 			// Updating Collections data
 			localStorage.setItem("Collections", JSON.stringify(existingCollections));
 			// Getting updated Collections data for our modules
-			collections = JSON.parse(localStorage.getItem("Collections"));
-			cards.collections = JSON.parse(localStorage.getItem("Collections"));
+			var collections = JSON.parse(localStorage.getItem("Collections"));
 			
 			// Setting new selectedCollection
 			localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
 			// Getting new selectedCollection for our modules		
-			topicSelector.selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || cards.collections[0];
-			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || cards.collections[0];
+			topicSelector.selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
+			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
 				
 			topicSelector.init();		
 			_closeTopicForm();
