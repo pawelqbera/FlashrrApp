@@ -99,7 +99,7 @@ All versions of Flashrr can be simply be downloaded and opened in the browser lo
 - major bug-fixing
 
 ## 0.6.0 (Vanilla, Revealing Module Pattern)
-- re-factor to follow revealing module pattern
+- re-factor to follow
 - major bug-fixing
 
 ## Currently working on Flashrr 0.7.0, Vanilla, PubSub Pattern
