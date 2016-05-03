@@ -194,12 +194,14 @@
 	 *  Card counter module 
 	 */
 	var cardCounter = (function() {	
-		var selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection;
+		var selectedCollection;
 
 		//CecheDOM
 		var cardCounter = document.getElementById("cardCounter");		
 
 		function init() {			
+			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection;
+			
 			_render();
 		}
 
@@ -410,10 +412,6 @@
 			selectedCollectionIndex = JSON.parse(localStorage.getItem("selectedCollectionIndex")) || 0,
 			selectedTopic = JSON.parse(localStorage.getItem("selectedTopic")) || 0;
 			
-			console.log('collection selector! module START (before init)');			
-
-			console.log('collection selector! module INIT (already STARTED)');
-
 			_render();
 			_bindEvents();			
 		}
@@ -889,8 +887,6 @@
 			var thumbs = '',
 				timeString = '';
 
-			console.log('init miniatury o nazwie: ' + card.title);
-
 			for (var i = 0; i < card.attachments.length; i++) {
 				thumbs += '<img src="' + card.attachments[i] + '" class="card-thumb" />';
 			}
@@ -1004,9 +1000,11 @@
 					topicSelector.selectCardsByTopic();		
 					searchCards.searchCard();
 				} else if (utils.hasClass(element, 'card-topic-anchor')) {
+					var i = 0;
+
 					searchCards.value = '';
 					categorySearchSelect.getElementsByTagName('option')[0].selected = 'selected';				
-					for (i = 0;i < selectedCollection.topics.length;i++) {
+					for (;i < selectedCollection.topics.length;i++) {
 						if(element.text.indexOf(selectedCollection.topics[i]) !== -1) {
 							topicSelector.topicSelect.getElementsByTagName('option')[i+1].selected = 'selected';
 						}
@@ -1064,9 +1062,6 @@
 				cardAttachments = editableCard ? editableCard.attachments : [],
 				cardThumbs = '',
 				i = 0;
-
-			console.log(updatedCardId);
-			console.log(cardAttachments);
 
 				for (;i < cardAttachments.length; i++) {
 					cardThumbs += '<img src="' + cardAttachments[i] + '" class="view-card-thumb" />';
@@ -1143,32 +1138,15 @@
 
 			topicAdder.getCollectionTopics();
 
-			console.log('updatedCardId in end of form: ' + updatedCardId);
-			console.log('cardAttachments in end of form: ' + cardAttachments);
-
-			_cacheRenderedDOM();
-			_bindRenderedEvents(updatedCardId, cardAttachments);
-		}
-
-		function _cacheRenderedDOM() {
 			var closeBtn = document.getElementById('closeBtn'),
 				cancelFormBtn = document.getElementById('cancelFormBtn'),
 				fogBlanket = document.getElementById('fogBlanket');
-		}
-		
-		function _bindRenderedEvents(updatedCardId, cardAttachments) {
-			console.log(updatedCardId);
-			console.log(cardAttachments);			
 
 			closeBtn.addEventListener('click', _closeCreateCardForm.bind(this));
 			cancelFormBtn.addEventListener('click', _closeCreateCardForm.bind(this));
 			fogBlanket.addEventListener('click', _closeCreateCardForm.bind(this));	
 
 			createCardForm.addEventListener('submit', function(event) {
-
-			console.log('updatedCardId in submit listener calback fn: ' + updatedCardId);
-			console.log('cardAttachments in submit listener calback fn: ' +cardAttachments);	
-
 				event.preventDefault();
 				createCard(updatedCardId, cardAttachments);
 			});
@@ -1190,7 +1168,8 @@
 			cardDropArea.addEventListener("drop", function(event) {
 				_getAttachments(event, cardAttachments);
 			});
-		}		
+		}
+		
 		
 		function _getAttachments(e, cardAttachments) {
 			e.stopPropagation();
@@ -1281,12 +1260,6 @@
 			}
 
 			var selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value;
-
-			console.log('dodaje karte');
-
-			console.log('selectedCollectionIndex: ' + selectedCollectionIndex);
-			console.log('collections[selectedCollectionIndex].cards: ' + collections[selectedCollectionIndex].cards);
-			console.log('nowe pobrane collections z nowa karta: ' + collections);
 			
 			// Update and load new collections
 			collections[selectedCollectionIndex].cards = existingCards;
@@ -1474,8 +1447,6 @@
 			var selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value,
 				collections = JSON.parse(localStorage.getItem("Collections")) || [defaultCollection];
 
-			console.log('selectedCollectionIndex is: ' + selectedCollectionIndex);
-			
 			viewedCard.views += 1;
 
 			// Update and load new collections
@@ -1713,6 +1684,8 @@
 			var pagesCount = Math.ceil(selectedCollection.cards.length / cardsPerPage),
 				buttons = '';
 
+			console.log('LICZBA STRON: ' + pagesCount);
+
 			for (var i=0; i < pagesCount; i++) {
 				buttons += '<li class="pagination-page">' + (i+1) + '</li>';
 			}
@@ -1731,9 +1704,6 @@
 				paginationList.childNodes[parseInt(selectedPage) - 1].className += ' current-page';
 			} else {
 				var pagesCount = Math.ceil(selectedCollection.cards.length / cardsPerPage);
-				console.log('selectedCollection.cards.length ' + selectedCollection.cards.length);
-				console.log('cardsPerPage ' + cardsPerPage);
-				console.log('pagesCount ' + pagesCount);
 				paginationList.childNodes[parseInt(pagesCount) - 1].className += ' current-page';
 			}
 		}
@@ -1799,8 +1769,6 @@
 		function selectCardsByTopic(e) {
 			var element = e ? e.target.value : parseInt(selectedTopic);
 
-			console.log('czym jest element' + element +  '  ' + typeof element);
-
 			if (element === '-1' || element === -1) {
 				selectedTopic = topicSelect.options[topicSelect.selectedIndex].value;
 				localStorage.setItem("selectedTopic", JSON.stringify(selectedTopic));
@@ -1808,13 +1776,9 @@
 			} else if (element === 'addNewTopic') {
 				topicForm.init();
 			} else {
-				element = parseInt(element);
-				
+				element = parseInt(element);		
 				cards.init(pagination.selectedPage);
-
 				element = (element === '0') ? 0 : element;
-
-				console.log('element is: ' + element + ' typeof ' + typeof element);
 				
 				for(var i = 0; i < selectedCollection.cards.length; i++) {
 					if(selectedCollection.topics[element].indexOf(selectedCollection.cards[i].topic) === -1) {
@@ -1827,14 +1791,14 @@
 			}
 
 			selectedTopic = topicSelect.options[topicSelect.selectedIndex].value;
-			console.log('finalnie ustawiam po petli selected topic: ' + selectedTopic);
 			localStorage.setItem("selectedTopic", JSON.stringify(selectedTopic));				
 		}
 
 		return {
 			init: init,
 			getTopics: getTopics,
-			selectCardsByTopic: selectCardsByTopic
+			selectCardsByTopic: selectCardsByTopic,
+			topicSelect: topicSelect
 		};
 
 	})();
@@ -2014,7 +1978,6 @@
 			}	
 			viewType = 'grid-view';
 			var cardsPerPage = cards.setCardsPerPage();
-			console.log('switch view cardsPerPage' + cardsPerPage);
 			cardsWrapper.className = 'grid-view';
 			gridViewBtn.className += ' active';
 			listViewBtn.className = listViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
@@ -2030,7 +1993,6 @@
 			}	
 			viewType = 'list-view';
 			var cardsPerPage = cards.setCardsPerPage();
-			console.log('switch view cardsPerPage' + cardsPerPage);
 			cardsWrapper.className = 'list-view';
 			listViewBtn.className += ' active';
 			gridViewBtn.className = gridViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
