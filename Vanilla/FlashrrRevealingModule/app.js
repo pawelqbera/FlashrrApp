@@ -1,4 +1,4 @@
-(function(window) {
+(function(global) {
 	'use strict'
 
 	/*!
@@ -720,7 +720,7 @@
 			selectedSorting = JSON.parse(localStorage.getItem("selectedSorting")) || 'date',			
 			page = page || false;
 
-			console.log('cards.init !');
+			console.log('cards.init EXECUTED with page: ' + page);
 		
 			_bindEvents();
 			_render(page);
@@ -888,6 +888,8 @@
 		function _render(card) {
 			var thumbs = '',
 				timeString = '';
+
+			console.log('init miniatury o nazwie: ' + card.title);
 
 			for (var i = 0; i < card.attachments.length; i++) {
 				thumbs += '<img src="' + card.attachments[i] + '" class="card-thumb" />';
@@ -1673,6 +1675,8 @@
 			selectedPage = JSON.parse(localStorage.getItem("selectedPage")) || 1,
 			cardsPerPage = cards.setCardsPerPage();
 
+			console.log('pag init pokazuje cardsPerPage' + cardsPerPage);
+
 		//CacheDOM
 		var pseudoFooter = document.getElementById('pseudoFooter');
 
@@ -1808,7 +1812,7 @@
 				
 				cards.init(pagination.selectedPage);
 
-				//element = (element === '0') ? 0 : element;
+				element = (element === '0') ? 0 : element;
 
 				console.log('element is: ' + element + ' typeof ' + typeof element);
 				
@@ -1818,11 +1822,13 @@
 						if(card) {
 							card.parentNode.removeChild(card);					
 						}
-						selectedTopic = topicSelect.options[topicSelect.selectedIndex].value;
-						localStorage.setItem("selectedTopic", JSON.stringify(selectedTopic));
 					}
-				}
+				}			
 			}
+
+			selectedTopic = topicSelect.options[topicSelect.selectedIndex].value;
+			console.log('finalnie ustawiam po petli selected topic: ' + selectedTopic);
+			localStorage.setItem("selectedTopic", JSON.stringify(selectedTopic));				
 		}
 
 		return {
@@ -2007,7 +2013,8 @@
 				_removeCardPreview();
 			}	
 			viewType = 'grid-view';
-			var cardsPerPage = cards.setCardsPerPage;
+			var cardsPerPage = cards.setCardsPerPage();
+			console.log('switch view cardsPerPage' + cardsPerPage);
 			cardsWrapper.className = 'grid-view';
 			gridViewBtn.className += ' active';
 			listViewBtn.className = listViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
@@ -2022,7 +2029,8 @@
 				_removeCardPreview();
 			}	
 			viewType = 'list-view';
-			var cardsPerPage = cards.setCardsPerPage;
+			var cardsPerPage = cards.setCardsPerPage();
+			console.log('switch view cardsPerPage' + cardsPerPage);
 			cardsWrapper.className = 'list-view';
 			listViewBtn.className += ' active';
 			gridViewBtn.className = gridViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
@@ -2220,11 +2228,11 @@
 			profile: profile,
 			collectionSelector: collectionSelector,
 			cards: cards,
-			viewTypes: viewTypes,		
-			cardCounter: cardCounter,
 			topicSelector: topicSelector,
 			cardsFilter: cardsFilter,
-			pagination: pagination			
+			pagination: pagination,
+			viewTypes: viewTypes,		
+			cardCounter: cardCounter			
 		};
 
 	})(utils, 
@@ -2241,5 +2249,4 @@
 
 	window.Flashrr = Flashrr;
 	
-
 })(window);
