@@ -811,7 +811,7 @@
 			// np. this.pseudoFooter.offsetHeight - wyrzucało mi undefined
 			// nie czaje czemu ????
 			var cardsWrapperHeight = window.innerHeight - (document.getElementById("header").offsetHeight + document.getElementById("cardsFilter").offsetHeight + document.getElementById("pseudoFooter").offsetHeight),
-				listViewCardHeight = 150, // ugly, should be avoided such appending
+				listViewCardHeight = 150, // ugly, should be avoided
 				cardsPerPage = Math.floor(cardsWrapperHeight / listViewCardHeight);
 			return cardsPerPage;
 		}
@@ -877,9 +877,11 @@
 	 *
 	 */
 	var cardMiniature = (function() {
-		var selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection;
+		var selectedCollection;
 
 		function init(card) {
+			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection;
+
 			_render(card);
 		}
 						
@@ -946,10 +948,6 @@
 
 			var tempCard = document.getElementById("cardMiniature" + card.id);
 
-			_bindRenderedEvents(tempCard);
-		}
-
-		function _bindRenderedEvents(tempCard) {
 			tempCard.addEventListener('click', function(e) {
 				var element = e.target,
 					parentId = (element.parentNode && element.parentNode.id) ? element.parentNode.id.slice(-5) : '';
@@ -1017,7 +1015,7 @@
 					viewImg.document.write('<img src="' + element.src + '" />');
 				}
 			}.bind(this));
-		}		
+		}	
 
 		return {
 			init: init
@@ -1303,7 +1301,8 @@
 			viewedCardIndex = 1;
 
 		function init(viewedCard) {		
-			_render(viewedCard);
+			_render(viewedCard);		
+			_countView(viewedCard);
 		}
 		
 		function _render(viewedCard) {			
@@ -1424,8 +1423,6 @@
 					cards.removeCard(selectedCollection.cards[viewedCardIndex - 1].id);
 				}
 			}.bind(this)) : false;
-
-			_countView(viewedCard);
 		}	
 		
 		function closeCardView() {
@@ -1446,6 +1443,8 @@
 		function _countView(viewedCard) {
 			var selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value,
 				collections = JSON.parse(localStorage.getItem("Collections")) || [defaultCollection];
+
+			console.log('card views init');
 
 			viewedCard.views += 1;
 
@@ -1642,9 +1641,9 @@
 	 *
 	 */	
 	var pagination = (function() {			
-		var selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
-			selectedPage = JSON.parse(localStorage.getItem("selectedPage")) || 1,
-			cardsPerPage = cards.setCardsPerPage();
+		var selectedCollection,
+			selectedPage,
+			cardsPerPage;
 
 			console.log('pag init pokazuje cardsPerPage' + cardsPerPage);
 
@@ -1652,6 +1651,10 @@
 		var pseudoFooter = document.getElementById('pseudoFooter');
 
 		function init() {
+			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
+			selectedPage = JSON.parse(localStorage.getItem("selectedPage")) || 1,
+			cardsPerPage = cards.setCardsPerPage();
+
 			_render();
 			_bindEvents();
 		}
@@ -1683,8 +1686,6 @@
 
 			var pagesCount = Math.ceil(selectedCollection.cards.length / cardsPerPage),
 				buttons = '';
-
-			console.log('LICZBA STRON: ' + pagesCount);
 
 			for (var i=0; i < pagesCount; i++) {
 				buttons += '<li class="pagination-page">' + (i+1) + '</li>';
@@ -1984,6 +1985,7 @@
 			detailsViewBtn.className = detailsViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
 			localStorage.setItem("viewType", JSON.stringify(viewType));
 			
+			cards.init();
 			pagination.init();
 		}
 		
@@ -1999,12 +2001,13 @@
 			detailsViewBtn.className = detailsViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
 			localStorage.setItem("viewType", JSON.stringify(viewType));
 			
+			cards.init();
 			pagination.init();		
 		}
 		
 		function _switchDetailsView() {
 			viewType = 'details-view';
-			var cardsPerPage = cards.setCardsPerPage;
+			var cardsPerPage = cards.setCardsPerPage();
 			cardsWrapper.className = 'details-view';
 			detailsViewBtn.className += ' active';
 			listViewBtn.className = listViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
