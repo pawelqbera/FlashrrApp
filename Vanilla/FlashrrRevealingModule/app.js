@@ -294,10 +294,7 @@
 		}
 		
 		function _render() {
-			var data = {
-				userName: userName
-			};
-			hiUserName.innerHTML = data.userName;
+			hiUserName.innerHTML = userName;
 		}
 
 		return {
@@ -322,7 +319,7 @@
 			}
 
 			var html = '';
-				html += '	<form id="userNameForm" method="POST">';
+				html += '	<form id="userNameForm">';
 				html += '		<h2>Please enter your name</h2>';
 				html += '		<span id="closeBtn" class="close-btn">X</span>';
 				html += '		<div>';
@@ -398,15 +395,24 @@
 	 *
 	 */
 	var collectionSelector = (function() {
-		var collections = JSON.parse(localStorage.getItem("Collections")) || [data.defaultCollection],
-			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
-			selectedCollectionIndex = JSON.parse(localStorage.getItem("selectedCollectionIndex")) || 0,
-			selectedTopic = JSON.parse(localStorage.getItem("selectedTopic")) || 0;
+		var collections, 
+			selectedCollection, 
+			selectedCollectionIndex, 
+			selectedTopic;
 
 		//CacheDOM
 		var collectionSelect = document.getElementById("collectionSelect");
 		
 		function init() {			
+			collections = JSON.parse(localStorage.getItem("Collections")) || [data.defaultCollection],
+			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
+			selectedCollectionIndex = JSON.parse(localStorage.getItem("selectedCollectionIndex")) || 0,
+			selectedTopic = JSON.parse(localStorage.getItem("selectedTopic")) || 0;
+			
+			console.log('collection selector! module START (before init)');			
+
+			console.log('collection selector! module INIT (already STARTED)');
+
 			_render();
 			_bindEvents();			
 		}
@@ -509,9 +515,11 @@
 	*  Collection Form
 	*/
 	var collectionForm = (function() {
-		var selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection;
+		var selectedCollection;
 
 		function init(editableCollection) {
+			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection;			
+
 			editableCollection = editableCollection || false;
 			_render(editableCollection);
 		}
@@ -533,7 +541,7 @@
 			selectedCollection.topics = editableCollection ? selectedCollection.topics : [];
 
 			var html = '';
-				html += '	<form id="collectionForm" method="POST">';
+				html += '	<form id="collectionForm">';
 				html += '		<h2>' + collectionFormHeader + '</h2>';
 				html += '		<span id="closeBtn" class="close-btn">X</span>';
 				html += '		<div>';
@@ -591,9 +599,6 @@
 			var collectionForm = document.getElementById("collectionForm").parentNode;
 			collectionForm.parentNode.removeChild(collectionForm);
 			_closeCreateCollectionFogBlanket();
-			
-			// chce ustawiac nowoutworzona kolekcje ale co jest zle tutaj 
-			//collectionSelector.selectCollection(collectionSelector.selectedCollectionIndex);
 		}
 		
 		function _closeCreateCollectionFogBlanket() {
@@ -608,13 +613,14 @@
 		function createCollection(updatedCollectionId, collectionCards) {
 			var date = new Date(),
 				form = document.forms[0],
+				topics = JSON.parse(localStorage.getItem("selectedCollection")).topics,
 				collection = {
 					id: updatedCollectionId || utils.makeid(),
 					name: collectionName.value,
 					description: collectionDescription.value,
 					author: profile.userName,
 					date: date.getTime(),
-					topics: selectedCollection.topics,
+					topics: topics,
 					cards: collectionCards || []
 				},
 				existingCollections = JSON.parse(localStorage.getItem("Collections"));
@@ -636,8 +642,9 @@
 			}
 			// Updating Collections data
 			localStorage.setItem("Collections", JSON.stringify(existingCollections));
-			// Getting updated Collections data for our modules
-			var collections = JSON.parse(localStorage.getItem("Collections"));
+			
+			// (??? is this necessary ???) Getting updated Collections data for our modules
+			//var collections = JSON.parse(localStorage.getItem("Collections"));
 			
 			// Setting new selectedCollection
 			localStorage.setItem("selectedCollection", JSON.stringify(collection));
@@ -645,6 +652,7 @@
 			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection"));
 			
 			collectionSelector.init();
+
 			topicSelector.init();
 			//cards.init(pagination.selectedPage);
 			cardCounter.init();
@@ -692,18 +700,23 @@
 	 *
 	 */			
 	var cards = (function() {
-		var collections = JSON.parse(localStorage.getItem("Collections")) || [data.defaultCollection],
-			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
-			viewType = JSON.parse(localStorage.getItem("viewType")) || 'grid-view',
-			selectedSorting = JSON.parse(localStorage.getItem("selectedSorting")) || 'date';
+		var collections, 
+			selectedCollection, 
+			viewType, 
+			selectedSorting;
 
 		//CacheDOM
 		var createCardBtn = document.getElementById("createCardBtn"),
 			cardsWrapper = document.getElementById("cardsWrapper"),
 			header = document.getElementById("header"),
-			pseudoFooter = document.getElementById("pseudoFooter");		
+			pseudoFooter = document.getElementById("pseudoFooter"),
+			collectionSelect = document.getElementById("collectionSelect");		
 
 		function init(page) {
+			collections = JSON.parse(localStorage.getItem("Collections")) || [data.defaultCollection],
+			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
+			viewType = JSON.parse(localStorage.getItem("viewType")) || 'grid-view',
+			selectedSorting = JSON.parse(localStorage.getItem("selectedSorting")) || 'date',			
 			page = page || false;
 
 			console.log('cards.init !');
@@ -1016,9 +1029,15 @@
 	 *
 	 */
 	var cardForm = (function() {
-		var selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection;
+		var selectedCollection,
+			collections;
+
+		//CacheDOM
+		var collectionSelect = document.getElementById('collectionSelect');
 
 		function init(editableCard) {
+			collections = JSON.parse(localStorage.getItem("Collections")) || data.defaultCollection,
+			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
 			editableCard = editableCard || false;
 			
 			_render(editableCard);					
@@ -1043,12 +1062,15 @@
 				cardThumbs = '',
 				i = 0;
 
+			console.log(updatedCardId);
+			console.log(cardAttachments);
+
 				for (;i < cardAttachments.length; i++) {
 					cardThumbs += '<img src="' + cardAttachments[i] + '" class="view-card-thumb" />';
 				}
 
 			var html = '';
-				html += '	<form id="createCardForm" method="POST">';
+				html += '	<form id="createCardForm">';
 				html += '		<h2>' + cardFormHeader + '</h2>';
 				html += '		<span id="closeBtn" class="close-btn">X</span>';
 				html += '		<div class="card-type-wrapper">';
@@ -1118,8 +1140,11 @@
 
 			topicAdder.getCollectionTopics();
 
+			console.log('updatedCardId in end of form: ' + updatedCardId);
+			console.log('cardAttachments in end of form: ' + cardAttachments);
+
 			_cacheRenderedDOM();
-			_bindRenderedEvents();
+			_bindRenderedEvents(updatedCardId, cardAttachments);
 		}
 
 		function _cacheRenderedDOM() {
@@ -1128,32 +1153,40 @@
 				fogBlanket = document.getElementById('fogBlanket');
 		}
 		
-		function _bindRenderedEvents() {
+		function _bindRenderedEvents(updatedCardId, cardAttachments) {
+			console.log(updatedCardId);
+			console.log(cardAttachments);			
+
 			closeBtn.addEventListener('click', _closeCreateCardForm.bind(this));
 			cancelFormBtn.addEventListener('click', _closeCreateCardForm.bind(this));
 			fogBlanket.addEventListener('click', _closeCreateCardForm.bind(this));	
 
-			createCardForm.addEventListener('submit', function(event) {
-				createCard(updatedCardId, cardAttachments);
-			}.bind(this));
+			createCardForm.addEventListener('submit', function() {
 
-			cardAttachment.addEventListener('change', function(event) {
+			console.log('updatedCardId in submit listener calback fn: ' + updatedCardId);
+			console.log('cardAttachments in submit listener calback fn: ' +cardAttachments);	
+
+				//event.preventDefault();
+				createCard(updatedCardId, cardAttachments);
+			});
+
+			cardAttachment.addEventListener('change', function(event, cardAttachments) {
 				_getAttachments(event, cardAttachments);
-			}.bind(this));
+			});
 
 			cardDropArea.addEventListener("dragover", function(event) {
 				event.stopPropagation();
 				event.preventDefault();
-			}.bind(this));
+			});
 
 			cardDropArea.addEventListener("dragleave", function(event) {
 				event.stopPropagation();
 				event.preventDefault();
-			}.bind(this));
+			});
 
 			cardDropArea.addEventListener("drop", function(event) {
 				_getAttachments(event, cardAttachments);
-			}.bind(this));
+			});
 		}		
 		
 		function _getAttachments(e, cardAttachments) {
@@ -1225,7 +1258,7 @@
 					views: 0,
 					submitLabel: 'Update Card'
 				},
-			existingCards = cards.collections[selectedCollectionIndex].cards;
+			existingCards = collections[selectedCollectionIndex].cards;
 
 		    if(!existingCards) {
 		    	existingCards = [];
@@ -1245,6 +1278,12 @@
 			}
 
 			var selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value;
+
+			console.log('dodaje karte');
+
+			console.log('selectedCollectionIndex: ' + selectedCollectionIndex);
+			console.log('collections[selectedCollectionIndex].cards: ' + collections[selectedCollectionIndex].cards);
+			console.log('nowe pobrane collections z nowa karta: ' + collections);
 			
 			// Update and load new collections
 			collections[selectedCollectionIndex].cards = existingCards;
@@ -1260,15 +1299,15 @@
 			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
 			//cardMiniature.selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
 
-			_closeCreateCardForm();
+			///_closeCreateCardForm();
 			//getView();
-			//getCollections();
-			topicSelector.getTopics();
+
+			//topicSelector.getTopics();
 			//selectCardsByTopic();
 			//greetUser();
-			cards.init();			
-			pagination.init();
-			cardCounter.init();			
+			//cards.init();			
+			//pagination.init();
+			//cardCounter.init();			
 		}
 
 		return {
@@ -1707,13 +1746,16 @@
 	 *
 	 */	
 	var topicSelector = (function() {
-		var selectedTopic = parseInt(JSON.parse(localStorage.getItem("selectedTopic"))) || -1,
-			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection;
+		var selectedTopic, 
+			selectedCollection;
 		
 		//CacheDOM
 		var topicSelect = document.getElementById("topicSelect");		
 
 		function init() {		
+			selectedTopic = parseInt(JSON.parse(localStorage.getItem("selectedTopic"))) || -1,
+			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection;			
+
 			_bindEvents();
 			_render();
 		};
@@ -1808,7 +1850,7 @@
 			}
 
 			var html = '';
-				html += '	<form id="topicForm" method="POST">';
+				html += '	<form id="topicForm">';
 				html += '		<h2>New Topic</h2>';
 				html += '		<span id="closeBtn" class="close-btn">X</span>';
 				html += '		<div>';
