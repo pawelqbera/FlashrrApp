@@ -27,6 +27,45 @@
 	 * - poor extensibility
 	 */
 
+	/**
+	 * Very basic Publish Subscribe module
+	 */
+	var events = (function() {
+
+		var events = {};
+
+		function on(eventName, fn) {
+			events[eventName] = events[eventName] || [];
+			events[eventName].push(fn);
+		}
+
+		function off(eventName, fn) {
+			if (events[eventName]) {
+				for (var i = 0; i < events[eventName].length; i++) {
+					if( events[eventName][i] === fn ) {
+						events[eventName].splice(i, 1);
+						break;
+					}
+				}
+			}
+		}
+
+		function emit(eventName, data) {
+			if (events[eventName]) {
+				events[eventName].forEach(function(fn) {
+					fn(data);
+				});
+			}
+		}
+
+		return {
+			on: on,
+			off: off,
+			emit: emit
+		};
+
+	})();
+
 
 	/**
 	 * Model with Default Data Collections
@@ -138,21 +177,21 @@
 		var showFlashcardsOnly = document.getElementById("showFlashcardsOnly");
 
 		var init = (function() {		
-			_bindEvents();
-			_render();
+			bindEvents();
+			render();
 		})();
 		
-		function _bindEvents() {
-			showFlashcardsOnly.addEventListener("click", _toggleTextCards.bind(this));
+		function bindEvents() {
+			showFlashcardsOnly.addEventListener("click", toggleTextCards.bind(this));
 		}
 
-		function _render() {
+		function render() {
 			// bring here html from index.html
 
-			_checkSelectedFlashcardsOnly();
+			checkSelectedFlashcardsOnly();
 		}
 
-		function _toggleTextCards(e) {
+		function toggleTextCards(e) {
 
 			var element = (typeof e !== 'undefined') ? e.target : showFlashcardsOnly;
 
@@ -168,25 +207,27 @@
 						if (typeof card !== 'undefined') {
 							card.parentNode.removeChild(card);				
 						}
-						pagination.init();
+						
+						// POSSIBLE PUBSUB // nope commented out for now
+						//pagination.init();
+						//events.emit("setFlashcardsOnly", element.checked);
 					}
 				}
 			} else {
 				localStorage.setItem('selectedFlashcardsOnly', JSON.stringify(false));		
-				cards.init(selectedCollection.cards);
+				
+				events.emit("unsetFlashcardsOnly");		
 			}
+
+
 		}
 
-		function _checkSelectedFlashcardsOnly() {
+		function checkSelectedFlashcardsOnly() {
 			if(selectedFlashcardsOnly === true) {
 				showFlashcardsOnly.checked = true;
-				_toggleTextCards();
+				toggleTextCards();
 			}
 		}
-		
-		return {
-			init: init
-		};
 
 	})();	
 
@@ -196,18 +237,21 @@
 	var cardCounter = (function() {	
 		var selectedCollection;
 
-		//CecheDOM
+		//CacheDOM
 		var cardCounter = document.getElementById("cardCounter");		
 
 		function init() {			
 			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection;
 			
-			_render();
+			render(selectedCollection);
 		}
 
 		init();
 
-		function _render() {
+		//Bind Events
+		events.on('selectedCollectionChanged', render);
+
+		function render(selectedCollection) {
 			var existingCards = selectedCollection.cards,
 				count = document.createTextNode(existingCards.length);
 			
@@ -215,11 +259,6 @@
 			cardCounter.appendChild(count);
 			count.nodeValue = existingCards.length
 		}
-
-		return {
-			init: init
-		};
-
 	})();
 
 	/**	
@@ -251,7 +290,8 @@
 				selectedCategorySearch = categorySearchSelect.options[categorySearchSelect.selectedIndex].value,
 				selectedCards = selectedCollection.cards;
 
-			cards.init(pagination.selectedPage);
+			//cards.init(pagination.selectedPage);
+			events.emit("searchCardStarted");
 
 			for(var i = 0; i < selectedCards.length; i++) {
 				var obj = selectedCards[i];
@@ -263,7 +303,8 @@
 					if (card) {
 						card.parentNode.removeChild(card);				
 					}
-					pagination.init();
+					//pagination.init();
+					events.emit("searchCardCompleted");
 				}
 			}
 		}	
@@ -284,18 +325,20 @@
 		var hiUserName = document.getElementById("hiUserName"),
 			userNameSection = document.getElementById('userNameSection');		
 
-		function init() {
+		function init(userName) {
 			_bindEvents();
-			_render();
+			_render(userName);
 		}
 		// czy powinno się to wywoływac we Flashrr module lepiej????
-		init();
+		init(userName);
 				
 		function _bindEvents() {
-			hiUserName.addEventListener("click", function() { userNameForm.init(); });
+			hiUserName.addEventListener("click", function() { events.emit("hiUserNameClicked"); });
+
+			events.on("userNameSubmited", _render);
 		}
 		
-		function _render() {
+		function _render(userName) {
 			hiUserName.innerHTML = userName;
 		}
 
@@ -308,12 +351,11 @@
 
 	var userNameForm = (function() {
 		var userName = JSON.parse(localStorage.getItem("userName")) || "Guest";
-
-		function init() {
-			_render();
-		}
 		
-		function _render() {
+		// Bind Events
+		events.on("hiUserNameClicked", render);
+
+		function render() {
 			// ponadto przyda się ogólny obiekt na tworzenie FORMÓW, bo widać tu 
 			// ewidentnie wspólne elementy takie jak: fogBlanket, metoda close, appendowanie do parenta itp.
 
@@ -347,31 +389,31 @@
 			fogBlanket.id = "fogBlanket";
 			pageWrapper.appendChild(fogBlanket);
 
-			_cacheRenderedDOM();
-			_bindRenderedEvents();
+			cacheRenderedDOM();
+			bindRenderedEvents();
 		}
 		
-		function _cacheRenderedDOM() {
+		function cacheRenderedDOM() {
 			var userNameSection = document.getElementById("userNameSection"),
 				closeBtn = document.getElementById('closeBtn'),
 				cancelForm = document.getElementById('cancelForm'),
 				fogBlanket = document.getElementById('fogBlanket');
 		}
 		
-		function _bindRenderedEvents() {
-			closeBtn.addEventListener('click', _closeUserNameForm.bind(this));
-			cancelForm.addEventListener('click', _closeUserNameForm.bind(this));
-			fogBlanket.addEventListener('click', _closeUserNameForm.bind(this));
-			userNameSection.addEventListener('submit', _userNameSubmit.bind(this));			
+		function bindRenderedEvents() {
+			closeBtn.addEventListener('click', closeUserNameForm.bind(this));
+			cancelForm.addEventListener('click', closeUserNameForm.bind(this));
+			fogBlanket.addEventListener('click', closeUserNameForm.bind(this));
+			userNameSection.addEventListener('submit', userNameSubmit.bind(this));			
 		}
 		
-		function _closeUserNameForm() {
+		function closeUserNameForm() {
 			var userNameFormWrapper = document.getElementById('userNameForm').parentNode;
 			userNameFormWrapper.parentNode.removeChild(userNameFormWrapper);
-			_closeUserNameFogBlanket();
+			closeUserNameFogBlanket();
 		}
 		
-		function _closeUserNameFogBlanket() {
+		function closeUserNameFogBlanket() {
 			var isFog = !!document.getElementById("fogBlanket");
 			
 			if(isFog) {
@@ -380,16 +422,12 @@
 			}
 		}
 		
-		function _userNameSubmit() {
+		function userNameSubmit() {
 			userName = formUserName.value;
 			localStorage.setItem("userName", JSON.stringify(userName));
-			_closeUserNameForm();
-			profile.init();
+			closeUserNameForm();
+			events.emit("userNameSubmited", userName);
 		}
-
-		return {
-			init: init
-		};
 
 	})();
 
@@ -726,6 +764,9 @@
 				
 		function _bindEvents() {
 			createCardBtn.addEventListener("click", function() { cardForm.init(); });
+
+			events.on("unsetFlashcardsOnly", _render);
+			events.on("searchCardStarted", _render);
 		}
 		
 		function _render(page) {
@@ -763,6 +804,7 @@
 			}
 			setCardsWrapperHeight();
 
+			events.emit('selectedCollectionChanged', selectedCollection);
 		}
 		
 		function _sortCards(cards) {
@@ -1281,7 +1323,8 @@
 			//greetUser();
 			cards.init();			
 			pagination.init();
-			cardCounter.init();			
+			
+			// Can be removed thanks to PubSub cardCounter.init();			
 		}
 
 		return {
@@ -1676,9 +1719,14 @@
 					cards.init(page);
 				}
 			}.bind(this));
+
+			// funkcja render poniżej pobiera nieprawidłową liczbę widocznych kart (po zrobieniu searcha)
+			events.on("searchCardCompleted", _render);
 		}
 		
 		function _render() {
+			pseudoFooter.innerHTML = '';
+
 			if(selectedCollection.cards.length <= cardsPerPage) {
 				pseudoFooter.innerHTML = '';
 				return false;
@@ -2093,7 +2141,8 @@
 	/**
 	 * Expose Flashrr modules via public API
 	 */
-	var Flashrr = (function(utils, 
+	var Flashrr = (function(utils,
+		events,
 		flashcardsOnly, 
 		searchCards, 
 		profile, 
@@ -2188,6 +2237,7 @@
 
 		return {
 			utils: utils,
+			events: events,
 			flashcardsOnly: flashcardsOnly,
 			searchCards: searchCards,
 			profile: profile,
@@ -2200,7 +2250,8 @@
 			cardCounter: cardCounter			
 		};
 
-	})(utils, 
+	})(utils,
+	events,
 	flashcardsOnly, 
 	searchCards, 
 	profile, 
