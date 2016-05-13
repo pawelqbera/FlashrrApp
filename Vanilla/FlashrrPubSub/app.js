@@ -765,6 +765,8 @@
 			events.on("searchCardStarted", _render);
 			events.on("selectCollection", _render);
 			events.on('sortingSelect', _render);
+			events.on('viewChange', _render);
+			events.on('switchView', setCardsPerPage);
 		}
 		
 		function _render(page) {
@@ -843,7 +845,9 @@
 			});
 		}
 		
-		function setCardsPerPage() {
+		function setCardsPerPage(view) {
+			viewType = viewType || view;
+			console.log('setting CPP for viewType : ' + viewType);
 	 		return (viewType === 'grid-view' || viewType === 'details-view') ? 12 : countCardsPerPage();
 		}
 
@@ -1341,21 +1345,27 @@
 	 *
 	 */
 	var cardView = (function() {
-		var selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
-			viewType = JSON.parse(localStorage.getItem("viewType")) || 'grid-view',
-			viewedCardIndex = 1;
+		var selectedCollection,
+			viewType,
+			viewedCardIndex;
 
 		function init(viewedCard) {		
-			_render(viewedCard);		
-			_countView(viewedCard);
+			_render(viewedCard);
 		}
 		
-		function _render(viewedCard) {			
-			if (document.getElementById('viewCardSection') || !viewedCard) {
+		events.on('deatailsViewChange', _render);
+
+		function _render(viewedCard) {
+				selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
+				viewType = JSON.parse(localStorage.getItem("viewType")) || 'grid-view',
+				viewedCardIndex = 1;
+
+			if (document.getElementById('viewCardSection')) {
 				return false;
 			}
 
-			var thumbs = '',
+			var viewedCard = viewedCard || selectedCollection.cards[0],
+				thumbs = '',
 				tags = '',
 				i,
 				cardTypeClass = viewedCard.isFlashcard ? 'flashcard' : 'textcard';
@@ -1468,6 +1478,8 @@
 					cards.removeCard(selectedCollection.cards[viewedCardIndex - 1].id);
 				}
 			}.bind(this)) : false;
+
+			_countView(viewedCard);
 		}	
 		
 		function closeCardView() {
@@ -1688,7 +1700,8 @@
 	var pagination = (function() {			
 		var selectedCollection,
 			selectedPage,
-			cardsPerPage;
+			cardsPerPage,
+			viewType;
 
 			console.log('pag init pokazuje cardsPerPage' + cardsPerPage);
 
@@ -1696,37 +1709,24 @@
 		var pseudoFooter = document.getElementById('pseudoFooter');
 
 		function init() {
-			_render();
 			_bindEvents();
+			_render();			
 		}
+
+		init();
 				
 		function _bindEvents() {
-			document.addEventListener("click", function(e) {
-				var element = e.target,
-					paginationList = document.getElementById('paginationList');
-
-				if(utils.hasClass(element, "pagination-page")) {
-					for(var i=0; i < paginationList.childNodes.length;i++) {
-						paginationList.childNodes[i].className = "pagination-page";
-					}		
-					element.className += ' current-page';
-					var page = element.firstChild.nodeValue;
-					selectedPage = page;
-					localStorage.setItem("selectedPage", JSON.stringify(page));
-					
-					cards.init(page);
-				}
-			}.bind(this));
-
 			// funkcja render poniżej pobiera nieprawidłową liczbę widocznych kart (po zrobieniu searcha)
-			events.on("searchCardCompleted", _render);
-			events.on("selectCollection", _render);
+			events.on('searchCardCompleted', _render);
+			events.on('selectCollection', _render);
+			events.on('viewChange', _render);
 		}
 		
 		function _render() {
 			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
 			selectedPage = JSON.parse(localStorage.getItem("selectedPage")) || 1,
-			cardsPerPage = cards.setCardsPerPage();			
+			viewType = JSON.parse(localStorage.getItem("grid-view")) || "grid-view",
+			cardsPerPage = cards.setCardsPerPage(viewType);			
 
 			pseudoFooter.innerHTML = '';
 
@@ -1747,6 +1747,24 @@
 			
 			pseudoFooter.innerHTML = html;
 			_setCurrentPageClass();
+
+
+			document.addEventListener("click", function(e) {
+				var element = e.target,
+					paginationList = document.getElementById('paginationList');
+
+				if(utils.hasClass(element, "pagination-page")) {
+					for(var i=0; i < paginationList.childNodes.length;i++) {
+						paginationList.childNodes[i].className = "pagination-page";
+					}		
+					element.className += ' current-page';
+					var page = element.firstChild.nodeValue;
+					selectedPage = page;
+					localStorage.setItem("selectedPage", JSON.stringify(page));
+					
+					cards.init(page);
+				}
+			});			
 		}
 		
 		function _setCurrentPageClass() {
@@ -1993,9 +2011,9 @@
 		})();
 		
 		function _bindEvents() {
-			gridViewBtn.addEventListener("click", _toggleView.bind(this));
-			listViewBtn.addEventListener("click", _toggleView.bind(this));
-			detailsViewBtn.addEventListener("click", _toggleView.bind(this));
+			gridViewBtn.addEventListener("click", _toggleView);
+			listViewBtn.addEventListener("click", _toggleView);
+			detailsViewBtn.addEventListener("click", _toggleView);
 		}
 
 		function _render() {
@@ -2025,21 +2043,24 @@
 				_switchDetailsView();
 			}
 		}
+
+		function returnCardsPerPage(cardsPerPage) {
+			return cardsPerPage;
+		}
 		
 		function _switchGridView() {
 			if (viewType === 'details-view') {
 				_removeCardPreview();
 			}	
 			viewType = 'grid-view';
-			var cardsPerPage = cards.setCardsPerPage();
 			cardsWrapper.className = 'grid-view';
 			gridViewBtn.className += ' active';
 			listViewBtn.className = listViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
 			detailsViewBtn.className = detailsViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
 			localStorage.setItem("viewType", JSON.stringify(viewType));
-			
-			cards.init();
-			pagination.init();
+
+			events.emit('switchView', viewType);
+			events.emit('viewChange');
 		}
 		
 		function _switchListView() {
@@ -2047,29 +2068,31 @@
 				_removeCardPreview();
 			}	
 			viewType = 'list-view';
-			var cardsPerPage = cards.setCardsPerPage();
 			cardsWrapper.className = 'list-view';
 			listViewBtn.className += ' active';
 			gridViewBtn.className = gridViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
 			detailsViewBtn.className = detailsViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
 			localStorage.setItem("viewType", JSON.stringify(viewType));
 			
-			cards.init();
-			pagination.init();		
+			events.emit('switchView', viewType);			
+			events.emit('viewChange');		
 		}
 		
 		function _switchDetailsView() {
 			viewType = 'details-view';
-			var cardsPerPage = cards.setCardsPerPage();
 			cardsWrapper.className = 'details-view';
 			detailsViewBtn.className += ' active';
 			listViewBtn.className = listViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
 			gridViewBtn.className = gridViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
 			localStorage.setItem("viewType", JSON.stringify(viewType));
 			
-			pagination.init();
-			_createCardPreview();
-			cardView.init(selectedCollection.cards[0]);
+			_createCardPreview();			
+			
+			events.emit('switchView', viewType);			
+			events.emit('viewChange');
+			events.emit('detailsViewChange');
+
+			//cardView.init(selectedCollection.cards[0]);
 		}
 		
 		function _createCardPreview() {
@@ -2107,18 +2130,18 @@
 		var cardsFilterWrapper = document.getElementById("cardsFilter");		
 
 		var init = (function() {			
-			_bindEvents();
-			_setSorting();
+			bindEvents();
+			setSorting();
 		})();
 				
-		function _bindEvents() {
-			cardsFilterWrapper.addEventListener("change", _selectSortingMethod.bind(this));
+		function bindEvents() {
+			cardsFilterWrapper.addEventListener("change", selectSortingMethod.bind(this));
 		}
 				
-		function _selectSortingMethod(e) {
+		function selectSortingMethod(e) {
 			var element = e.target,
 				selectedPage = JSON.parse(localStorage.getItem("selectedPage")) || 1;
-				
+
 			if (element.value === selectedSorting) {
 				return false;
 			} else {
@@ -2129,7 +2152,7 @@
 			}
 		}
 		
-		function _setSorting() {
+		function setSorting() {
 			if (selectedSorting === 'date') {
 				cardsFilterWrapper.getElementsByTagName('option')[0].selected = 'selected';
 			} else if (selectedSorting === 'popularity') {
@@ -2138,10 +2161,6 @@
 				cardsFilterWrapper.getElementsByTagName('option')[2].selected = 'selected';
 			}
 		}
-
-		return {
-			init: init
-		};
 
 	})();
 
