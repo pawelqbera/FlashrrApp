@@ -250,6 +250,7 @@
 
 		//Bind Events
 		events.on('selectedCollectionChanged', render);
+		events.on('selectCollection', init);
 
 		function render(selectedCollection) {
 			var existingCards = selectedCollection.cards,
@@ -278,7 +279,7 @@
 		})();
 
 		function _bindEvents() {
-			searchCards.addEventListener("keyup", searchCard.bind(this));
+			searchCards.addEventListener("keyup", searchCard);
 		}
 
 		function _render() {
@@ -289,6 +290,8 @@
 			var searchValue = searchCards.value,
 				selectedCategorySearch = categorySearchSelect.options[categorySearchSelect.selectedIndex].value,
 				selectedCards = selectedCollection.cards;
+			console.log('search card start on search value' + searchValue);
+			console.log('selectedCategorySearch: ' + selectedCategorySearch);
 
 			//cards.init(pagination.selectedPage);
 			events.emit("searchCardStarted");
@@ -303,10 +306,9 @@
 					if (card) {
 						card.parentNode.removeChild(card);				
 					}
-					//pagination.init();
-					events.emit("searchCardCompleted");
 				}
 			}
+			events.emit("searchCardCompleted");
 		}	
 
 		return {
@@ -500,10 +502,8 @@
 				selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value;
 				localStorage.setItem("selectedCollectionIndex", JSON.stringify(selectedCollectionIndex));
 
-				cards.init();
-				cardCounter.init();
-				topicSelector.getTopics();
-				pagination.init();
+				events.emit("selectCollection");
+				
 				_addEditCollectionBtn();
 			}
 		}
@@ -749,11 +749,7 @@
 			pseudoFooter = document.getElementById("pseudoFooter"),
 			collectionSelect = document.getElementById("collectionSelect");		
 
-		function init(page) {
-			collections = JSON.parse(localStorage.getItem("Collections")) || [data.defaultCollection],
-			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
-			viewType = JSON.parse(localStorage.getItem("viewType")) || 'grid-view',
-			selectedSorting = JSON.parse(localStorage.getItem("selectedSorting")) || 'date',			
+		function init(page) {		
 			page = page || false;
 
 			console.log('cards.init EXECUTED with page: ' + page);
@@ -767,9 +763,15 @@
 
 			events.on("unsetFlashcardsOnly", _render);
 			events.on("searchCardStarted", _render);
+			events.on("selectCollection", _render);
+			events.on('sortingSelect', _render);
 		}
 		
 		function _render(page) {
+			collections = JSON.parse(localStorage.getItem("Collections")) || [data.defaultCollection],
+			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
+			viewType = JSON.parse(localStorage.getItem("viewType")) || 'grid-view',
+			selectedSorting = JSON.parse(localStorage.getItem("selectedSorting")) || 'date';
 
 			var pageIndex = parseInt(page) || 1,
 				i = 0,
@@ -1694,10 +1696,6 @@
 		var pseudoFooter = document.getElementById('pseudoFooter');
 
 		function init() {
-			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
-			selectedPage = JSON.parse(localStorage.getItem("selectedPage")) || 1,
-			cardsPerPage = cards.setCardsPerPage();
-
 			_render();
 			_bindEvents();
 		}
@@ -1722,9 +1720,14 @@
 
 			// funkcja render poniżej pobiera nieprawidłową liczbę widocznych kart (po zrobieniu searcha)
 			events.on("searchCardCompleted", _render);
+			events.on("selectCollection", _render);
 		}
 		
 		function _render() {
+			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
+			selectedPage = JSON.parse(localStorage.getItem("selectedPage")) || 1,
+			cardsPerPage = cards.setCardsPerPage();			
+
 			pseudoFooter.innerHTML = '';
 
 			if(selectedCollection.cards.length <= cardsPerPage) {
@@ -1786,6 +1789,8 @@
 		
 		function _bindEvents() {
 			topicSelect.addEventListener("change", selectCardsByTopic.bind(this));
+
+			events.on("selectCollection", getTopics);
 		}
 		
 		function _render() {
@@ -2111,14 +2116,16 @@
 		}
 				
 		function _selectSortingMethod(e) {
-			var element = e.target;
+			var element = e.target,
+				selectedPage = JSON.parse(localStorage.getItem("selectedPage")) || 1;
+				
 			if (element.value === selectedSorting) {
 				return false;
 			} else {
 				selectedSorting = element.value;
 				localStorage.setItem("selectedSorting", JSON.stringify(selectedSorting));
 				
-				cards.init(pagination.selectedPage);
+				events.emit('sortingSelect', selectedPage);
 			}
 		}
 		
