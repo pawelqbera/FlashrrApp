@@ -170,8 +170,8 @@
 	 *  Flashcards only checkbox option module
 	 */
 	var flashcardsOnly = (function() {
-		var selectedFlashcardsOnly = JSON.parse(localStorage.getItem("selectedFlashcardsOnly")) || false,
-			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection;
+		var selectedFlashcardsOnly,
+			selectedCollection;
 
 		// CacheDOM
 		var showFlashcardsOnly = document.getElementById("showFlashcardsOnly");
@@ -186,13 +186,15 @@
 		}
 
 		function render() {
-			// bring here html from index.html
+			selectedFlashcardsOnly = JSON.parse(localStorage.getItem("selectedFlashcardsOnly")) || false,
+			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection;
+
+			// bring in here all the html from index.html
 
 			checkSelectedFlashcardsOnly();
 		}
 
 		function toggleTextCards(e) {
-
 			var element = (typeof e !== 'undefined') ? e.target : showFlashcardsOnly;
 
 			if(element.checked === true) {
@@ -206,20 +208,18 @@
 						var card = document.getElementById("cardMiniature" + selectedCollection.cards[i].id);
 						if (typeof card !== 'undefined') {
 							card.parentNode.removeChild(card);				
-						}
-						
-						// POSSIBLE PUBSUB // nope commented out for now
-						//pagination.init();
-						//events.emit("setFlashcardsOnly", element.checked);
+						}						
 					}
 				}
+				events.emit("setFlashcardsOnly");
 			} else {
 				localStorage.setItem('selectedFlashcardsOnly', JSON.stringify(false));		
 				
+				// Should be rather flashcardsOnlyChanged, and the value should be passed
+				// but the problem is: there is now guarantee that the following parameter
+				// in subscriber's callback is requried
 				events.emit("unsetFlashcardsOnly");		
 			}
-
-
 		}
 
 		function checkSelectedFlashcardsOnly() {
@@ -234,32 +234,28 @@
 	/**	
 	 *  Card counter module 
 	 */
-	var cardCounter = (function() {	
-		var selectedCollection;
-
+	var cardCounter = (function() {
 		//CacheDOM
 		var cardCounter = document.getElementById("cardCounter");		
 
-		function init() {			
-			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection;
-			
-			render(selectedCollection);
-		}
-
-		init();
+		var init = (function() {		
+			render();
+		})();
 
 		//Bind Events
 		events.on('selectedCollectionChanged', render);
 		events.on('selectCollection', init);
 
-		function render(selectedCollection) {
-			var existingCards = selectedCollection.cards,
+		function render() {
+			var selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
+				existingCards = selectedCollection.cards,
 				count = document.createTextNode(existingCards.length);
 			
 			cardCounter.innerHTML = '';
 			cardCounter.appendChild(count);
 			count.nodeValue = existingCards.length
 		}
+
 	})();
 
 	/**	
@@ -1703,7 +1699,7 @@
 			cardsPerPage,
 			viewType;
 
-			console.log('pag init pokazuje cardsPerPage' + cardsPerPage);
+			console.log('PAGINATION init');
 
 		//CacheDOM
 		var pseudoFooter = document.getElementById('pseudoFooter');
@@ -1718,6 +1714,7 @@
 		function _bindEvents() {
 			// funkcja render poniżej pobiera nieprawidłową liczbę widocznych kart (po zrobieniu searcha)
 			events.on('searchCardCompleted', _render);
+			events.on('setFlashcardsOnly', _render);
 			events.on('selectCollection', _render);
 			events.on('viewChange', _render);
 		}
