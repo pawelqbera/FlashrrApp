@@ -244,7 +244,8 @@
 
 		//Bind Events
 		events.on('selectedCollectionChanged', render);
-		events.on('selectCollection', init);
+		events.on('collectionSelect', render);
+		events.on('collectionChange', render);
 
 		function render() {
 			var selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
@@ -442,23 +443,23 @@
 		//CacheDOM
 		var collectionSelect = document.getElementById("collectionSelect");
 		
-		function init() {			
+		var init = (function() {
+			render();
+			bindEvents();			
+		})();
+				
+		function bindEvents() {
+			collectionSelect.addEventListener("change", selectCollection);
+
+			events.on('collectionChange', render);
+		}
+		
+		function render() {
 			collections = JSON.parse(localStorage.getItem("Collections")) || [data.defaultCollection],
 			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
 			selectedCollectionIndex = JSON.parse(localStorage.getItem("selectedCollectionIndex")) || 0,
 			selectedTopic = JSON.parse(localStorage.getItem("selectedTopic")) || 0;
-			
-			_render();
-			_bindEvents();			
-		}
 
-		init();
-				
-		function _bindEvents() {
-			collectionSelect.addEventListener("change", _selectCollection.bind(this));		
-		}
-		
-		function _render() {
 			var selectedCards = selectedCollection.cards,
 				collectionOptions = '',
 				i = 0;
@@ -474,19 +475,19 @@
 			collectionSelect.innerHTML = html;
 			
 			if(collectionSelect.value !== 'addNewCollection'){
-				_addEditCollectionBtn();
+				addEditCollectionBtn();
 			}
 		}
 		
 		// ta funkcja nie jest nigdzie wywoływana w tym momencie
 		// do sprawdzenia...
-		function _selectCollection(e) {
+		function selectCollection(e) {
 			var element = e.target || e;
 			
-			_removeEditCollectionBtn();
+			removeEditCollectionBtn();
 			
 			if (element.value === 'addNewCollection') {
-				collectionForm.init();
+				events.emit('collectionEdit');
 			} else {
 				selectedCollection = collections[element.value];
 				localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
@@ -498,23 +499,19 @@
 				selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value;
 				localStorage.setItem("selectedCollectionIndex", JSON.stringify(selectedCollectionIndex));
 
-				events.emit("selectCollection");
+				events.emit("collectionSelect");
 				
-				_addEditCollectionBtn();
+				addEditCollectionBtn();
 			}
 		}
 		
-		function _addEditCollectionBtn() {
+		function addEditCollectionBtn() {
 			var editCollectionBtn = document.createElement("i");
 			editCollectionBtn.className = "edit-collection fa fa-cog";
 			editCollectionBtn.id = "editCollectionBtn";
 			collectionSelect.parentNode.appendChild(editCollectionBtn);
 			
 			editCollectionBtn.addEventListener("click", function(e) {
-				if (document.getElementById('collectionSection')) {
-					collectionForm.closeCreateCollectionForm();
-				}
-
 				var selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value,
 					i = 0,
 					obj = null,
@@ -527,20 +524,17 @@
 						break;
 					}
 				}
-				collectionForm.init(editableCollection);
-			}.bind(this));
+
+				events.emit('collectionEdit', editableCollection);
+			});
 		}
 		
-		function _removeEditCollectionBtn() {
+		function removeEditCollectionBtn() {
 			if(!document.getElementById("editCollectionBtn")) {
 				return false;
 			}
 			editCollectionBtn.parentNode.removeChild(editCollectionBtn);
 		}
-
-		return {
-			init: init
-		};
 
 	})();
 
@@ -548,16 +542,19 @@
 	*  Collection Form
 	*/
 	var collectionForm = (function() {
-		var selectedCollection;
-
-		function init(editableCollection) {
-			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection;			
-
-			editableCollection = editableCollection || false;
-			_render(editableCollection);
-		}
+		var selectedCollection,
+			collections,
+			selectedCollectionIndex;
 				
-		function _render(editableCollection) {
+		// Bind Events
+		events.on('collectionEdit', render);
+
+		function render(editableCollection) {
+			collections = JSON.parse(localStorage.getItem("Collections"));
+			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection;				
+			editableCollection = editableCollection || false,
+			selectedCollectionIndex = JSON.parse(localStorage.getItem("selectedCollectionIndex")) || 0;
+
 			if (document.getElementById('collectionSection')) {
 				return false;
 			}
@@ -604,28 +601,24 @@
 			fogBlanket.id = "fogBlanket";
 			pageWrapper.appendChild(fogBlanket);
 
-			topicAdder.init("cardTopicWrapper", true);
+			events.emit('collectionFormOpen', 'cardTopicWrapper', true);
 
-			_cacheRenderedDOM();
-			_bindRenderedEvents(updatedCollectionId, collectionCards);
-		}
-
-		function _cacheRenderedDOM() {			
+			// cacheRenderedDOM
 			var collectionSection = document.getElementById('collectionSection'),
 				fogBlanket = document.getElementById('fogBlanket'),			
 				closeBtn = document.getElementById('closeBtn'),
 				cancelFormBtn = document.getElementById('cancelFormBtn'),
 				deleteCollectionBtn = document.getElementById('deleteCollectionBtn');
-		}
-		
-		function _bindRenderedEvents(updatedCollectionId, collectionCards) {
-			closeBtn.addEventListener('click', _closeCreateCollectionForm.bind(this));
-			cancelFormBtn.addEventListener('click', _closeCreateCollectionForm.bind(this));
-			fogBlanket.addEventListener('click', _closeCreateCollectionForm.bind(this));			
+			
+			// bindRenderedEvents
+			closeBtn.addEventListener('click', _closeCreateCollectionForm);
+			cancelFormBtn.addEventListener('click', _closeCreateCollectionForm);
+			fogBlanket.addEventListener('click', _closeCreateCollectionForm);			
+			deleteCollectionBtn.addEventListener('click', deleteCollection)
 			collectionSection.addEventListener('submit', function(event) {
 				event.preventDefault();
 				createCollection(updatedCollectionId, collectionCards);
-			}.bind(this));
+			});			
 		}
 
 		function _closeCreateCollectionForm() {
@@ -675,21 +668,13 @@
 			}
 			// Updating Collections data
 			localStorage.setItem("Collections", JSON.stringify(existingCollections));
-			
-			// (??? is this necessary ???) Getting updated Collections data for our modules
-			//var collections = JSON.parse(localStorage.getItem("Collections"));
-			
+						
 			// Setting new selectedCollection
 			localStorage.setItem("selectedCollection", JSON.stringify(collection));
 			// Getting new selectedCollection for our modules
 			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection"));
 			
-			collectionSelector.init();
-
-			topicSelector.init();
-			//cards.init(pagination.selectedPage);
-			cardCounter.init();
-			pagination.init();
+			events.emit('collectionChange');
 			
 			_closeCreateCollectionForm();
 		}
@@ -699,7 +684,7 @@
 	 		
 	 		if (confirmDelete) {
 				if (document.getElementById('collectionForm')) {
-					closeCollectionForm();
+					_closeCreateCollectionForm();
 				}
 				collections.splice(selectedCollectionIndex, 1);
 
@@ -711,17 +696,13 @@
 				
 				_closeCreateCollectionForm();
 
-				collectionSelector.init();
-				cards.init(selectedPage);
-				cardsCount.init();
-
+				events.emit('collectionChange');
 	 		} else {
 	 			return false;
 	 		}
 	    }
 
 	    return {
-			init: init,
 			createCollection: createCollection,
 			deleteCollection: deleteCollection
 		};
@@ -759,7 +740,7 @@
 
 			events.on("unsetFlashcardsOnly", _render);
 			events.on("searchCardStarted", _render);
-			events.on("selectCollection", _render);
+			events.on("collectionSelect", _render);
 			events.on('sortingSelect', _render);
 			events.on('viewChange', _render);
 			events.on('switchView', setCardsPerPage);
@@ -1549,16 +1530,16 @@
 	 *
 	 */
 	var topicAdder = (function() {
-		var selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
-			selectedTopic = JSON.parse(localStorage.getItem("selectedTopic"));
+		var selectedCollection,
+			selectedTopic;
 
-		function init(parentId, isMultiple) {
-			isMultiple = isMultiple || false;
+		// Bind Events
+		events.on('collectionFormOpen', render);
 
-			_render(parentId, isMultiple);
-		}
-
-		function _render(parentId, isMultiple) {
+		function render(parentId, isMultiple) {
+			isMultiple = isMultiple || false,
+			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
+			selectedTopic = JSON.parse(localStorage.getItem("selectedTopic"));			
 
 			var parent = document.getElementById(parentId),
 				topicOptions = '';
@@ -1683,7 +1664,6 @@
 		}
 
 		return {
-			init: init,
 			getCollectionTopics: getCollectionTopics
 		};
 
@@ -1704,22 +1684,21 @@
 		//CacheDOM
 		var pseudoFooter = document.getElementById('pseudoFooter');
 
-		function init() {
-			_bindEvents();
-			_render();			
-		}
-
-		init();
+		var init = (function() {
+			bindEvents();
+			render();			
+		})()
 				
-		function _bindEvents() {
+		function bindEvents() {
 			// funkcja render poniżej pobiera nieprawidłową liczbę widocznych kart (po zrobieniu searcha)
-			events.on('searchCardCompleted', _render);
-			events.on('setFlashcardsOnly', _render);
-			events.on('selectCollection', _render);
-			events.on('viewChange', _render);
+			events.on('searchCardCompleted', render);
+			events.on('setFlashcardsOnly', render);
+			events.on('selectCollection', render);
+			events.on('viewChange', render);
+			events.on('collectionChange', render);
 		}
 		
-		function _render() {
+		function render() {
 			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
 			selectedPage = JSON.parse(localStorage.getItem("selectedPage")) || 1,
 			viewType = JSON.parse(localStorage.getItem("grid-view")) || "grid-view",
@@ -1776,7 +1755,6 @@
 		}
 
 		return {
-			init: init,
 			selectedPage: selectedPage
 		};
 
@@ -1793,24 +1771,24 @@
 		//CacheDOM
 		var topicSelect = document.getElementById("topicSelect");		
 
-		function init() {		
-			selectedTopic = parseInt(JSON.parse(localStorage.getItem("selectedTopic"))) || -1,
-			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection;			
-
-			_bindEvents();
-			_render();
-		};
-		init();
+		var init = (function() {
+			bindEvents();
+			render();
+		})();
 		
-		function _bindEvents() {
+		function bindEvents() {
 			topicSelect.addEventListener("change", selectCardsByTopic.bind(this));
 
-			events.on("selectCollection", getTopics);
+			events.on("collectionSelect", getTopics);
+			events.on("collectionChange", render);
 		}
 		
-		function _render() {
+		function render() {
+			selectedTopic = parseInt(JSON.parse(localStorage.getItem("selectedTopic"))) || -1,
+			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection;	
+
 			//tutaj wstawić budowanie topic selectora z htmla
-			
+
 			getTopics();
 			selectCardsByTopic();
 		}
@@ -1864,7 +1842,6 @@
 		}
 
 		return {
-			init: init,
 			getTopics: getTopics,
 			selectCardsByTopic: selectCardsByTopic,
 			topicSelect: topicSelect
