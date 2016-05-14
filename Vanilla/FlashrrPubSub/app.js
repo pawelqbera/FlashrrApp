@@ -246,6 +246,7 @@
 		events.on('selectedCollectionChanged', render);
 		events.on('collectionSelect', render);
 		events.on('collectionChange', render);
+		events.on('collectionCardsChange', render);
 
 		function render() {
 			var selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
@@ -277,6 +278,8 @@
 
 		function _bindEvents() {
 			searchCards.addEventListener("keyup", searchCard);
+
+			events.emit('searchCardsByAuthorChange', searchCard);
 		}
 
 		function _render() {
@@ -726,27 +729,26 @@
 			pseudoFooter = document.getElementById("pseudoFooter"),
 			collectionSelect = document.getElementById("collectionSelect");		
 
-		function init(page) {		
-			page = page || false;
-
-			console.log('cards.init EXECUTED with page: ' + page);
-		
+		var init = (function() {
 			_bindEvents();
-			_render(page);
-		}
+		})();
 				
 		function _bindEvents() {
-			createCardBtn.addEventListener("click", function() { cardForm.init(); });
+			createCardBtn.addEventListener("click", events.emit('createCardBtnClick'));
 
 			events.on("unsetFlashcardsOnly", _render);
 			events.on("searchCardStarted", _render);
 			events.on("collectionSelect", _render);
 			events.on('sortingSelect', _render);
 			events.on('viewChange', _render);
+			events.on('topicSelect', _render);
 			events.on('switchView', setCardsPerPage);
+			events.on('cardRemove', removeCard);
+			events.on('paginationSelectedPageChange', _render);
 		}
 		
 		function _render(page) {
+			page = page || false,
 			collections = JSON.parse(localStorage.getItem("Collections")) || [data.defaultCollection],
 			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
 			viewType = JSON.parse(localStorage.getItem("viewType")) || 'grid-view',
@@ -756,6 +758,8 @@
 				i = 0,
 				selectedCards = selectedCollection.cards,
 				cardsPerPage = setCardsPerPage();
+
+			console.log('CARDS RENDER executed with page: ' + page);
 
 			_sortCards(selectedCards);
 
@@ -772,15 +776,15 @@
 
 			if (pagesCount === 1) {
 				for (i = 0; i < cardsCount; i++) {
-					cardMiniature.init(selectedCards[i]);
+					events.emit('cardMiniatureCreate', selectedCards[i]);
 				}
 			} else if (pageIndex < pagesCount) { // wiem, że będzie 12 kart
 				for (i = cardsPerPage * (pageIndex - 1);i < cardsPerPage * (pageIndex - 1) + cardsPerPage;i++) {
-					cardMiniature.init(selectedCards[i]);
+					events.emit('cardMiniatureCreate', selectedCards[i]);
 				}
 			} else if (pageIndex === pagesCount) {
 				for (i = (cardsCount - lastPageCardsCount);i < cardsCount;i++) {
-					cardMiniature.init(selectedCards[i]);
+					events.emit('cardMiniatureCreate', selectedCards[i]);
 				}		
 			}
 			setCardsWrapperHeight();
@@ -845,22 +849,12 @@
 	 		var cardsWrapperHeight = window.innerHeight - (document.getElementById("header").offsetHeight + document.getElementById("cardsFilter").offsetHeight + document.getElementById("pseudoFooter").offsetHeight);
 	 		cardsWrapper.style.height = cardsWrapperHeight + 'px';
 		}
-		
-		function setCardPreviewHeight() {
-			var cardPreviewHeight = window.innerHeight - (document.getElementById("header").offsetHeight + document.getElementById("cardsFilter").offsetHeight + document.getElementById("pseudoFooter").offsetHeight),
-				cardPreview = document.getElementById('cardPreview');
-			
-			cardPreview.style.height = cardPreviewHeight + 'px';
-		}
-		
+				
 		function removeCard(cardId) {
 		    var selectedCollectionIndex = collectionSelect.options[collectionSelect.selectedIndex].value,
 				i = 0,
 				obj = null;
 
-			if (document.getElementById('viewCardSection')) {
-				cardView.closeCardView();
-			}
 			for(;i < selectedCollection.cards.length; i++) {
 				obj = selectedCollection.cards[i];
 				if(cardId.indexOf(obj.id) !== -1) {
@@ -868,7 +862,6 @@
 					break;
 				}
 			}
-
 
 			// DRY: Wstawić to do osobnej funkcji
 			//      updateCardCollections()
@@ -882,16 +875,14 @@
 			localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
 			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
 		
-			init(pagination.selectedPage);
-			pagination.init();	
-			cardCounter.init();
+			events.emit('collectionCardsChange');
+
+			_render(selectedPage);
 		}
 
 		return {
-			init: init,
 			setCardsPerPage: setCardsPerPage,
 			setCardsWrapperHeight: setCardsWrapperHeight,
-			setCardPreviewHeight: setCardPreviewHeight,
 			removeCard: removeCard
 		};
 
@@ -903,14 +894,13 @@
 	 */
 	var cardMiniature = (function() {
 		var selectedCollection;
+		
+		// Bind Events
+		events.on('cardMiniatureCreate', render);
 
-		function init(card) {
+		function render(card) {
 			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection;
 
-			_render(card);
-		}
-						
-		function _render(card) {
 			var thumbs = '',
 				timeString = '';
 
@@ -978,9 +968,12 @@
 					parentId = (element.parentNode && element.parentNode.id) ? element.parentNode.id.slice(-5) : '';
 
 				if (utils.hasClass(element, 'edit-card')) {
-					if (document.getElementById('viewCardSection')) {
-						cardView.closeCardView();
-					}
+					
+					// This is one should go directly into cardView module
+					//if (document.getElementById('viewCardSection')) {
+					//	cardView.closeCardView();
+					//}
+
 					var editableCard = '',
 						i = 0,
 						obj;
@@ -992,13 +985,15 @@
 							break;
 						}
 					}
-					cardForm.init(editableCard);	
+					events.emit('editCardClick', editableCard);
 			    } else if (utils.hasClass(element, 'remove-card')) {
-					cards.removeCard(parentId); 
+					events.emit('cardRemove', parentId);
 			    } else if (utils.hasClass(element, 'data-details')) {
-					if (document.getElementById('viewCardSection')) {
-						cardView.closeCardView();
-					}		
+					
+					// This is one should go directly into cardView module
+					//if (document.getElementById('viewCardSection')) {
+					//	cardView.closeCardView();
+					//}		
 					
 					var viewedCard = '',
 						i = 0;
@@ -1012,16 +1007,21 @@
 						}
 					}
 
-					cardView.viewedCardIndex = i + 1;
-					cardView.init(viewedCard);
+					//cardView.viewedCardIndex = i + 1;
+
+					events.emit('viewedCardIndexChange', i + 1);
+					events.emit('cardViewShow', viewedCard);					
 				} else if (utils.hasClass(element, 'card-author-anchor')) {
 					searchCards.value = element.text;
 					categorySearchSelect.getElementsByTagName('option')[3].selected = 'selected';
-					topicSelect.getElementsByTagName('option')[0].selected = 'selected';
-					topicSelector.selectedTopic = topicSelect.options[topicSelect.selectedIndex].value;
-					localStorage.setItem("selectedTopic", JSON.stringify(topicSelector.selectedTopic));
-					topicSelector.selectCardsByTopic();		
-					searchCards.searchCard();
+					
+					// Is this really necessary?
+					//topicSelect.getElementsByTagName('option')[0].selected = 'selected';
+					//topicSelector.selectedTopic = topicSelect.options[topicSelect.selectedIndex].value;
+					//localStorage.setItem("selectedTopic", JSON.stringify(topicSelector.selectedTopic));
+					
+					events.emit('selectCardsByTopicChange');
+					events.emit('searchCardsByAuthorChange');
 				} else if (utils.hasClass(element, 'card-topic-anchor')) {
 					var i = 0;
 
@@ -1032,20 +1032,18 @@
 							topicSelector.topicSelect.getElementsByTagName('option')[i+1].selected = 'selected';
 						}
 					}
+					// to trzeba pobierać z bazy jak już
 					topicSelector.selectedTopic = topicSelector.topicSelect.options[topicSelector.topicSelect.selectedIndex].value;
 					localStorage.setItem("selectedTopic", JSON.stringify(topicSelector.selectedTopic));
-					topicSelector.selectCardsByTopic();
+					
+					events.emit('selectCardsByTopicChange');
+				
 				} else if (utils.hasClass(element, 'card-thumb')) {
 					var viewImg = window.open("", "Image Preview", "height=500,width=500");
 					viewImg.document.write('<img src="' + element.src + '" />');
 				}
-			}.bind(this));
-		}	
-
-		return {
-			init: init
-		};
-
+			});
+		}
 	})();
 
 	/**
@@ -1059,15 +1057,14 @@
 		//CacheDOM
 		var collectionSelect = document.getElementById('collectionSelect');
 
-		function init(editableCard) {
+		events.on('createCardBtnClick', _render);
+		events.on('editCardClick', _render);
+				
+		function _render(editableCard) {
 			collections = JSON.parse(localStorage.getItem("Collections")) || data.defaultCollection,
 			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
 			editableCard = editableCard || false;
-			
-			_render(editableCard);					
-		}
-				
-		function _render(editableCard) {
+
 			if (document.getElementById('createCardSection')) {
 				return false;
 			}
@@ -1311,7 +1308,6 @@
 		}
 
 		return {
-			init: init,
 			createCard: createCard
 		};
 
@@ -1325,12 +1321,10 @@
 		var selectedCollection,
 			viewType,
 			viewedCardIndex;
-
-		function init(viewedCard) {		
-			_render(viewedCard);
-		}
 		
 		events.on('deatailsViewChange', _render);
+		events.on('viewedCardIndexChange', _viewedCardIndexChange);
+		events.on('cardViewShow', _render);
 
 		function _render(viewedCard) {
 				selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
@@ -1439,14 +1433,14 @@
 					}
 					closeCardView();
 					viewedCardIndex -= 1;
-					init(selectedCollection.cards[viewedCardIndex - 1]);
+					_render(selectedCollection.cards[viewedCardIndex - 1]);
 				} else if (utils.hasClass(element, 'next-card-link')) {
 					if(viewedCardIndex === selectedCollection.cards.length) {
 						return false;
 					}
 					closeCardView();
 					viewedCardIndex += 1;
-					init(selectedCollection.cards[viewedCardIndex - 1]);
+					_render(selectedCollection.cards[viewedCardIndex - 1]);
 				} else if (utils.hasClass(element, 'edit-card')) {
 					closeCardView();					
 					cardForm.init(selectedCollection.cards[viewedCardIndex - 1]);
@@ -1472,6 +1466,11 @@
 				var fogBlanket = document.getElementById("fogBlanket");
 				fogBlanket.parentNode.removeChild(fogBlanket);		
 			}
+		}
+
+		function _viewedCardIndexChange(index) {
+			viewedCardIndex = index;
+			return viewedCardIndex;
 		}
 
 		function _countView(viewedCard) {
@@ -1519,7 +1518,6 @@
 		}
 
 		return {
-			init: init,
 			closeCardView: closeCardView
 		};
 
@@ -1690,12 +1688,12 @@
 		})()
 				
 		function bindEvents() {
-			// funkcja render poniżej pobiera nieprawidłową liczbę widocznych kart (po zrobieniu searcha)
 			events.on('searchCardCompleted', render);
 			events.on('setFlashcardsOnly', render);
 			events.on('selectCollection', render);
 			events.on('viewChange', render);
 			events.on('collectionChange', render);
+			events.on('collectionCardsChange', render);
 		}
 		
 		function render() {
@@ -1722,9 +1720,8 @@
 				html += '	<ul id="paginationList" class="pagination-list">' + buttons + '</ul>';
 			
 			pseudoFooter.innerHTML = html;
-			_setCurrentPageClass();
-
-
+			setCurrentPageClass();
+			
 			document.addEventListener("click", function(e) {
 				var element = e.target,
 					paginationList = document.getElementById('paginationList');
@@ -1738,12 +1735,12 @@
 					selectedPage = page;
 					localStorage.setItem("selectedPage", JSON.stringify(page));
 					
-					cards.init(page);
+					events.emit('paginationSelectedPageChange', selectedPage);
 				}
 			});			
 		}
 		
-		function _setCurrentPageClass() {
+		function setCurrentPageClass() {
 			var paginationList = document.getElementById('paginationList');
 			
 			if (paginationList.childNodes[parseInt(selectedPage) - 1]) {
@@ -1753,10 +1750,6 @@
 				paginationList.childNodes[parseInt(pagesCount) - 1].className += ' current-page';
 			}
 		}
-
-		return {
-			selectedPage: selectedPage
-		};
 
 	})();
 
@@ -1769,7 +1762,7 @@
 			selectedCollection;
 		
 		//CacheDOM
-		var topicSelect = document.getElementById("topicSelect");		
+		var topicSelect = document.getElementById('topicSelect');		
 
 		var init = (function() {
 			bindEvents();
@@ -1777,10 +1770,12 @@
 		})();
 		
 		function bindEvents() {
-			topicSelect.addEventListener("change", selectCardsByTopic.bind(this));
+			topicSelect.addEventListener('change', selectCardsByTopic.bind(this));
 
-			events.on("collectionSelect", getTopics);
-			events.on("collectionChange", render);
+			events.on('collectionSelect', getTopics);
+			events.on('collectionChange', render);
+			events.on('collectionTopicsChanged', render);	
+			events.on('selectCardsByTopicChange', selectCardsByTopic);
 		}
 		
 		function render() {
@@ -1819,12 +1814,12 @@
 			if (element === '-1' || element === -1) {
 				selectedTopic = topicSelect.options[topicSelect.selectedIndex].value;
 				localStorage.setItem("selectedTopic", JSON.stringify(selectedTopic));
-				cards.init(pagination.selectedPage);
+				events.emit('topicSelect');
 			} else if (element === 'addNewTopic') {
-				topicForm.init();
+				events.emit('topicSelect');
 			} else {
 				element = parseInt(element);		
-				cards.init(pagination.selectedPage);
+				events.emit('topicSelect');
 				element = (element === '0') ? 0 : element;
 				
 				for(var i = 0; i < selectedCollection.cards.length; i++) {
@@ -1854,17 +1849,19 @@
 	 *
 	 */
 	var topicForm = (function() {
-		var selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
-			selectedCollectionIndex = JSON.parse(localStorage.getItem("selectedCollectionIndex")) || 0;
+		var selectedCollection,
+			selectedCollectionIndex;
 
-		function init() {
-			_render();
-		}
+		// Bind Events
+		events.on('topicSelect', render);
 		
-		function _render() {
+		function render() {
 			if (document.getElementById('topicSection')) {
 				return false;
 			}
+
+			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || data.defaultCollection,
+			selectedCollectionIndex = JSON.parse(localStorage.getItem("selectedCollectionIndex")) || 0;
 
 			var html = '';
 				html += '	<form id="topicForm">';
@@ -1896,23 +1893,23 @@
 				cancelFormBtn = document.getElementById('cancelFormBtn'),
 				topicForm = document.getElementById('topicSection');
 
-			closeBtn.addEventListener('click', _closeTopicForm.bind(this));
-			cancelFormBtn.addEventListener('click', _closeTopicForm.bind(this));
-			fogBlanket.addEventListener('click', _closeTopicForm.bind(this));
+			closeBtn.addEventListener('click', closeTopicForm.bind(this));
+			cancelFormBtn.addEventListener('click', closeTopicForm.bind(this));
+			fogBlanket.addEventListener('click', closeTopicForm.bind(this));
 			topicForm.addEventListener('submit', function(event) {
 				event.preventDefault();
-				_createTopic(event);
-			}.bind(this));
+				createTopic(event);
+			});
 		}		
 		
-		function _closeTopicForm() {
+		function closeTopicForm() {
 			var topicForm = document.getElementById("topicForm").parentNode;
 			topicForm.parentNode.removeChild(topicForm);
 			topicSelect.getElementsByTagName('option')[0].selected = 'selected';
-			_closeTopicFormFogBlanket();
+			closeTopicFormFogBlanket();
 		}
 		
-		function _closeTopicFormFogBlanket() {
+		function closeTopicFormFogBlanket() {
 			var isFog = !!document.getElementById("fogBlanket");
 			
 			if(isFog) {
@@ -1921,7 +1918,7 @@
 			}
 		}
 		
-		function _createTopic(e) {
+		function createTopic(e) {
 			var topicValidationBox = document.getElementById('topicValidationBox'),
 				newTopicForm = document.getElementById('topicForm'),
 				topicName = document.getElementById('topicName'),
@@ -1949,17 +1946,16 @@
 			
 			// Setting new selectedCollection
 			localStorage.setItem("selectedCollection", JSON.stringify(selectedCollection));
+			
 			// Getting new selectedCollection for our modules		
-			topicSelector.selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
-			selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
-				
-			topicSelector.init();		
-			_closeTopicForm();
+			// This are prapably unnecesary
+			//topicSelector.selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
+			//selectedCollection = JSON.parse(localStorage.getItem("selectedCollection")) || collections[0];
+			
+			events.emit('collectionTopicsChanged');	
+			
+			closeTopicForm();
 		}
-
-		return {
-			init: init
-		};
 
 	})();
 
@@ -1980,41 +1976,41 @@
 			cardsWrapper = document.getElementById("cardsWrapper");
 
 		var init = (function() {
-			_bindEvents();
-			_render();
+			bindEvents();
+			render();
 		})();
 		
-		function _bindEvents() {
-			gridViewBtn.addEventListener("click", _toggleView);
-			listViewBtn.addEventListener("click", _toggleView);
-			detailsViewBtn.addEventListener("click", _toggleView);
+		function bindEvents() {
+			gridViewBtn.addEventListener("click", toggleView);
+			listViewBtn.addEventListener("click", toggleView);
+			detailsViewBtn.addEventListener("click", toggleView);
 		}
 
-		function _render() {
+		function render() {
 			//tu wstawić render buttonów do wyboru view type
 
 			getView();
 		}
 		
-		function _toggleView(e) {
+		function toggleView(e) {
 			var element = e.target;
 			
 			if (element.id === "gridViewBtn" && viewType !== 'grid-view') {
-				_switchGridView();
+				switchGridView();
 			} else if (element.id === "listViewBtn" && viewType !== 'list-view') {
-				_switchListView();	
+				switchListView();	
 			} else if (element.id === "detailsViewBtn" && viewType !== 'details-view') {
-				_switchDetailsView();	
+				switchDetailsView();	
 			}
 		}
 		
 		function getView() {
 			if(viewType === 'grid-view') {
-				_switchGridView();
+				switchGridView();
 			} else if (viewType === 'list-view') {
-				_switchListView();
+				switchListView();
 			} else {
-				_switchDetailsView();
+				switchDetailsView();
 			}
 		}
 
@@ -2022,9 +2018,9 @@
 			return cardsPerPage;
 		}
 		
-		function _switchGridView() {
+		function switchGridView() {
 			if (viewType === 'details-view') {
-				_removeCardPreview();
+				removeCardPreview();
 			}	
 			viewType = 'grid-view';
 			cardsWrapper.className = 'grid-view';
@@ -2037,9 +2033,9 @@
 			events.emit('viewChange');
 		}
 		
-		function _switchListView() {
+		function switchListView() {
 			if (viewType === 'details-view') {
-				_removeCardPreview();
+				removeCardPreview();
 			}	
 			viewType = 'list-view';
 			cardsWrapper.className = 'list-view';
@@ -2052,7 +2048,7 @@
 			events.emit('viewChange');		
 		}
 		
-		function _switchDetailsView() {
+		function switchDetailsView() {
 			viewType = 'details-view';
 			cardsWrapper.className = 'details-view';
 			detailsViewBtn.className += ' active';
@@ -2060,7 +2056,7 @@
 			gridViewBtn.className = gridViewBtn.className.replace( /(?:^|\s)active(?!\S)/g , '' );
 			localStorage.setItem("viewType", JSON.stringify(viewType));
 			
-			_createCardPreview();			
+			createCardPreview();			
 			
 			events.emit('switchView', viewType);			
 			events.emit('viewChange');
@@ -2069,7 +2065,7 @@
 			//cardView.init(selectedCollection.cards[0]);
 		}
 		
-		function _createCardPreview() {
+		function createCardPreview() {
 			var html = '';
 
 			html += '<div id="cardField" class="card-preview-sheet"></div>';
@@ -2079,17 +2075,20 @@
 			cardPreview.className = "card-preview";
 			cardPreview.innerHTML = html.trim();
 			sectionWrapper.appendChild(cardPreview);
-			cards.setCardPreviewHeight();	
+			setCardPreviewHeight();	
 		}
 		
-		function _removeCardPreview() {
+		function removeCardPreview() {
 			var cardPreview = document.getElementById("cardPreview");
 			cardPreview.parentNode.removeChild(cardPreview);	
 		}
 
-		return {
-			init: init
-		};
+		function setCardPreviewHeight() {
+			var cardPreviewHeight = window.innerHeight - (document.getElementById("header").offsetHeight + document.getElementById("cardsFilter").offsetHeight + document.getElementById("pseudoFooter").offsetHeight),
+				cardPreview = document.getElementById('cardPreview');
+			
+			cardPreview.style.height = cardPreviewHeight + 'px';
+		}
 
 	})();
 
