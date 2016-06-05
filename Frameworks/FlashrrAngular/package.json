@@ -1,0 +1,23 @@
+{
+  "name": "flashrr-angular",
+  "version": "1.0.0",
+  "description": "Flashrr is a knowledge management tool that helps you organize data in the clear form of flashcard collections",
+  "main": "app/index.html",
+  "scripts": {
+    "start": "http-server -a localhost -p 8000 -c-1 ./app"
+  },
+  "keywords": [
+    "flashrr",
+    "webapp",
+    "knowledge",
+    "Angular",
+    "AngularJS",
+    "tool"
+  ],
+  "author": "Pawel Kubera",
+  "license": "MIT",
+  "devDependencies": {
+    "bower": "^1.7.7",
+    "http-server": "^0.9.0"
+  }
+}

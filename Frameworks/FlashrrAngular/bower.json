@@ -1,0 +1,14 @@
+{
+  "name": "flashrr-angular",
+  "description": "Flashrr is a knowledge management tool that helps you organize data in the clear form of flashcard collections",
+  "version": "1.0.0",
+  "homepage": "https://github.com/pawelqbera/FlashrrApp",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "angular": "1.5.x",
+    "angular-mocks": "1.5.x",
+    "angular-resource": "1.5.x",
+    "angular-route": "1.5.x"
+  }
+}

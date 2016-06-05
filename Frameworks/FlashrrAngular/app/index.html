@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en" ng-app="flashrrApp">
+  <head>
+    <meta charset="utf-8">
+    <title>Flashrr - Knowledge Management Tool made with AngularJS</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,600,300' rel='stylesheet' type='text/css'>    
+    <script src="bower_components/angular/angular.js"></script>
+    <script src="bower_components/angular-resource/angular-resource.js"></script>
+    <script src="bower_components/angular-route/angular-route.js"></script>
+    <script src="app.module.js"></script>
+  </head>
+  <body>
+    <div class="page" id="pageWrapper">
+      <header id="header">
+        <nav>
+          <ul>
+            <li><a href="#" class="logo"><img src="images/flashrr-logo.png" alt="Flashrr" /></a></li>
+            <li><a id="createCardBtn" class="btn btn-primary create-card">Create Card</a></li>
+            <li>
+              <select name="topicSelect" id="topicSelect"></select>
+            </li>
+            <li class="header-label">
+              <span id="cardCounter" class="card-counter">0</span> Cards
+            </li>
+            <li class="header-label">
+              <label><input id="showFlashcardsOnly" type="checkbox">Display flashcards only</label>
+            </li>
+          </ul>
+          <ul class="right-nav">
+            <li class="relative">
+              <span class="collectionSelectLabel">Collections:</span>
+              <select name="collectionSelect" id="collectionSelect"></select>
+            </li>
+            <li class="relative">
+              <input id="searchCards" class="search-cards" type="text" placeholder="Search">
+              <i class="fa fa-search"></i>
+              <div id="searchCategoryWrapper" class="search-category-wrapper" >
+                <select name="categorySearchSelect" id="categorySearchSelect">
+                  <option value="title">by title</option>
+                  <option value="text">by text</option>
+                  <option value="tags">by tag</option>
+                  <option value="author">by authors</option>
+                </select>
+              </div>
+            </li>
+            <li>
+              <a id="gridViewBtn" class="btn btn-secondary switch-view">Grid View</a>
+              <a id="listViewBtn" class="btn btn-secondary switch-view">List View</a>
+              <a id="detailsViewBtn" class="btn btn-secondary switch-view">Details View</a>
+            </li>
+            <li class="greet-user header-label">Hi, <span id="hiUserName"></span>!</li>
+          </ul>
+        </nav>
+      </header>
+      <div id="sectionWrapper" class="section-wrapper">
+        <div id="cardsFilter" class="cards-filter">
+          Sort by
+          <select>
+            <option value="date">Date</option>            
+            <option value="popularity">Popularity</option>
+            <option value="title">Title</option>
+          </select>
+        </div>
+        <section id="cardsWrapper" class="cards-wrapper grid-view"></section>
+      </div>
+      <div class="pseudo-footer" id="pseudoFooter"></div>
+    </div>
+  </body>
+</html>
