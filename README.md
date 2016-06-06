@@ -99,13 +99,17 @@ All versions of Flashrr can be simply be downloaded and opened in the browser lo
 - major bug-fixing
 
 ## 0.6.0 (Vanilla, Revealing Module Pattern)
-- re-factor to follow
+- re-factor to follow Revealing Module Pattern
 - major bug-fixing
 
-## Currently working on Flashrr 0.7.0, Vanilla, PubSub Pattern
+## 0.7.0 (Vanilla, PuSub Pattern)
+- re-factor to follow Revealing Module Pattern
 
-## Features to be added in 0.7.0 (PubSub Pattern)
-- Refactor to follow the PubSub Pattern
+## Currently working on FlashrrAngular, Frameworks
+
+## Features to be added in FlashrrAngular (Angular JS)
+- implement very basic NodeJS workflow
+- rewrite the Flashrr app with AngularJS 1.x framework
 
 ## Bugs
 
